@@ -41,6 +41,7 @@ PowerShell:
 $env:SEOUL_OPENDATA_KEY   = "..."   # 서울 열린데이터광장
 $env:DATAGOKR_SERVICE_KEY = "..."   # data.go.kr (공정위 등)
 $env:FTC_FRANCHISE_KEY    = "..."   # franchise.ftc.go.kr
+$env:REB_RONE_KEY         = "..."   # 한국부동산원 R-ONE
 ```
 
 ### 4. 실행
@@ -50,6 +51,7 @@ python scripts/data-load/01_load_trdar_from_shapefile.py   # TRDAR 1,650 (폴리
 python scripts/data-load/02_seed_quarters_and_inspect.py   # DIM_QUARTER 48분기
 python scripts/data-load/03_load_seoul_facts.py            # 서울 7개 팩트 ~220만행 + INDUTY (수십 분)
 python scripts/data-load/04_load_franchise.py              # 공정위 프랜차이즈 3종
+python scripts/data-load/05_load_commercial_rent.py        # 한국부동산원 임대동향 COMMERCIAL_RENT ~8만행
 ```
 
 접속 정보가 다르면 각 스크립트 상단의 `USER/PW/DSN`만 바꾼다 (팀 공유 DB로 옮길 때 여기만 수정).
@@ -61,4 +63,5 @@ python scripts/data-load/04_load_franchise.py              # 공정위 프랜차
 - `03`은 시작할 때 **FK와 값-범위 CHECK 제약을 자동 비활성화**한다 (개업률 0~100 같은 제약을 실데이터가 안 지키는 경우가 있어서). 되돌리려면 `ALTER TABLE ... ENABLE CONSTRAINT`.
 - `01`은 TRDAR의 `CK_TRDAR_GEO`(GEO_JSON IS JSON) 제약을 제거한다 (XE 21c에서 CLOB insert와 충돌).
 - 좌표계: EPSG:5181(Korea 2000 중부원점) → EPSG:4326(WGS84).
-- 임대료(COMMERCIAL_RENT)·창업지원(SUPPORT_PROGRAM)은 담당자가 별도 진행 (이슈 #8, #10).
+- `05`는 R-ONE 통계표 목록에서 상업용부동산 임대동향(임대료·공실률·투자수익률·임대가격지수 × 오피스/중대형/소규모/집합상가)을 골라 적재한다. 임대가격지수는 시계열표, 나머지는 2019~2022~ 표를 쓰고 DIM_QUARTER(2015~) 범위만 남긴다. STATBL_ID는 표 이름으로 자동 선정한다.
+- 창업지원(SUPPORT_PROGRAM)은 담당자가 별도 진행 (이슈 #10).
