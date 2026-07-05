@@ -1,0 +1,32 @@
+name: 버그 리포트
+description: 동작이 이상하거나 에러가 날 때
+title: "[버그] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        수정 브랜치는 `fix/{이슈번호}-{설명}`, 커밋은 `fix: {설명} (#이슈번호)` 형식으로 작성합니다.
+  - type: textarea
+    id: problem
+    attributes:
+      label: 무슨 문제
+      placeholder: 무엇이 어떻게 잘못됐는지 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 재현 순서
+      value: |
+        1.
+        2.
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대한 동작
+  - type: textarea
+    id: logs
+    attributes:
+      label: 화면 / 에러 로그
+      description: 에러 메시지나 스크린샷을 붙여주세요.

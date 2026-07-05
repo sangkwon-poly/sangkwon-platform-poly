@@ -1,0 +1,46 @@
+name: 기능 개발
+description: 새 기능 또는 WBS 작업 단위
+title: "[기능] "
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        브랜치는 `feature/{이슈번호}-{설명}`, 커밋은 `{타입}: {설명} (#이슈번호)` 형식으로 작성합니다.
+  - type: dropdown
+    id: type
+    attributes:
+      label: 커밋 타입
+      description: 이 작업에 쓸 커밋 타입을 고르세요. 브랜치와 커밋 메시지에 그대로 사용합니다.
+      options:
+        - "feat (기능 추가)"
+        - "docs (문서)"
+        - "refactor (리팩터링)"
+        - "test (테스트)"
+        - "chore (설정/빌드)"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: 무엇을 만드나
+      placeholder: 구현할 기능을 한두 줄로 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: 완료 기준
+      value: |
+        - [ ]
+        - [ ]
+  - type: input
+    id: scope
+    attributes:
+      label: 관련 화면 / API / 테이블
+      placeholder: 예) MAP-01, /api/layer, SALES
+  - type: input
+    id: owner
+    attributes:
+      label: 담당 / 기간
+      placeholder: 예) 이상혁, ~7/14
