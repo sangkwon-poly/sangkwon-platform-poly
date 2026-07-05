@@ -64,6 +64,21 @@ for t, c in fks:
     cur.execute(f'ALTER TABLE "{t}" DISABLE CONSTRAINT "{c}"')
 log(f"FK {len(fks)}개 비활성화")
 
+# 값-범위 CHECK 제약 비활성화 (개업률 0~100 등 실데이터가 안 지키는 경우 대비)
+load_tables = [t for _, t, _, _ in DATASETS] + ["INDUTY"]
+ph = ",".join("'" + t + "'" for t in load_tables)
+cur.execute("SELECT table_name, constraint_name FROM user_constraints "
+            "WHERE constraint_type='C' AND status='ENABLED' AND table_name IN (" + ph + ") "
+            "AND (search_condition_vc IS NULL OR search_condition_vc NOT LIKE '%IS NOT NULL%')")
+nck = 0
+for t, c in cur.fetchall():
+    try:
+        cur.execute(f'ALTER TABLE "{t}" DISABLE CONSTRAINT "{c}"')
+        nck += 1
+    except oracledb.DatabaseError:
+        pass
+log(f"값-체크 {nck}개 비활성화")
+
 induty = {}  # code -> name
 
 for svc, tbl, rename, has_induty in DATASETS:
