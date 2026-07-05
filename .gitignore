@@ -41,3 +41,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# Python
+__pycache__/
+*.pyc
+scripts/data-load/load_progress.log
+scripts/data-load/_trdar_tmp/
