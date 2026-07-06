@@ -27,10 +27,12 @@ public class DistrictController {
         return ApiResponse.ok(districtService.getDistricts(request));
     }
 
-    // 지도 폴리곤용 상권 경계 조회
+    // 지도 폴리곤용 상권 경계 조회 (trdarCd를 주면 해당 상권 하나만)
     @GetMapping("/geo")
-    public ApiResponse<List<DistrictGeoResponse>> getGeometries(DistrictSearchRequest request) {
-        return ApiResponse.ok(districtService.getGeometries(request));
+    public ApiResponse<List<DistrictGeoResponse>> getGeometries(
+            DistrictSearchRequest request,
+            @RequestParam(required = false) String trdarCd) {
+        return ApiResponse.ok(districtService.getGeometries(request, trdarCd));
     }
 
     // 상권 요약 검색 (매출·유동·점포·변화)

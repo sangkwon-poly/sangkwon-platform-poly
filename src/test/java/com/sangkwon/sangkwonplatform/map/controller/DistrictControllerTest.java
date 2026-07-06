@@ -31,7 +31,7 @@ class DistrictControllerTest {
     @Test
     void 상권_목록을_200으로_반환한다() throws Exception {
         DistrictResponse gangnam = new DistrictResponse(
-                "3110001", "역삼역", "A", "골목상권", "강남구",
+                "3110001", "역삼역", "A", "골목상권", "11680", "강남구",
                 new BigDecimal("127.03"), new BigDecimal("37.50"));
         when(districtService.getDistricts(any())).thenReturn(List.of(gangnam));
 
@@ -46,7 +46,7 @@ class DistrictControllerTest {
     void 상권_경계를_200으로_반환한다() throws Exception {
         DistrictGeoResponse geo = new DistrictGeoResponse(
                 "3110001", "역삼역", "{\"type\":\"Polygon\",\"coordinates\":[]}");
-        when(districtService.getGeometries(any())).thenReturn(List.of(geo));
+        when(districtService.getGeometries(any(), any())).thenReturn(List.of(geo));
 
         mvc.perform(get("/api/districts/geo"))
                 .andExpect(status().isOk())
@@ -58,7 +58,7 @@ class DistrictControllerTest {
     @Test
     void 단일_상권을_200으로_반환한다() throws Exception {
         DistrictResponse d = new DistrictResponse(
-                "3110001", "역삼역", "A", "골목상권", "강남구",
+                "3110001", "역삼역", "A", "골목상권", "11680", "강남구",
                 new BigDecimal("127.03"), new BigDecimal("37.50"));
         when(districtService.getDistrict("3110001")).thenReturn(d);
 
@@ -70,7 +70,9 @@ class DistrictControllerTest {
     @Test
     void 상권_요약_검색을_200으로_반환한다() throws Exception {
         DistrictSummaryResponse s = new DistrictSummaryResponse(
-                "3110001", "역삼역", "강남구", 74_000_000_000L, 590_000L, 3596L, "HH");
+                "3110001", "역삼역", "강남구",
+                new BigDecimal("127.03"), new BigDecimal("37.50"),
+                74_000_000_000L, 590_000L, 3596L, "LL", "다이나믹", "20261");
         when(districtService.getSummaries(null, null, "강남")).thenReturn(List.of(s));
 
         mvc.perform(get("/api/districts/summary").param("keyword", "강남"))

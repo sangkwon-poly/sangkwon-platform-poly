@@ -65,14 +65,27 @@ class DistrictServiceTest {
         DistrictGeo geo = mock(DistrictGeo.class);
         when(geo.getTrdarCd()).thenReturn("3110001");
         when(geo.getGeoJson()).thenReturn(null);   // CLOB 읽기는 앱 구동 검증에서 확인
-        when(trdarRepository.searchGeo("11680", null)).thenReturn(List.of(geo));
+        when(trdarRepository.searchGeo("11680", null, null)).thenReturn(List.of(geo));
 
         List<DistrictGeoResponse> result =
-                districtService.getGeometries(new DistrictSearchRequest("11680", null));
+                districtService.getGeometries(new DistrictSearchRequest("11680", null), null);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).trdarCd()).isEqualTo("3110001");
-        verify(trdarRepository).searchGeo("11680", null);
+        verify(trdarRepository).searchGeo("11680", null, null);
+    }
+
+    @Test
+    void 상권코드로_경계_하나만_조회한다() {
+        DistrictGeo geo = mock(DistrictGeo.class);
+        when(geo.getTrdarCd()).thenReturn("3110001");
+        when(trdarRepository.searchGeo(null, null, "3110001")).thenReturn(List.of(geo));
+
+        List<DistrictGeoResponse> result =
+                districtService.getGeometries(new DistrictSearchRequest(null, null), "3110001");
+
+        assertThat(result).hasSize(1);
+        verify(trdarRepository).searchGeo(null, null, "3110001");
     }
 
     @Test
@@ -99,6 +112,7 @@ class DistrictServiceTest {
         DistrictSummary s = mock(DistrictSummary.class);
         when(s.getTrdarCd()).thenReturn("3110001");
         when(s.getSalesAmt()).thenReturn(74_000_000_000L);
+        when(s.getQuarter()).thenReturn("20261");
         when(trdarRepository.searchSummary(null, null, "강남")).thenReturn(List.of(s));
 
         List<DistrictSummaryResponse> result = districtService.getSummaries(null, null, "강남");
@@ -106,6 +120,7 @@ class DistrictServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).trdarCd()).isEqualTo("3110001");
         assertThat(result.get(0).salesAmt()).isEqualTo(74_000_000_000L);
+        assertThat(result.get(0).quarter()).isEqualTo("20261");
         verify(trdarRepository).searchSummary(null, null, "강남");
     }
 }

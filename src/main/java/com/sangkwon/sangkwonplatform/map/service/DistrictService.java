@@ -26,9 +26,9 @@ public class DistrictService {
                 .toList();
     }
 
-    // 지도 폴리곤용 상권 경계(GeoJSON) 목록
-    public List<DistrictGeoResponse> getGeometries(DistrictSearchRequest request) {
-        return trdarRepository.searchGeo(request.signguCd(), request.trdarSeCd()).stream()
+    // 지도 폴리곤용 상권 경계(GeoJSON) 목록. trdarCd를 주면 해당 상권 하나만.
+    public List<DistrictGeoResponse> getGeometries(DistrictSearchRequest request, String trdarCd) {
+        return trdarRepository.searchGeo(request.signguCd(), request.trdarSeCd(), trdarCd).stream()
                 .map(DistrictGeoResponse::from)
                 .toList();
     }

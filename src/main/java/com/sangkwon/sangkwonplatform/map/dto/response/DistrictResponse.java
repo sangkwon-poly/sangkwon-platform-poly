@@ -9,6 +9,7 @@ public record DistrictResponse(
         String trdarNm,
         String seCd,
         String seNm,
+        String signguCd,
         String signguNm,
         BigDecimal centerLot,
         BigDecimal centerLat
@@ -19,6 +20,7 @@ public record DistrictResponse(
                 t.getTrdarCdNm(),
                 t.getTrdarSeCd(),
                 t.getTrdarSeCdNm(),
+                t.getSignguCd(),
                 t.getSignguNm(),
                 t.getCenterLot(),
                 t.getCenterLat()
