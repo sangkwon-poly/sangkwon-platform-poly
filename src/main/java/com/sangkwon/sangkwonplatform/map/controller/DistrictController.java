@@ -7,6 +7,7 @@ import com.sangkwon.sangkwonplatform.map.dto.response.DistrictResponse;
 import com.sangkwon.sangkwonplatform.map.service.DistrictService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,5 +29,11 @@ public class DistrictController {
     @GetMapping("/geo")
     public ApiResponse<List<DistrictGeoResponse>> getGeometries(DistrictSearchRequest request) {
         return ApiResponse.ok(districtService.getGeometries(request));
+    }
+
+    // 단일 상권 조회 (상세 화면용)
+    @GetMapping("/{trdarCd}")
+    public ApiResponse<DistrictResponse> getDistrict(@PathVariable String trdarCd) {
+        return ApiResponse.ok(districtService.getDistrict(trdarCd));
     }
 }

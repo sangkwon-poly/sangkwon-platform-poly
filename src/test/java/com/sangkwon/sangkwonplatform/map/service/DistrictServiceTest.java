@@ -11,10 +11,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -68,5 +71,24 @@ class DistrictServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).trdarCd()).isEqualTo("3110001");
         verify(trdarRepository).searchGeo("11680", null);
+    }
+
+    @Test
+    void 단일_상권을_조회한다() {
+        Trdar trdar = mock(Trdar.class);
+        when(trdar.getTrdarCd()).thenReturn("3110001");
+        when(trdarRepository.findById("3110001")).thenReturn(Optional.of(trdar));
+
+        DistrictResponse result = districtService.getDistrict("3110001");
+
+        assertThat(result.trdarCd()).isEqualTo("3110001");
+    }
+
+    @Test
+    void 없는_상권이면_예외() {
+        when(trdarRepository.findById("nope")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> districtService.getDistrict("nope"))
+                .isInstanceOf(ResponseStatusException.class);
     }
 }

@@ -37,8 +37,8 @@
     <!-- 제목 바 -->
     <div class="detail-titlebar">
       <div class="detail-heading">
-        <p class="detail-crumb">지도 › 강남구 › 역삼동</p>
-        <h1 class="detail-title">역삼동 상권 <span class="detail-title-sub">· 강남구</span></h1>
+        <p class="detail-crumb" id="detail-crumb">지도 › 강남구 › 역삼동</p>
+        <h1 class="detail-title" id="detail-title">역삼동 상권 <span class="detail-title-sub">· 강남구</span></h1>
       </div>
       <a class="detail-btn" href="/map/compare.html">＋ 비교 담기</a>
       <button type="button" class="detail-btn">저장</button>
@@ -47,19 +47,19 @@
 
     <!-- 지표 카드 4종 -->
     <section class="detail-kpis" aria-label="주요 지표">
-      <article class="kpi card">
+      <article class="kpi card" data-kpi="sales">
         <p class="kpi-label">추정 매출</p>
         <p class="kpi-value"><span class="kpi-num">740</span><span class="kpi-unit">억/월</span><span class="kpi-delta up">+8.2%</span></p>
       </article>
-      <article class="kpi card">
+      <article class="kpi card" data-kpi="pop">
         <p class="kpi-label">유동인구</p>
         <p class="kpi-value"><span class="kpi-num">59</span><span class="kpi-unit">만/월</span><span class="kpi-delta up">+3.1%</span></p>
       </article>
-      <article class="kpi card">
+      <article class="kpi card" data-kpi="store">
         <p class="kpi-label">점포 수</p>
         <p class="kpi-value"><span class="kpi-num">3,596</span><span class="kpi-unit">개</span><span class="kpi-delta down">-1.4%</span></p>
       </article>
-      <article class="kpi card">
+      <article class="kpi card" data-kpi="rent">
         <p class="kpi-label">평균 임대료</p>
         <p class="kpi-value"><span class="kpi-num">157</span><span class="kpi-unit">천원/㎡</span><span class="kpi-delta down">+5.0%</span></p>
       </article>
@@ -135,5 +135,6 @@
     </div>
   </main>
 </div>
+<script src="/js/map/trdar-detail.js" defer></script>
 </body>
 </html>

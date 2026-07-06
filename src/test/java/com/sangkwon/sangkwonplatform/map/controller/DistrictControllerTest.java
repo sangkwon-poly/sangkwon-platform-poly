@@ -53,4 +53,16 @@ class DistrictControllerTest {
                 .andExpect(jsonPath("$.data[0].trdarCd").value("3110001"))
                 .andExpect(jsonPath("$.data[0].geoJson").exists());
     }
+
+    @Test
+    void 단일_상권을_200으로_반환한다() throws Exception {
+        DistrictResponse d = new DistrictResponse(
+                "3110001", "역삼역", "A", "골목상권", "강남구",
+                new BigDecimal("127.03"), new BigDecimal("37.50"));
+        when(districtService.getDistrict("3110001")).thenReturn(d);
+
+        mvc.perform(get("/api/districts/3110001"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.trdarNm").value("역삼역"));
+    }
 }
