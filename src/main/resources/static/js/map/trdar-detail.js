@@ -43,11 +43,17 @@ function setKpi(key, num, unit, deltaPct) {
 }
 
 // 최근 12분기 매출 추이
+const EMPTY_NOTE = '<li style="list-style:none;color:#9a8c84;font-size:13px">데이터 없음</li>';
+
 function drawTrend(totals) {
     const recent = totals.slice(-12);
     const svg = document.querySelector(".trend-svg");
     const axis = document.querySelector(".trend-axis");
-    if (!svg || !recent.length) {
+    if (!svg) {
+        return;
+    }
+    if (!recent.length) {
+        axis.innerHTML = '<span style="color:#9a8c84">데이터 없음</span>';
         return;
     }
     const pts = trendPoints(recent.map((t) => t.v));
@@ -66,7 +72,11 @@ function drawTrend(totals) {
 // 업종 구성: 최근 분기 매출 상위 업종 비중
 function drawMix(sales) {
     const list = document.querySelector(".mix-list");
-    if (!list || !sales.length) {
+    if (!list) {
+        return;
+    }
+    if (!sales.length) {
+        list.innerHTML = EMPTY_NOTE;
         return;
     }
     const q = latestQuarter(sales);
@@ -88,6 +98,47 @@ function drawMix(sales) {
     }).join("");
 }
 
+// 요일 x 시간대 히트맵. 원천이 요일합·시간대합뿐이라 두 분포의 곱으로 추정한다.
+const HEAT_DAYS = [["월", "monSelngAmt"], ["화", "tuesSelngAmt"], ["수", "wedSelngAmt"], ["목", "thurSelngAmt"],
+    ["금", "friSelngAmt"], ["토", "satSelngAmt"], ["일", "sunSelngAmt"]];
+const HEAT_TIMES = [["00-06", "tmzon0006SelngAmt"], ["06-11", "tmzon0611SelngAmt"], ["11-14", "tmzon1114SelngAmt"],
+    ["14-17", "tmzon1417SelngAmt"], ["17-21", "tmzon1721SelngAmt"], ["21-24", "tmzon2124SelngAmt"]];
+const HEAT_COLORS = ["#f7efea", "#edcbbc", "#db9880", "#c0664e", "#a8412c", "#7e2a1b"];
+
+function drawHeat(sales) {
+    const box = document.getElementById("sales-heat");
+    if (!box) {
+        return;
+    }
+    const q = latestQuarter(sales);
+    const rows = sales.filter((s) => s.stdrYyquCd === q);
+    const daySum = HEAT_DAYS.map(([, f]) => rows.reduce((a, s) => a + (s[f] || 0), 0));
+    const timeSum = HEAT_TIMES.map(([, f]) => rows.reduce((a, s) => a + (s[f] || 0), 0));
+    const dayTotal = daySum.reduce((a, v) => a + v, 0);
+    const timeTotal = timeSum.reduce((a, v) => a + v, 0);
+    if (!dayTotal || !timeTotal) {
+        box.innerHTML = '<p style="color:#9a8c84;font-size:13px">데이터 없음</p>';
+        return;
+    }
+    // 셀 추정치 = 전체 x 요일 비중 x 시간대 비중
+    const cells = daySum.map((dv) => timeSum.map((tv) => dayTotal * (dv / dayTotal) * (tv / timeTotal)));
+    const max = Math.max(...cells.flat());
+
+    let html = '<div style="display:grid;grid-template-columns:34px repeat(6,1fr);gap:4px;align-items:center">';
+    html += "<span></span>" + HEAT_TIMES.map(([t]) =>
+        '<span style="font-size:11px;color:#8c7f78;text-align:center">' + t + "</span>").join("");
+    cells.forEach((row, i) => {
+        html += '<span style="font-size:12px;color:#5c5049">' + HEAT_DAYS[i][0] + "</span>";
+        row.forEach((v, j) => {
+            const color = HEAT_COLORS[Math.min(5, Math.floor((v / max) * 6))];
+            const tip = HEAT_DAYS[i][0] + " " + HEAT_TIMES[j][0] + "시 · 약 " + fmtEok(v) + "억 (분포 추정)";
+            html += '<span title="' + tip + '" style="height:26px;border-radius:5px;background:' + color + '"></span>';
+        });
+    });
+    html += "</div>";
+    box.innerHTML = html;
+}
+
 // 인접 경쟁 상권: 같은 자치구 매출 상위 4곳 + 직선거리
 function drawCompetitors(d, summaries) {
     const list = document.querySelector(".comp-list");
@@ -98,7 +149,11 @@ function drawCompetitors(d, summaries) {
         .filter((s) => s.signguNm === d.signguNm && s.trdarCd !== d.trdarCd)
         .sort((a, b) => (b.salesAmt || 0) - (a.salesAmt || 0))
         .slice(0, 4);
-    const maxAmt = near.length ? (near[0].salesAmt || 0) : 0;
+    if (!near.length) {
+        list.innerHTML = EMPTY_NOTE;
+        return;
+    }
+    const maxAmt = near[0].salesAmt || 0;
     list.innerHTML = near.map((s) => {
         const km = (d.centerLat != null && s.centerLat != null)
             ? distanceKm(+d.centerLat, +d.centerLot, +s.centerLat, +s.centerLot).toFixed(1) + "km" : "-";
@@ -148,8 +203,9 @@ async function load() {
     sales = sales || [];
     stores = stores || [];
     pop = pop || [];
-    // 인접 상권은 같은 자치구만 조회
-    const summaries = await apiData("/api/districts/summary?signguCd=" + d.signguCd).catch(() => []);
+    // 인접 상권(같은 자치구)과 임대료는 차트를 막지 않게 병렬로 시작만 해둔다
+    const summariesP = apiData("/api/districts/summary?signguCd=" + d.signguCd).catch(() => []);
+    const rentP = apiData("/api/rents?metricCd=RENT&regionCd=500002&rlstTyCd=" + encodeURIComponent("소규모상가")).catch(() => []);
 
     document.title = d.trdarNm + " 상권 상세 · 서울공화국";
     document.querySelector(".app-search-text").textContent = (d.signguNm || "") + " " + d.trdarNm;
@@ -180,31 +236,27 @@ async function load() {
         setKpi("store", "-", "", null);
     }
 
+    // 차트는 확보된 매출 데이터로 즉시 그린다
+    drawTrend(salesTotals);
+    drawMix(sales);
+    drawHeat(sales);
+
     // 임대료: 상권 단위 원천이 없어 서울 소규모상가 기준으로 표기
-    try {
-        const rent = await apiData("/api/rents?metricCd=RENT&regionCd=500002&rlstTyCd=" + encodeURIComponent("소규모상가"));
-        const label = document.querySelector('[data-kpi="rent"] .kpi-label');
-        if (label) {
-            label.textContent = "임대료(서울 소규모)";
-        }
-        if (rent.length) {
-            const q = latestQuarter(rent);
-            const rows = rent.filter((r) => r.stdrYyquCd === q);
-            const prevQ = [...new Set(rent.map((r) => r.stdrYyquCd))].sort().slice(-2)[0];
-            const prevRows = rent.filter((r) => r.stdrYyquCd === prevQ);
-            const pct = prevRows.length && prevRows[0].metricValue
-                ? ((rows[0].metricValue - prevRows[0].metricValue) / prevRows[0].metricValue) * 100 : null;
-            setKpi("rent", Math.round(rows[0].metricValue).toLocaleString(), "천원/㎡", pct);
-        } else {
-            setKpi("rent", "-", "", null);
-        }
-    } catch (e) {
+    const rent = await rentP;
+    if (rent.length) {
+        const quarters = [...new Set(rent.map((r) => r.stdrYyquCd))].sort();
+        const cur = rent.find((r) => r.stdrYyquCd === quarters[quarters.length - 1]);
+        // 분기가 둘 이상일 때만 전분기 대비를 계산한다
+        const prev = quarters.length >= 2
+            ? rent.find((r) => r.stdrYyquCd === quarters[quarters.length - 2]) : null;
+        const pct = prev && prev.metricValue
+            ? ((cur.metricValue - prev.metricValue) / prev.metricValue) * 100 : null;
+        setKpi("rent", Math.round(cur.metricValue).toLocaleString(), "천원/㎡", pct);
+    } else {
         setKpi("rent", "-", "", null);
     }
 
-    drawTrend(salesTotals);
-    drawMix(sales);
-    drawCompetitors(d, summaries || []);
+    drawCompetitors(d, await summariesP);
 }
 
 load().catch((err) => {

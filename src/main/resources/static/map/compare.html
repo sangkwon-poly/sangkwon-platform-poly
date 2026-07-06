@@ -9,6 +9,10 @@
   <link rel="stylesheet" href="/css/common.css">
   <link rel="stylesheet" href="/css/map/shell.css">
   <link rel="stylesheet" href="/css/map/compare.css">
+  <style>
+    /* 좁은 화면에서는 비교 카드를 1열로 */
+    @media (max-width: 720px) { .cmp-grid { grid-template-columns: 1fr !important; } }
+  </style>
 </head>
 <body>
 <div class="app">
@@ -26,16 +30,11 @@
     </div>
   </header>
 
-  <!-- 비교 본문 -->
-  <main class="compare scroll" aria-label="상권 비교">
-    <table class="cmp">
-      <caption class="sr-only">선택한 4개 상권의 지표 비교</caption>
-      <thead></thead>
-      <tbody></tbody>
-    </table>
-  </main>
+  <!-- 비교 본문: 2x2 지표 카드 -->
+  <main class="compare scroll" aria-label="상권 비교"></main>
 </div>
 <script src="/js/map/common.js"></script>
+<script src="/js/map/induty-map.js"></script>
 <script src="/js/map/compare.js" defer></script>
 </body>
 </html>

@@ -13,8 +13,10 @@ function currentRows() {
     const checkedGus = [...document.querySelectorAll("#filter-gu .check.is-on")]
         .map((li) => li.dataset.gu);
     const minSales = +document.getElementById("filter-minsales").value;
+    const kw = view.keyword;
     const sortKey = SORTS[view.sort].key;
     return view.all
+        .filter((d) => !kw || d.trdarNm.includes(kw) || (d.signguNm || "").includes(kw))
         .filter((d) => !checkedGus.length || checkedGus.includes(d.signguNm))
         .filter((d) => !minSales || (d.salesAmt || 0) >= minSales)
         .sort((a, b) => (b[sortKey] || 0) - (a[sortKey] || 0));
@@ -35,7 +37,7 @@ function buildRow(d, rank, maxAmt) {
         '<td class="rt-num"><b>' + fmtEok(amt) + '</b><span class="rt-unit"> 억</span><span class="minibar"><span style="width:' + width + '%;background:#c0664e"></span></span></td>' +
         '<td class="rt-num rt-plain">' + (d.flpop != null ? fmtMan(d.flpop) + " 만" : "-") + "</td>" +
         '<td class="rt-num rt-plain">' + (d.storeCnt != null ? d.storeCnt.toLocaleString() : "-") + "</td>" +
-        '<td class="rt-num ' + (CHANGE_UP.has(ix) ? "rt-up" : "rt-down") + '">' + (d.changeIxNm || "-") + "</td>";
+        '<td class="rt-num ' + (ix ? (CHANGE_UP.has(ix) ? "rt-up" : "rt-down") : "rt-plain") + '">' + (d.changeIxNm || "-") + "</td>";
     tr.addEventListener("click", () => {
         location.href = "/map/trdar-detail.html?trdarCd=" + d.trdarCd;
     });
@@ -90,7 +92,23 @@ function bindControls() {
     });
 
     document.getElementById("filter-minsales").addEventListener("change", render);
-    document.querySelector(".filter-apply").addEventListener("click", render);
+
+    // 검색어는 입력 즉시 반영하되 300ms 디바운스
+    const input = document.querySelector(".app-search input");
+    let timer = null;
+    input.addEventListener("input", () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            view.keyword = input.value.trim();
+            render();
+        }, 300);
+    });
+    input.closest("form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        clearTimeout(timer);
+        view.keyword = input.value.trim();
+        render();
+    });
 
     const cmp = document.querySelector(".result-compare");
     cmp.innerHTML = "비교함 <b>" + cmpList().length + "</b>";
@@ -109,8 +127,8 @@ async function load() {
         input.value = view.keyword;
     }
 
-    const query = view.keyword ? "?keyword=" + encodeURIComponent(view.keyword) : "";
-    view.all = (await apiData("/api/districts/summary" + query)) || [];
+    // 전체를 한 번만 받고 검색어·필터는 클라이언트에서 거른다
+    view.all = (await apiData("/api/districts/summary")) || [];
 
     if (view.all.length) {
         document.querySelector(".app-quarter").textContent = quarterLabel(view.all[0].quarter);
