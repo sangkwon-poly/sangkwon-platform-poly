@@ -21,7 +21,15 @@ function quarterLabel(code) {
 }
 
 function fmtEok(won) {
-    return won != null ? Math.round(won / 1e8).toLocaleString() : "-";
+    if (won == null) {
+        return "-";
+    }
+    const eok = won / 1e8;
+    // 작은 업종은 억 단위 반올림이 0이 되므로 소수 한 자리로
+    if (eok > 0 && eok < 10) {
+        return eok.toFixed(1);
+    }
+    return Math.round(eok).toLocaleString();
 }
 
 function fmtMan(n) {

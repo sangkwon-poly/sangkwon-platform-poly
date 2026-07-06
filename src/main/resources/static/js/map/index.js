@@ -339,9 +339,18 @@ function fillDrawerMetrics(salesAmt, flpop, storeCnt, changeNm) {
     dds[3].innerHTML = (state.seoulRent != null ? Math.round(state.seoulRent).toLocaleString() : "-") + "<span>천원/㎡</span>";
 }
 
+// 업종 필터가 걸려 있으면 카드에 업종명을 함께 표기
+function indutySuffix() {
+    const cd = document.getElementById("induty-select").value;
+    if (!cd) {
+        return "";
+    }
+    return " · " + ((typeof INDUTY_NM !== "undefined" && INDUTY_NM[cd]) || cd);
+}
+
 function openDrawerForGu(g) {
     document.querySelector(".sel-card").style.display = "";
-    document.querySelector(".sel-eyebrow").textContent = "자치구 · " + g.count + "개 상권";
+    document.querySelector(".sel-eyebrow").textContent = "자치구 · " + g.count + "개 상권" + indutySuffix();
     document.querySelector(".sel-name").textContent = g.gu;
     document.querySelector(".sel-hero-delta").textContent = "";
     // 카드 칸이 좁아 짧은 이름을 쓴다
@@ -361,7 +370,7 @@ async function selectTrdar(d) {
     (state.trdarPolys.get(d.trdarCd) || []).forEach((p) => p.setOptions({ fillOpacity: 0.95, strokeWeight: 3 }));
 
     document.querySelector(".sel-card").style.display = "";
-    document.querySelector(".sel-eyebrow").textContent = "선택 상권 · " + (d.signguNm || "");
+    document.querySelector(".sel-eyebrow").textContent = "선택 상권 · " + (d.signguNm || "") + indutySuffix();
     document.querySelector(".sel-name").textContent = d.trdarNm;
     fillDrawerMetrics(d.salesAmt, d.flpop, d.storeCnt, d.changeIxNm);
     const report = document.querySelector(".sel-report");
@@ -370,14 +379,16 @@ async function selectTrdar(d) {
     document.querySelector(".sel-add").style.display = "";
     openDrawer();
 
-    // 전분기 증감. 응답 전에 다른 상권을 고르면 버린다.
+    // 전분기 증감. 업종 필터가 있으면 그 업종 매출로, 응답 전에 다른 상권을 고르면 버린다.
     const delta = document.querySelector(".sel-hero-delta");
     delta.textContent = "";
     try {
-        const totals = quarterlyTotals(await apiData("/api/sales?trdarCd=" + d.trdarCd));
+        const induty = document.getElementById("induty-select").value;
+        const rows = await apiData("/api/sales?trdarCd=" + d.trdarCd);
         if (state.selected !== d) {
             return;
         }
+        const totals = quarterlyTotals(induty ? rows.filter((r) => r.indutyCd === induty) : rows);
         if (totals.length >= 2 && totals[totals.length - 2].amt) {
             const cur = totals[totals.length - 1].amt;
             const prev = totals[totals.length - 2].amt;
@@ -440,10 +451,9 @@ function bindLayers() {
                     .map((c) => '<span style="background:' + c + '"></span>').join("");
                 ends.innerHTML = "<span>낮음</span><span>높음</span>";
             }
-            // 현재 보이는 단계만 다시 칠한다
-            if (state.level === "gu") {
-                paintGu();
-            } else {
+            // 배경 구와 상권을 모두 같은 팔레트로 칠한다
+            paintGu();
+            if (state.level === "trdar") {
                 paintTrdar();
             }
         });
@@ -470,13 +480,27 @@ async function reloadSummary() {
     }
     state.districts = rows;
     aggregateByGu();
-    if (state.level === "gu") {
-        paintGu();
-    } else {
+    // 배경 구 색도 같은 기준으로 다시 칠한다
+    paintGu();
+    if (state.level === "trdar") {
         paintTrdar();
     }
     drawRanking();
-    closeDrawer();
+
+    // 드로어가 열려 있으면 닫지 않고 새 기준으로 갱신한다
+    if (document.querySelector(".map-panel").classList.contains("is-open")) {
+        if (state.selected) {
+            const nd = state.districts.find((x) => x.trdarCd === state.selected.trdarCd);
+            if (nd) {
+                selectTrdar(nd);
+            }
+        } else if (state.level === "trdar" && state.currentGu) {
+            const g = state.byGu.get(state.currentGu);
+            if (g) {
+                openDrawerForGu(g);
+            }
+        }
+    }
 }
 
 async function init() {
