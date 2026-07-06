@@ -1,63 +1,126 @@
-// 검색 결과: 상권 요약을 조회해 결과 표를 채운다. 검색어는 index 검색폼의 ?q= 로 넘어온다.
+// 상권 검색 결과 화면
 
-async function apiData(path) {
-    const res = await fetch(path);
-    if (!res.ok) {
-        return null;
-    }
-    return (await res.json()).data;
-}
+const SORTS = [
+    { key: "salesAmt", label: "추정 매출 높은순" },
+    { key: "flpop", label: "유동인구 높은순" },
+    { key: "storeCnt", label: "점포 수 높은순" },
+];
+const MAX_ROWS = 300;
 
-// 상권 변화지표 코드 -> 표시 라벨
-const CHANGE = { HH: "다이나믹", HL: "확장", LH: "축소", LL: "정체" };
+const view = { all: [], keyword: "", sort: 0 };
 
-function eok(won) {
-    return won ? Math.round(won / 1e8).toLocaleString() : "-";
+function currentRows() {
+    const checkedGus = [...document.querySelectorAll("#filter-gu .check.is-on")]
+        .map((li) => li.dataset.gu);
+    const minSales = +document.getElementById("filter-minsales").value;
+    const sortKey = SORTS[view.sort].key;
+    return view.all
+        .filter((d) => !checkedGus.length || checkedGus.includes(d.signguNm))
+        .filter((d) => !minSales || (d.salesAmt || 0) >= minSales)
+        .sort((a, b) => (b[sortKey] || 0) - (a[sortKey] || 0));
 }
 
 function buildRow(d, rank, maxAmt) {
     const amt = d.salesAmt || 0;
-    const barWidth = maxAmt ? Math.round((amt / maxAmt) * 100) : 0;
+    const width = maxAmt ? Math.round((amt / maxAmt) * 100) : 0;
     const ix = d.changeIx || "";
     const tr = document.createElement("tr");
     if (rank === 1) {
         tr.className = "is-top";
     }
+    tr.style.cursor = "pointer";
     tr.innerHTML =
         '<td class="rt-rank"><span class="rank-num' + (rank === 1 ? " is-top" : "") + '">' + rank + "</span></td>" +
         '<td class="rt-name"><span class="rt-place">' + d.trdarNm + '</span><span class="rt-desc">' + (d.signguNm || "") + "</span></td>" +
-        '<td class="rt-num"><b>' + eok(amt) + '</b><span class="rt-unit"> 억</span><span class="minibar"><span style="width:' + barWidth + '%;background:#c0664e"></span></span></td>' +
-        '<td class="rt-num rt-plain">' + (d.flpop != null ? Math.round(d.flpop / 1e4).toLocaleString() + " 만" : "-") + "</td>" +
+        '<td class="rt-num"><b>' + fmtEok(amt) + '</b><span class="rt-unit"> 억</span><span class="minibar"><span style="width:' + width + '%;background:#c0664e"></span></span></td>' +
+        '<td class="rt-num rt-plain">' + (d.flpop != null ? fmtMan(d.flpop) + " 만" : "-") + "</td>" +
         '<td class="rt-num rt-plain">' + (d.storeCnt != null ? d.storeCnt.toLocaleString() : "-") + "</td>" +
-        '<td class="rt-num ' + (ix.startsWith("H") ? "rt-up" : "rt-down") + '">' + (CHANGE[ix] || "-") + "</td>";
+        '<td class="rt-num ' + (CHANGE_UP.has(ix) ? "rt-up" : "rt-down") + '">' + (d.changeIxNm || "-") + "</td>";
+    tr.addEventListener("click", () => {
+        location.href = "/map/trdar-detail.html?trdarCd=" + d.trdarCd;
+    });
     return tr;
+}
+
+function render() {
+    const rows = currentRows();
+    const count = document.querySelector(".result-count");
+    count.innerHTML = "<b>" + rows.length.toLocaleString() + "</b>개 상권" +
+        (rows.length > MAX_ROWS ? " · 상위 " + MAX_ROWS + "개 표시" : "");
+
+    const tbody = document.querySelector(".rt tbody");
+    tbody.innerHTML = "";
+    const maxAmt = rows.reduce((max, d) => Math.max(max, d.salesAmt || 0), 0);
+    rows.slice(0, MAX_ROWS).forEach((d, i) => tbody.appendChild(buildRow(d, i + 1, maxAmt)));
+}
+
+// 자치구 체크 목록을 데이터에서 생성
+function buildGuFilter() {
+    const counts = new Map();
+    view.all.forEach((d) => {
+        if (d.signguNm) {
+            counts.set(d.signguNm, (counts.get(d.signguNm) || 0) + 1);
+        }
+    });
+    const ul = document.getElementById("filter-gu");
+    ul.innerHTML = "";
+    [...counts.keys()].sort((a, b) => a.localeCompare(b, "ko")).forEach((gu) => {
+        const li = document.createElement("li");
+        li.className = "check";
+        li.dataset.gu = gu;
+        li.style.cursor = "pointer";
+        li.innerHTML = '<span class="check-box" aria-hidden="true"></span>' + gu +
+            ' <span style="color:#b0a49e;font-size:12px">' + counts.get(gu) + "</span>";
+        li.addEventListener("click", () => {
+            li.classList.toggle("is-on");
+            li.querySelector(".check-box").textContent = li.classList.contains("is-on") ? "✓" : "";
+            render();
+        });
+        ul.appendChild(li);
+    });
+}
+
+function bindControls() {
+    const sortBtn = document.querySelector(".result-sort");
+    sortBtn.textContent = SORTS[view.sort].label + " ▾";
+    sortBtn.addEventListener("click", () => {
+        view.sort = (view.sort + 1) % SORTS.length;
+        sortBtn.textContent = SORTS[view.sort].label + " ▾";
+        render();
+    });
+
+    document.getElementById("filter-minsales").addEventListener("change", render);
+    document.querySelector(".filter-apply").addEventListener("click", render);
+
+    const cmp = document.querySelector(".result-compare");
+    cmp.innerHTML = "비교함 <b>" + cmpList().length + "</b>";
+    cmp.style.cursor = "pointer";
+    cmp.addEventListener("click", () => {
+        location.href = "/map/compare.html";
+    });
 }
 
 async function load() {
     const params = new URLSearchParams(location.search);
-    const keyword = params.get("q") || params.get("keyword") || "";
+    view.keyword = (params.get("q") || params.get("keyword") || "").trim();
 
-    const label = document.querySelector(".app-search-text");
-    if (label) {
-        label.textContent = keyword || "상권 검색";
+    const input = document.querySelector(".app-search input");
+    if (input && view.keyword) {
+        input.value = view.keyword;
     }
 
-    const query = keyword ? "?keyword=" + encodeURIComponent(keyword) : "";
-    const rows = (await apiData("/api/districts/summary" + query)) || [];
+    const query = view.keyword ? "?keyword=" + encodeURIComponent(view.keyword) : "";
+    view.all = (await apiData("/api/districts/summary" + query)) || [];
 
-    const count = document.querySelector(".result-count b");
-    if (count) {
-        count.textContent = rows.length.toLocaleString();
+    if (view.all.length) {
+        document.querySelector(".app-quarter").textContent = quarterLabel(view.all[0].quarter);
     }
-
-    const tbody = document.querySelector(".rt tbody");
-    if (!tbody) {
-        return;
-    }
-    tbody.innerHTML = "";
-    const maxAmt = rows.reduce((max, d) => Math.max(max, d.salesAmt || 0), 0);
-    // 표가 너무 길지 않게 상위 200개만
-    rows.slice(0, 200).forEach((d, i) => tbody.appendChild(buildRow(d, i + 1, maxAmt)));
+    buildGuFilter();
+    bindControls();
+    render();
 }
 
-load().catch((err) => console.error("검색 로드 실패:", err));
+load().catch((err) => {
+    console.error("검색 로드 실패:", err);
+    document.querySelector(".result-count").innerHTML = "결과를 불러오지 못했습니다";
+});

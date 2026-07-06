@@ -30,80 +30,12 @@
   <main class="compare scroll" aria-label="상권 비교">
     <table class="cmp">
       <caption class="sr-only">선택한 4개 상권의 지표 비교</caption>
-      <thead>
-        <tr>
-          <th class="cmp-metric-h" scope="col">지표</th>
-          <th class="cmp-col" scope="col">
-            <button type="button" class="cmp-remove" aria-label="강남구 제거">✕</button>
-            <span class="cmp-color" style="background:#c7735b"></span>
-            <span class="cmp-place">강남구</span>
-            <span class="cmp-place-sub">역삼·논현</span>
-          </th>
-          <th class="cmp-col" scope="col">
-            <button type="button" class="cmp-remove" aria-label="마포구 제거">✕</button>
-            <span class="cmp-color" style="background:#b85942"></span>
-            <span class="cmp-place">마포구</span>
-            <span class="cmp-place-sub">연남·합정</span>
-          </th>
-          <th class="cmp-col" scope="col">
-            <button type="button" class="cmp-remove" aria-label="성동구 제거">✕</button>
-            <span class="cmp-color" style="background:#a9432e"></span>
-            <span class="cmp-place">성동구</span>
-            <span class="cmp-place-sub">성수·서울숲</span>
-          </th>
-          <th class="cmp-col" scope="col">
-            <button type="button" class="cmp-remove" aria-label="종로구 제거">✕</button>
-            <span class="cmp-color" style="background:#913423"></span>
-            <span class="cmp-place">종로구</span>
-            <span class="cmp-place-sub">익선·광장</span>
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <!-- 추정 매출 -->
-        <tr>
-          <th class="cmp-metric" scope="row"><span class="cmp-metric-name">추정 매출</span><span class="cmp-metric-unit">억/월</span></th>
-          <td class="cmp-cell is-best"><span class="cmp-val">740</span><span class="cmp-tag">최고</span><span class="cmp-bar"><span style="width:100%;background:#a9432e"></span></span></td>
-          <td class="cmp-cell"><span class="cmp-val">573</span><span class="cmp-bar"><span style="width:72%;background:#c46e56"></span></span></td>
-          <td class="cmp-cell"><span class="cmp-val">353</span><span class="cmp-bar"><span style="width:35%;background:#e6b7a4"></span></span></td>
-          <td class="cmp-cell"><span class="cmp-val">360</span><span class="cmp-bar"><span style="width:37%;background:#e5b4a1"></span></span></td>
-        </tr>
-        <!-- 유동인구 -->
-        <tr>
-          <th class="cmp-metric" scope="row"><span class="cmp-metric-name">유동인구</span><span class="cmp-metric-unit">만/월</span></th>
-          <td class="cmp-cell"><span class="cmp-val">59</span><span class="cmp-bar"><span style="width:48%;background:#ebc6b6"></span></span></td>
-          <td class="cmp-cell"><span class="cmp-val">76</span><span class="cmp-bar"><span style="width:74%;background:#e0a792"></span></span></td>
-          <td class="cmp-cell"><span class="cmp-val">78</span><span class="cmp-bar"><span style="width:78%;background:#dfa28c"></span></span></td>
-          <td class="cmp-cell is-best"><span class="cmp-val">92</span><span class="cmp-tag">최고</span><span class="cmp-bar"><span style="width:100%;background:#d38971"></span></span></td>
-        </tr>
-        <!-- 점포 수 -->
-        <tr>
-          <th class="cmp-metric" scope="row"><span class="cmp-metric-name">점포 수</span><span class="cmp-metric-unit">개</span></th>
-          <td class="cmp-cell"><span class="cmp-val">3,596</span><span class="cmp-bar"><span style="width:98%;background:#aa452f"></span></span></td>
-          <td class="cmp-cell is-best"><span class="cmp-val">3,680</span><span class="cmp-tag">최고</span><span class="cmp-bar"><span style="width:100%;background:#a8412c"></span></span></td>
-          <td class="cmp-cell"><span class="cmp-val">3,302</span><span class="cmp-bar"><span style="width:89%;background:#b3523b"></span></span></td>
-          <td class="cmp-cell"><span class="cmp-val">2,546</span><span class="cmp-bar"><span style="width:66%;background:#c9775f"></span></span></td>
-        </tr>
-        <!-- 평균 임대료 -->
-        <tr>
-          <th class="cmp-metric" scope="row"><span class="cmp-metric-name">평균 임대료</span><span class="cmp-metric-unit">천원/㎡</span></th>
-          <td class="cmp-cell is-best"><span class="cmp-val">157</span><span class="cmp-tag">최고</span><span class="cmp-bar"><span style="width:100%;background:#933624"></span></span></td>
-          <td class="cmp-cell"><span class="cmp-val">113</span><span class="cmp-bar"><span style="width:56%;background:#ce7f67"></span></span></td>
-          <td class="cmp-cell"><span class="cmp-val">78</span><span class="cmp-bar"><span style="width:20%;background:#eecfc1"></span></span></td>
-          <td class="cmp-cell"><span class="cmp-val">102</span><span class="cmp-bar"><span style="width:44%;background:#db9880"></span></span></td>
-        </tr>
-        <!-- 성장률 -->
-        <tr>
-          <th class="cmp-metric" scope="row"><span class="cmp-metric-name">성장률</span><span class="cmp-metric-unit">% YoY</span></th>
-          <td class="cmp-cell"><span class="cmp-val">-4.2</span><span class="cmp-bar"><span style="width:26%;background:#ecc8b9"></span></span></td>
-          <td class="cmp-cell"><span class="cmp-val">-4.5</span><span class="cmp-bar"><span style="width:24%;background:#eecdbe"></span></span></td>
-          <td class="cmp-cell"><span class="cmp-val">+3.0</span><span class="cmp-bar"><span style="width:80%;background:#bb5f47"></span></span></td>
-          <td class="cmp-cell is-best"><span class="cmp-val">+5.7</span><span class="cmp-tag">최고</span><span class="cmp-bar"><span style="width:100%;background:#a8412c"></span></span></td>
-        </tr>
-      </tbody>
+      <thead></thead>
+      <tbody></tbody>
     </table>
   </main>
 </div>
+<script src="/js/map/common.js"></script>
 <script src="/js/map/compare.js" defer></script>
 </body>
 </html>
