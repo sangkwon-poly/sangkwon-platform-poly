@@ -68,6 +68,38 @@ function downloadCsv() {
     URL.revokeObjectURL(a.href);
 }
 
+// AI 분석: 최근 생성분을 보여주고, 버튼으로 새로 생성한다
+function showAiReport(r) {
+    document.getElementById("ai-report").textContent = r.resultText;
+    document.getElementById("ai-report-meta").textContent =
+        r.modelName + " · " + quarterLabel(r.stdrYyquCd) + " 기준 · " + (r.createdAt || "").slice(0, 16).replace("T", " ") + " 생성";
+}
+
+function bindAiReport(trdarCd) {
+    apiData("/api/llm-reports/" + trdarCd + "/latest").then(showAiReport).catch(() => { /* 아직 없음 */ });
+
+    const btn = document.getElementById("ai-generate");
+    btn.addEventListener("click", async () => {
+        btn.disabled = true;
+        btn.textContent = "생성 중...";
+        try {
+            const res = await fetch("/api/llm-reports/" + trdarCd, { method: "POST" });
+            const body = await res.json();
+            if (res.ok) {
+                showAiReport(body.data);
+            } else {
+                document.getElementById("ai-report").textContent =
+                    body.message || "생성에 실패했습니다. Gemini API 키 설정을 확인해 주세요.";
+            }
+        } catch (e) {
+            document.getElementById("ai-report").textContent = "생성에 실패했습니다. 서버 연결을 확인해 주세요.";
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "AI 분석 생성";
+        }
+    });
+}
+
 async function load() {
     document.querySelector(".export-pdf").addEventListener("click", () => window.print());
     document.querySelector(".export-csv").addEventListener("click", downloadCsv);
@@ -79,6 +111,7 @@ async function load() {
         return;
     }
 
+    bindAiReport(trdarCd);
     const [d, sales] = await Promise.all([
         apiData("/api/districts/" + trdarCd),
         apiData("/api/sales?trdarCd=" + trdarCd),

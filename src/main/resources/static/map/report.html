@@ -57,6 +57,10 @@
 
           <h2 class="paper-h">업종 구성</h2>
           <ul class="paper-mix"></ul>
+
+          <h2 class="paper-h">AI 분석</h2>
+          <div id="ai-report" style="font-size:13.5px;line-height:1.75;color:#4a3f39;white-space:pre-line">아직 생성한 분석이 없습니다. 오른쪽 AI 분석 생성을 누르면 상권 지표를 근거로 리포트를 만듭니다.</div>
+          <p id="ai-report-meta" style="font-size:11px;color:#9a8c84;margin-top:8px"></p>
         </div>
       </article>
     </main>
@@ -65,14 +69,16 @@
     <aside class="export-side" aria-label="내보내기 옵션">
       <p class="panel-label">내보내기</p>
       <div class="export-actions">
+        <button type="button" class="export-ai" id="ai-generate"
+                style="width:100%;margin-bottom:8px;padding:11px;border:0;border-radius:10px;background:#7e2a1b;color:#fff;font:inherit;font-weight:700;cursor:pointer">AI 분석 생성</button>
         <button type="button" class="export-pdf">인쇄 · PDF 저장</button>
         <button type="button" class="export-csv">분기 매출 CSV</button>
       </div>
     </aside>
   </div>
 </div>
-<script src="/js/map/common.js?v=20260706d"></script>
-<script src="/js/map/induty-map.js?v=20260706d"></script>
-<script src="/js/map/report.js?v=20260706d" defer></script>
+<script src="/js/map/common.js?v=20260706e"></script>
+<script src="/js/map/induty-map.js?v=20260706e"></script>
+<script src="/js/map/report.js?v=20260706e" defer></script>
 </body>
 </html>
