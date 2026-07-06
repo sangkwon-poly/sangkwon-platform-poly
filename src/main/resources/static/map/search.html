@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>검색 결과 · 서울공화국</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/map/shell.css">
+  <link rel="stylesheet" href="/css/map/search.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- 앱 헤더 -->
+  <header class="app-header">
+    <a class="app-brand" href="/">
+      <span class="app-brand-mark" aria-hidden="true">서</span>
+      <span class="app-brand-text"><span class="app-brand-name">서울공화국</span></span>
+    </a>
+
+    <div class="app-search-wrap">
+      <form class="app-search" role="search" action="/map/search.html">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B0857A" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.5" y2="16.5"></line></svg>
+        <span class="app-search-text">강남구 · 카페</span>
+      </form>
+    </div>
+
+    <div class="app-tools">
+      <button type="button" class="app-quarter">2026 1분기</button>
+      <a class="app-user" href="/login"><span class="app-avatar" aria-hidden="true">이</span></a>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <!-- 필터 사이드바 -->
+    <aside class="filter-side scroll" aria-label="검색 필터">
+      <p class="panel-label">필터</p>
+
+      <h2 class="filter-title">자치구</h2>
+      <ul class="filter-checks">
+        <li class="check is-on"><span class="check-box" aria-hidden="true">✓</span>강남구</li>
+        <li class="check"><span class="check-box" aria-hidden="true"></span>서초구</li>
+        <li class="check"><span class="check-box" aria-hidden="true"></span>송파구</li>
+      </ul>
+
+      <h2 class="filter-title">업종</h2>
+      <div class="filter-tags">
+        <span class="tag is-on">카페·디저트</span>
+        <span class="tag">음식점</span>
+        <span class="tag">소매</span>
+      </div>
+
+      <h2 class="filter-title">월 추정 매출</h2>
+      <div class="range" aria-hidden="true">
+        <span class="range-fill"></span>
+        <span class="range-knob range-knob-a"></span>
+        <span class="range-knob range-knob-b"></span>
+      </div>
+      <div class="range-ends"><span>300억</span><span>1,800억</span></div>
+
+      <button type="button" class="btn btn-primary filter-apply">필터 적용</button>
+    </aside>
+
+    <!-- 결과 목록 -->
+    <main class="result" aria-label="검색 결과 목록">
+      <h1 class="sr-only">검색 결과</h1>
+      <div class="result-toolbar">
+        <span class="result-count"><b>128</b>개 상권</span>
+        <span class="result-sep" aria-hidden="true"></span>
+        <span class="result-compare">비교함 <b>2</b></span>
+        <button type="button" class="result-sort">추정 매출 높은순 ▾</button>
+      </div>
+
+      <div class="result-table scroll">
+        <table class="rt">
+          <thead>
+            <tr>
+              <th class="rt-rank">순위</th>
+              <th class="rt-name">상권</th>
+              <th class="rt-num">추정매출</th>
+              <th class="rt-num">유동인구</th>
+              <th class="rt-num">점포수</th>
+              <th class="rt-num">변화</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="is-top">
+              <td class="rt-rank"><span class="rank-num is-top">1</span></td>
+              <td class="rt-name"><span class="rt-place">양천구</span><span class="rt-desc">주요 상권</span></td>
+              <td class="rt-num"><b>900</b><span class="rt-unit"> 억</span><span class="minibar"><span style="width:100%;background:#7e2a1b"></span></span></td>
+              <td class="rt-num rt-plain">99 만</td>
+              <td class="rt-num rt-plain">2,714</td>
+              <td class="rt-num rt-up">+1.2%</td>
+            </tr>
+            <tr>
+              <td class="rt-rank"><span class="rank-num">2</span></td>
+              <td class="rt-name"><span class="rt-place">영등포구</span><span class="rt-desc">여의도·영등포</span></td>
+              <td class="rt-num"><b>862</b><span class="rt-unit"> 억</span><span class="minibar"><span style="width:95%;background:#89301f"></span></span></td>
+              <td class="rt-num rt-plain">141 만</td>
+              <td class="rt-num rt-plain">2,420</td>
+              <td class="rt-num rt-up">+2.5%</td>
+            </tr>
+            <tr>
+              <td class="rt-rank"><span class="rank-num">3</span></td>
+              <td class="rt-name"><span class="rt-place">용산구</span><span class="rt-desc">이태원·한남</span></td>
+              <td class="rt-num"><b>854</b><span class="rt-unit"> 억</span><span class="minibar"><span style="width:94%;background:#8b3120"></span></span></td>
+              <td class="rt-num rt-plain">32 만</td>
+              <td class="rt-num rt-plain">2,378</td>
+              <td class="rt-num rt-up">+8.0%</td>
+            </tr>
+            <tr>
+              <td class="rt-rank"><span class="rank-num">4</span></td>
+              <td class="rt-name"><span class="rt-place">강북구</span><span class="rt-desc">주요 상권</span></td>
+              <td class="rt-num"><b>771</b><span class="rt-unit"> 억</span><span class="minibar"><span style="width:83%;background:#a23e29"></span></span></td>
+              <td class="rt-num rt-plain">130 만</td>
+              <td class="rt-num rt-plain">2,756</td>
+              <td class="rt-num rt-down">-6.3%</td>
+            </tr>
+            <tr>
+              <td class="rt-rank"><span class="rank-num">5</span></td>
+              <td class="rt-name"><span class="rt-place">강남구</span><span class="rt-desc">역삼·논현</span></td>
+              <td class="rt-num"><b>740</b><span class="rt-unit"> 억</span><span class="minibar"><span style="width:79%;background:#a9432e"></span></span></td>
+              <td class="rt-num rt-plain">59 만</td>
+              <td class="rt-num rt-plain">3,596</td>
+              <td class="rt-num rt-down">-4.2%</td>
+            </tr>
+            <tr>
+              <td class="rt-rank"><span class="rank-num">6</span></td>
+              <td class="rt-name"><span class="rt-place">강동구</span><span class="rt-desc">천호·길동</span></td>
+              <td class="rt-num"><b>687</b><span class="rt-unit"> 억</span><span class="minibar"><span style="width:72%;background:#b2503a"></span></span></td>
+              <td class="rt-num rt-plain">69 만</td>
+              <td class="rt-num rt-plain">4,100</td>
+              <td class="rt-num rt-up">+1.5%</td>
+            </tr>
+            <tr>
+              <td class="rt-rank"><span class="rank-num">7</span></td>
+              <td class="rt-name"><span class="rt-place">도봉구</span><span class="rt-desc">주요 상권</span></td>
+              <td class="rt-num"><b>680</b><span class="rt-unit"> 억</span><span class="minibar"><span style="width:71%;background:#b3523b"></span></span></td>
+              <td class="rt-num rt-plain">130 만</td>
+              <td class="rt-num rt-plain">824</td>
+              <td class="rt-num rt-down">-2.5%</td>
+            </tr>
+            <tr>
+              <td class="rt-rank"><span class="rank-num">8</span></td>
+              <td class="rt-name"><span class="rt-place">은평구</span><span class="rt-desc">주요 상권</span></td>
+              <td class="rt-num"><b>664</b><span class="rt-unit"> 억</span><span class="minibar"><span style="width:69%;background:#b5553f"></span></span></td>
+              <td class="rt-num rt-plain">148 만</td>
+              <td class="rt-num rt-plain">446</td>
+              <td class="rt-num rt-down">-4.3%</td>
+            </tr>
+            <tr>
+              <td class="rt-rank"><span class="rank-num">9</span></td>
+              <td class="rt-name"><span class="rt-place">강서구</span><span class="rt-desc">주요 상권</span></td>
+              <td class="rt-num"><b>664</b><span class="rt-unit"> 억</span><span class="minibar"><span style="width:69%;background:#b5553f"></span></span></td>
+              <td class="rt-num rt-plain">48 만</td>
+              <td class="rt-num rt-plain">1,790</td>
+              <td class="rt-num rt-up">+6.5%</td>
+            </tr>
+            <tr>
+              <td class="rt-rank"><span class="rank-num">10</span></td>
+              <td class="rt-name"><span class="rt-place">노원구</span><span class="rt-desc">주요 상권</span></td>
+              <td class="rt-num"><b>634</b><span class="rt-unit"> 억</span><span class="minibar"><span style="width:65%;background:#ba5d46"></span></span></td>
+              <td class="rt-num rt-plain">120 만</td>
+              <td class="rt-num rt-plain">1,580</td>
+              <td class="rt-num rt-up">+6.8%</td>
+            </tr>
+            <tr>
+              <td class="rt-rank"><span class="rank-num">11</span></td>
+              <td class="rt-name"><span class="rt-place">관악구</span><span class="rt-desc">신림·서원</span></td>
+              <td class="rt-num"><b>596</b><span class="rt-unit"> 억</span><span class="minibar"><span style="width:60%;background:#c0664e"></span></span></td>
+              <td class="rt-num rt-plain">164 만</td>
+              <td class="rt-num rt-plain">950</td>
+              <td class="rt-num rt-down">-5.7%</td>
+            </tr>
+            <tr>
+              <td class="rt-rank"><span class="rank-num">12</span></td>
+              <td class="rt-name"><span class="rt-place">동대문구</span><span class="rt-desc">주요 상권</span></td>
+              <td class="rt-num"><b>581</b><span class="rt-unit"> 억</span><span class="minibar"><span style="width:58%;background:#c36b53"></span></span></td>
+              <td class="rt-num rt-plain">162 만</td>
+              <td class="rt-num rt-plain">992</td>
+              <td class="rt-num rt-down">-2.0%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

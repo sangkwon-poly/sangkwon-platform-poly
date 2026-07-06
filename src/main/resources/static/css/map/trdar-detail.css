@@ -1,0 +1,160 @@
+/* TRDAR-01 상권 상세 전용
+   공통 chrome 은 shell.css, 여기선 제목 바·지표 카드·차트 패널만 담는다. */
+
+.detail {
+  flex: 1 1 0;
+  background: #fbf7f4;
+}
+
+/* 제목 바 */
+.detail-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px 0;
+}
+.detail-heading { flex: 1 1 0; }
+.detail-crumb { font-size: 11.5px; color: #a99c94; }
+.detail-title {
+  font-size: 23px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -.02em;
+  margin-top: 3px;
+}
+.detail-title-sub { font-size: 13px; font-weight: 600; color: #9a8e86; }
+
+.detail-btn {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 15px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+.detail-btn-primary {
+  padding: 0 17px;
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+  font-weight: 700;
+}
+
+/* 지표 카드 */
+.detail-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  padding: 18px 24px;
+}
+.kpi { padding: 16px 17px; }
+.kpi-label { font-size: 12px; color: #8c8078; }
+.kpi-value { display: flex; align-items: baseline; gap: 6px; margin-top: 6px; }
+.kpi-num { font-size: 24px; font-weight: 800; color: var(--ink); letter-spacing: -.02em; }
+.kpi-unit { font-size: 11px; color: #a99c94; }
+.kpi-delta { margin-left: auto; font-size: 12px; font-weight: 700; }
+.kpi-delta.up { color: #4e7a3e; }
+.kpi-delta.down { color: #b0503a; }
+
+/* 차트 그리드 */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 14px;
+  padding: 0 24px 24px;
+}
+.detail-panel { padding: 18px 20px; }
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.panel-title { font-size: 14px; font-weight: 800; color: var(--text); }
+.panel-title-mb { margin-bottom: 16px; }
+.panel-cap { font-size: 11.5px; color: #a99c94; }
+
+/* 월 매출 추이 */
+.trend-svg { width: 100%; height: 150px; display: block; }
+.trend-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 10px;
+  color: #b7aba2;
+  font-family: var(--mono);
+}
+
+/* 업종 구성 */
+.mix-list { display: flex; flex-direction: column; gap: 11px; }
+.mix-row { display: flex; align-items: center; gap: 10px; }
+.mix-name { width: 70px; flex: 0 0 auto; font-size: 12px; color: var(--text-soft); }
+.mix-bar {
+  flex: 1 1 0;
+  height: 9px;
+  border-radius: 5px;
+  background: #f2ebe6;
+  overflow: hidden;
+}
+.mix-bar span { display: block; height: 100%; border-radius: 5px; }
+.mix-pct { width: 34px; text-align: right; font-size: 11.5px; font-weight: 700; color: #3a322e; }
+
+/* 히트맵 */
+.heat { display: flex; flex-direction: column; gap: 4px; }
+.heat-row { display: flex; align-items: center; gap: 6px; }
+.heat-day {
+  width: 16px;
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  color: #8c8078;
+  text-align: center;
+}
+.heat-cells {
+  flex: 1 1 0;
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 4px;
+}
+.heat-cells span { aspect-ratio: 1 / 1; border-radius: 3px; }
+.heat-axis { margin-top: 2px; }
+.heat-axis .heat-cells {
+  font-size: 9px;
+  color: #b7aba2;
+  font-family: var(--mono);
+  text-align: center;
+}
+.heat-axis .heat-cells span { aspect-ratio: auto; border-radius: 0; }
+
+/* 인접 경쟁 상권 */
+.comp-list { display: flex; flex-direction: column; }
+.comp-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 0;
+  border-top: 1px solid #f4eeea;
+}
+.comp-main { flex: 1 1 0; min-width: 0; }
+.comp-name { font-size: 12.5px; font-weight: 700; color: #3a322e; }
+.comp-main .minibar { height: 4px; border-radius: 2px; margin-top: 5px; background: #f2ebe6; }
+.comp-dist { font-size: 11px; color: #a99c94; }
+.comp-val { width: 52px; text-align: right; font-size: 12.5px; font-weight: 700; color: var(--text); }
+.comp-val span { font-size: 9px; color: #a99c94; font-weight: 600; }
+
+/* 반응형 · 태블릿: 차트 2열 유지, 지표 2열 */
+@media (max-width: 900px) {
+  .detail-kpis { grid-template-columns: repeat(2, 1fr); }
+  .detail-grid { grid-template-columns: 1fr; }
+}
+
+/* 반응형 · 모바일: 지표 1열, 제목 바 세로 */
+@media (max-width: 640px) {
+  .detail-titlebar { flex-wrap: wrap; }
+  .detail-heading { flex-basis: 100%; }
+  .detail-kpis { grid-template-columns: 1fr; }
+}

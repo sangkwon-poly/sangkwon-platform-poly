@@ -1,0 +1,165 @@
+/* REPORT-01 리포트 전용
+   공통 chrome·토글은 shell.css, 여기선 3열 레이아웃과 미리보기 용지만 담는다. */
+
+/* 좌측 섹션 사이드바 */
+.report-side {
+  width: 230px;
+  flex: 0 0 auto;
+  border-right: 1px solid #f0e8e3;
+  padding: 20px;
+  background: #fff;
+}
+.report-side .panel-label { margin-bottom: 13px; }
+.sec-list { display: flex; flex-direction: column; }
+.sec-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #f4eeea;
+}
+.sec-name { font-size: 12.5px; font-weight: 600; color: #3a322e; }
+.sec-name.is-off { color: #a99c94; }
+
+/* 중앙 미리보기 */
+.report-preview {
+  flex: 1 1 0;
+  min-width: 0;
+  background: #f1ece8;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 28px;
+}
+.paper {
+  width: 428px;
+  background: #fff;
+  box-shadow: 0 14px 44px rgba(60, 30, 18, .18);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.paper-top { height: 9px; background: var(--brand); }
+.paper-body { padding: 30px 34px; }
+.paper-kicker {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  color: var(--brand);
+}
+.paper-title { font-size: 22px; font-weight: 800; color: var(--ink); margin-top: 8px; letter-spacing: -.02em; }
+.paper-meta { font-size: 11px; color: #9a8e86; margin-top: 5px; }
+
+.paper-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 22px; }
+.paper-kpi { border: 1px solid #efe7e2; border-radius: 7px; padding: 11px; }
+.paper-kpi-label { display: block; font-size: 9px; color: #9a8e86; }
+.paper-kpi-val { display: block; font-size: 15px; font-weight: 800; color: var(--ink); margin-top: 2px; }
+.paper-kpi-val span { font-size: 8px; color: #a99c94; }
+
+.paper-h { font-size: 11px; font-weight: 800; color: #3a322e; margin: 22px 0 9px; }
+.paper-trend { width: 100%; height: 82px; display: block; }
+
+.paper-mix { display: flex; flex-direction: column; gap: 7px; margin-top: 1px; }
+.paper-mix li { display: flex; align-items: center; gap: 8px; }
+.paper-mix-name { width: 58px; flex: 0 0 auto; font-size: 10px; color: var(--text-soft); }
+.paper-mix-bar {
+  flex: 1 1 0;
+  height: 7px;
+  border-radius: 4px;
+  background: #f2ebe6;
+  overflow: hidden;
+}
+.paper-mix-bar span { display: block; height: 100%; }
+.paper-mix-pct { width: 26px; text-align: right; font-size: 10px; font-weight: 700; color: #3a322e; }
+
+/* 우측 내보내기 옵션 */
+.export-side {
+  width: 248px;
+  flex: 0 0 auto;
+  border-left: 1px solid #f0e8e3;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+.export-side .panel-label { margin-bottom: 13px; }
+.export-title { font-size: 12px; font-weight: 700; color: #3a322e; margin-bottom: 8px; }
+
+.fmt-switch {
+  display: flex;
+  background: #f4efeb;
+  border-radius: 9px;
+  padding: 3px;
+  margin-bottom: 18px;
+}
+.fmt {
+  flex: 1 1 0;
+  text-align: center;
+  padding: 8px 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #8c8078;
+  border: none;
+  background: transparent;
+  border-radius: 7px;
+}
+.fmt.is-on { color: #fff; background: var(--brand); }
+
+.opt-list { display: flex; flex-direction: column; }
+.opt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 0;
+  border-top: 1px solid #f4eeea;
+}
+.opt-row-last { border-bottom: 1px solid #f4eeea; }
+.opt-name { font-size: 12.5px; color: #3a322e; }
+
+.export-actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding-top: 18px;
+}
+.export-pdf {
+  height: 46px;
+  border: none;
+  background: var(--brand);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 700;
+  border-radius: 10px;
+  box-shadow: 0 8px 18px rgba(168, 65, 44, .24);
+}
+.export-csv {
+  height: 42px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--text-soft);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
+}
+
+/* 반응형 · 태블릿: 옵션 사이드바 폭 축소 */
+@media (max-width: 900px) {
+  .report-side { width: 190px; }
+  .export-side { width: 210px; }
+}
+
+/* 반응형 · 모바일: 세로 적층 (섹션 → 미리보기 → 내보내기) */
+@media (max-width: 640px) {
+  .app-body { flex-direction: column; }
+  .report-side,
+  .export-side {
+    width: auto;
+    border-right: none;
+    border-left: none;
+    border-bottom: 1px solid var(--line);
+  }
+  .report-preview { padding: 20px 16px; }
+  .paper { width: 100%; max-width: 428px; }
+  .export-actions { margin-top: 18px; }
+}

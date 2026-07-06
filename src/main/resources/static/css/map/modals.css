@@ -1,0 +1,314 @@
+/* map 도메인 모달(M-01~M-05) 공유 스타일
+   공통 토큰·프리미티브는 common.css 에서 로드됨 */
+
+/* 뒤 배경(지도 자리) + scrim 이 화면을 채우도록 */
+html, body { height: 100%; }
+body { min-height: 100vh; }
+
+/* 지도 플레이스홀더 (실제 Kakao 연동은 이후) */
+.map-bg {
+  position: fixed; inset: 0;
+  background: #eee9e5;
+  overflow: hidden;
+}
+.map-bg-top {
+  height: 54px;
+  background: var(--brand);
+}
+.map-bg-grid {
+  position: absolute; inset: 54px 0 0;
+  background: repeating-linear-gradient(45deg,
+    #e7e1dc 0, #e7e1dc 10px, #ede7e2 10px, #ede7e2 20px);
+}
+/* 선택 마커 (장식) */
+.map-pin {
+  position: absolute; border-radius: 50%;
+  box-shadow: 0 0 0 3px #fff;
+  transform: translate(-50%, -50%);
+}
+.map-pin-1 { left: 44%; top: 52%; width: 22px; height: 22px; background: var(--brand); }
+.map-pin-2 { left: 62%; top: 68%; width: 18px; height: 18px; background: #c0664e; }
+
+/* 어두운 배경(scrim) */
+.scrim {
+  position: fixed; inset: 0;
+  background: rgba(35, 29, 26, .5);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  z-index: 10;
+}
+
+/* 모달 카드 */
+.modal {
+  width: 420px; max-width: 100%;
+  background: #fff;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, .36);
+  overflow: hidden;
+}
+
+/* 모달 헤더 (제목 + 닫기) */
+.modal-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid #f0e8e3;
+}
+.modal-title { font-size: 16px; font-weight: 800; color: var(--dark); }
+.modal-close {
+  width: 28px; height: 28px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 50%;
+  background: #f4eeea; color: var(--faint);
+  font-size: 13px;
+}
+.modal-close:hover { background: var(--brand-tint); color: var(--brand); }
+
+/* 모달 본문 */
+.modal-body { padding: 20px 22px; }
+
+/* 모달 푸터 버튼줄 */
+.modal-foot {
+  display: flex; gap: 10px;
+  padding: 16px 22px;
+  border-top: 1px solid #f0e8e3;
+}
+/* 푸터 전용 버튼 (44px 높이) */
+.modal-foot .btn { height: 44px; padding: 0 18px; border-radius: 10px; font-size: 13px; }
+.modal-foot .btn-primary { flex: 1; font-size: 13.5px; }
+.modal-foot .btn-ghost { color: var(--text-soft); border-color: var(--line); }
+
+/* 섹션 라벨 */
+.field-label {
+  font-size: 12px; font-weight: 700; color: var(--muted);
+  margin-bottom: 9px;
+}
+
+/* 칩(태그) 목록 */
+.chip-row {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 20px;
+}
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 600;
+  padding: 6px 13px; border-radius: 20px;
+  border: 0;
+  color: var(--text-soft); background: #f4efeb;
+}
+.chip-on { color: #fff; background: var(--brand); }
+
+/* ============ M-01 상권 퀵뷰 ============ */
+.qv { width: 340px; border-radius: 15px; }
+.qv-head {
+  padding: 17px 18px 15px;
+  background: linear-gradient(#fbf1ec, #fff);
+}
+.qv-head-top {
+  display: flex; align-items: flex-start; justify-content: space-between;
+}
+.qv-eyebrow {
+  font-family: var(--mono);
+  font-size: 10px; font-weight: 700; letter-spacing: .1em;
+  color: #b08578;
+}
+.qv-name {
+  font-size: 21px; font-weight: 800; color: var(--dark);
+  margin-top: 3px;
+}
+.qv-close {
+  width: 27px; height: 27px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  border: 0; border-radius: 50%;
+  background: #f1e7e2; color: #9a6656;
+  font-size: 13px;
+}
+.qv-close:hover { background: var(--brand-tint); color: var(--brand); }
+.qv-sales {
+  display: flex; align-items: baseline; gap: 8px;
+  margin-top: 11px;
+}
+.qv-sales-num {
+  font-size: 29px; font-weight: 800; letter-spacing: -.02em;
+  color: var(--brand);
+}
+.qv-sales-unit { font-size: 12px; color: #8c8078; }
+.qv-sales-delta {
+  margin-left: auto;
+  font-size: 12px; font-weight: 700; color: #4e7a3e;
+}
+
+/* 지표 그리드 2x2 */
+.qv-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+  background: #efe7e2;
+}
+.qv-cell { background: #fff; padding: 12px 15px; }
+.qv-cell-label { font-size: 10.5px; color: #8c8078; }
+.qv-cell-value {
+  font-size: 15px; font-weight: 800; color: var(--dark);
+  margin-top: 2px;
+}
+.qv-cell-value small { font-size: 10px; color: #a99c94; font-weight: 800; }
+
+.qv-actions { display: flex; gap: 8px; padding: 13px 15px; }
+.qv-actions .btn-primary {
+  flex: 1; height: 38px; border-radius: var(--radius-sm);
+  font-size: 13px;
+}
+.qv-add {
+  width: 38px; height: 38px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid #e2d6cf; border-radius: var(--radius-sm);
+  background: #fff; color: #9a6656;
+}
+.qv-add:hover { background: var(--surface-2); }
+
+/* ============ M-02 필터 설정 ============ */
+.filter-modal { width: 480px; }
+/* 슬라이더 라벨줄 */
+.range-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 11px;
+}
+.range-head .field-label { margin-bottom: 0; }
+.range-value { font-family: var(--mono); font-size: 12px; color: var(--brand); }
+/* 더블 슬라이더 (장식) */
+.range {
+  height: 5px; border-radius: 3px; background: #f0e8e3;
+  position: relative; margin-bottom: 8px;
+}
+.range-fill {
+  position: absolute; inset: 0 20% 0 22%;
+  background: var(--brand); border-radius: 3px;
+}
+.range-knob {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #fff; border: 2px solid var(--brand);
+}
+
+/* ============ M-03 공유 ============ */
+.share-modal { width: 420px; }
+/* 리포트 카드 미리보기 */
+.share-preview {
+  border: 1px solid #efe7e2; border-radius: 11px;
+  overflow: hidden; margin-bottom: 18px;
+}
+.share-preview-bar { height: 9px; background: var(--brand); }
+.share-preview-body {
+  padding: 14px 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.share-preview-title { font-size: 13.5px; font-weight: 800; color: var(--dark); }
+.share-preview-meta { font-size: 11px; color: var(--faint); margin-top: 2px; }
+.share-thumb {
+  width: 54px; height: 40px; border-radius: 6px;
+  background: repeating-linear-gradient(45deg,
+    #f1ddd5 0, #f1ddd5 6px, #f7ece7 6px, #f7ece7 12px);
+}
+/* 링크 복사줄 */
+.copy-row { display: flex; gap: 8px; margin-bottom: 18px; }
+.copy-input {
+  flex: 1; height: 42px;
+  display: flex; align-items: center; padding: 0 13px;
+  background: #f8f3f0; border: 1px solid #eae1db; border-radius: var(--radius-sm);
+  font-family: var(--mono); font-size: 11.5px; color: #8c8078;
+  overflow: hidden;
+}
+.copy-btn {
+  height: 42px; padding: 0 16px; border: 0; border-radius: var(--radius-sm);
+  background: var(--brand); color: #fff;
+  font-size: 12.5px; font-weight: 700;
+}
+.copy-btn:hover { filter: brightness(1.06); }
+/* 공유 채널 버튼 */
+.share-channels { display: flex; gap: 10px; }
+.share-channels .btn { flex: 1; height: 44px; border-radius: 10px; gap: 7px; font-size: 13px; }
+.btn-kakao { background: #fee500; color: #3a2e00; border: 0; }
+.btn-kakao:hover { filter: brightness(.98); }
+
+/* ============ M-04 내보내기 ============ */
+.export-modal { width: 420px; }
+/* 형식 선택 카드 */
+.format-row { display: flex; gap: 10px; margin-bottom: 20px; }
+.format-card {
+  flex: 1; text-align: center;
+  border: 1px solid var(--line); border-radius: 11px; padding: 14px;
+  background: #fff;
+}
+.format-card.is-selected {
+  border: 2px solid var(--brand); background: #fcf4f1;
+}
+.format-icon { font-size: 18px; }
+.format-icon.is-dim { opacity: .6; }
+.format-name { font-size: 13px; font-weight: 800; color: var(--text-soft); margin-top: 5px; }
+.format-card.is-selected .format-name { color: var(--brand); }
+.format-desc { font-size: 10px; color: var(--faint); margin-top: 1px; }
+/* 범위 체크 */
+.scope-row {
+  display: flex; align-items: center; gap: 9px;
+  font-size: 12.5px; color: var(--text-soft);
+  margin-bottom: 18px;
+}
+.scope-check {
+  width: 18px; height: 18px; border-radius: 5px;
+  background: var(--brand); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+}
+/* 진행 바 */
+.progress-head {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11.5px; color: var(--faint); margin-bottom: 7px;
+}
+.progress-pct { font-family: var(--mono); color: var(--brand); }
+.progress {
+  height: 7px; border-radius: 4px; background: #f0e8e3; overflow: hidden;
+}
+.progress-fill { height: 100%; background: var(--brand); border-radius: 4px; }
+
+/* ============ M-05 저장·알림 ============ */
+.save-modal { width: 410px; }
+/* 상권 요약 카드 */
+.save-target {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 15px;
+  background: #fbf1ec; border: 1px solid #f1e0d9; border-radius: 11px;
+  margin-bottom: 20px;
+}
+.save-target-mark {
+  width: 38px; height: 38px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--brand); color: #fff; font-weight: 800;
+}
+.save-target-name { font-size: 14px; font-weight: 800; color: var(--dark); }
+.save-target-meta { font-size: 11px; color: var(--faint); }
+/* 폴더 칩 (8px 라운드) */
+.folder-row { display: flex; gap: 8px; margin-bottom: 20px; }
+.folder-chip {
+  border: 0; border-radius: 8px; padding: 8px 13px;
+  font-size: 12px; font-weight: 600;
+  color: var(--text-soft); background: #f4efeb;
+}
+.folder-chip.chip-on { color: #fff; background: var(--brand); }
+/* 알림 토글줄 */
+.toggle-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0;
+  border-top: 1px solid #f4eeea;
+}
+.toggle-name { font-size: 13px; font-weight: 700; color: var(--text-soft); }
+.toggle-desc { font-size: 11px; color: var(--faint); margin-top: 1px; }
+/* 스위치 (장식) */
+.switch {
+  width: 38px; height: 22px; flex: 0 0 auto;
+  border: 0; border-radius: 12px; position: relative;
+  background: #e4d8d1;
+}
+.switch::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 18px; height: 18px; border-radius: 50%; background: #fff;
+}
+.switch.is-on { background: var(--brand); }
+.switch.is-on::after { left: auto; right: 2px; }

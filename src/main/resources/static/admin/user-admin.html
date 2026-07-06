@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>사용자 관리 · 서울공화국</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/admin/shell.css">
+  <link rel="stylesheet" href="/css/admin/user-admin.css">
+</head>
+<body>
+
+  <div class="admin">
+
+    <!-- 좌측 사이드바 -->
+    <aside class="admin-side" aria-label="관리자 메뉴">
+      <a class="admin-brand" href="/admin/">
+        <span class="brand-mark" aria-hidden="true">서</span>
+        <span class="admin-brand-text">
+          <span class="admin-brand-name">서울공화국</span>
+          <span class="admin-brand-sub">관리자 콘솔</span>
+        </span>
+      </a>
+      <nav class="admin-nav" aria-label="관리자 내비게이션">
+        <a href="/admin/">개요</a>
+        <a href="/admin/batch.html">데이터 적재</a>
+        <a href="/admin/trdar-admin.html">상권 데이터</a>
+        <a href="/admin/user-admin.html" aria-current="page">사용자 관리</a>
+        <hr class="admin-nav-sep">
+        <span class="admin-nav-out">
+          <a href="/map/">지도로 이동</a>
+          <a href="/">랜딩으로</a>
+        </span>
+      </nav>
+      <div class="admin-user">
+        <span class="admin-user-avatar" aria-hidden="true">이</span>
+        <span>
+          <span class="admin-user-name">이상혁</span>
+          <span class="admin-user-role">PM</span>
+        </span>
+      </div>
+    </aside>
+
+    <!-- 본문 -->
+    <div class="admin-main">
+      <header class="admin-topbar">
+        <h1>사용자 관리</h1>
+        <div class="admin-search" role="search">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B0857A" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
+          </svg>
+          <span>이름·이메일 검색</span>
+        </div>
+        <button type="button" class="btn-topbar ua-invite">＋ 초대</button>
+      </header>
+
+      <main class="admin-content" aria-label="사용자 목록">
+
+        <!-- 필터 칩 -->
+        <div class="ua-filters" aria-label="상태 필터">
+          <span class="ua-chip ua-chip-active">전체 2,418</span>
+          <span class="ua-chip">활성 2,201</span>
+          <span class="ua-chip">휴면 189</span>
+          <span class="ua-chip">정지 28</span>
+        </div>
+
+        <!-- 사용자 테이블 -->
+        <section class="data-table-wrap" aria-label="사용자 목록 표">
+          <div class="table-scroll">
+            <table class="data-table ua-table">
+              <thead>
+                <tr>
+                  <th scope="col">사용자</th>
+                  <th scope="col">역할</th>
+                  <th scope="col">플랜</th>
+                  <th scope="col">최근 접속</th>
+                  <th scope="col" class="col-center">상태</th>
+                  <th scope="col"><span class="sr-only">더보기</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="ua-user">
+                      <span class="ua-avatar" aria-hidden="true">이</span>
+                      <span class="ua-id">
+                        <span class="ua-name">이상혁</span>
+                        <span class="ua-email">sanghyuk@seoul.kr</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="ua-role">PM</td>
+                  <td><span class="ua-plan ua-plan-ent">Enterprise</span></td>
+                  <td class="ua-muted">방금</td>
+                  <td class="col-center">
+                    <span class="badge badge-ok"><span class="dot dot-ok" aria-hidden="true"></span>활성</span>
+                  </td>
+                  <td class="col-center"><button type="button" class="ua-more" aria-label="더보기">⋯</button></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="ua-user">
+                      <span class="ua-avatar" aria-hidden="true">김</span>
+                      <span class="ua-id">
+                        <span class="ua-name">김도연</span>
+                        <span class="ua-email">doyeon.k@bizmap.io</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="ua-role">분석가</td>
+                  <td><span class="ua-plan ua-plan-pro">Pro</span></td>
+                  <td class="ua-muted">12분 전</td>
+                  <td class="col-center">
+                    <span class="badge badge-ok"><span class="dot dot-ok" aria-hidden="true"></span>활성</span>
+                  </td>
+                  <td class="col-center"><button type="button" class="ua-more" aria-label="더보기">⋯</button></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="ua-user">
+                      <span class="ua-avatar" aria-hidden="true">박</span>
+                      <span class="ua-id">
+                        <span class="ua-name">박서준</span>
+                        <span class="ua-email">seojun@cafe.co</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="ua-role">뷰어</td>
+                  <td><span class="ua-plan ua-plan-free">Free</span></td>
+                  <td class="ua-muted">3시간 전</td>
+                  <td class="col-center">
+                    <span class="badge badge-ok"><span class="dot dot-ok" aria-hidden="true"></span>활성</span>
+                  </td>
+                  <td class="col-center"><button type="button" class="ua-more" aria-label="더보기">⋯</button></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="ua-user">
+                      <span class="ua-avatar" aria-hidden="true">정</span>
+                      <span class="ua-id">
+                        <span class="ua-name">정하윤</span>
+                        <span class="ua-email">hayoon@retail.kr</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="ua-role">분석가</td>
+                  <td><span class="ua-plan ua-plan-pro">Pro</span></td>
+                  <td class="ua-muted">2일 전</td>
+                  <td class="col-center">
+                    <span class="badge ua-badge-dormant"><span class="dot ua-dot-dormant" aria-hidden="true"></span>휴면</span>
+                  </td>
+                  <td class="col-center"><button type="button" class="ua-more" aria-label="더보기">⋯</button></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="ua-user">
+                      <span class="ua-avatar" aria-hidden="true">최</span>
+                      <span class="ua-id">
+                        <span class="ua-name">최민준</span>
+                        <span class="ua-email">minjun@fnb.com</span>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="ua-role">관리자</td>
+                  <td><span class="ua-plan ua-plan-ent">Enterprise</span></td>
+                  <td class="ua-muted">1주 전</td>
+                  <td class="col-center">
+                    <span class="badge badge-danger"><span class="dot dot-danger" aria-hidden="true"></span>정지</span>
+                  </td>
+                  <td class="col-center"><button type="button" class="ua-more" aria-label="더보기">⋯</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+</body>
+</html>
