@@ -1,34 +1,26 @@
-// 상권 상세: URL의 trdarCd로 해당 상권의 매출·유동·점포·임대료를 채운다.
+// 상권 상세 화면
 
-async function apiData(path) {
-    const res = await fetch(path);
-    if (!res.ok) {
-        return null;
-    }
-    return (await res.json()).data;
+const MIX_COLORS = ["#8a3120", "#ca7860", "#d58e76", "#dfa48e", "#e7bba9", "#eccaba", "#f0d6c9"];
+
+// rows를 분기 오름차순 합계 [{q, v}]로
+function sumByQuarter(rows, valueOf) {
+    const byQ = new Map();
+    rows.forEach((r) => {
+        byQ.set(r.stdrYyquCd, (byQ.get(r.stdrYyquCd) || 0) + (valueOf(r) || 0));
+    });
+    return [...byQ.entries()].sort((a, b) => (a[0] < b[0] ? -1 : 1))
+        .map(([q, v]) => ({ q: q, v: v }));
 }
 
-// 가장 최근 분기 코드
-function latestQuarter(rows) {
-    return rows.reduce((max, r) => (r.stdrYyquCd > max ? r.stdrYyquCd : max), "");
-}
-
-// 최근 분기 대비 직전 분기 증감률(%). 데이터가 부족하면 null.
-function computeDelta(rows, valueOf) {
-    const quarters = [...new Set(rows.map((r) => r.stdrYyquCd))].sort();
-    if (quarters.length < 2) {
+function qoqPct(totals) {
+    if (totals.length < 2 || !totals[totals.length - 2].v) {
         return null;
     }
-    const sumOf = (q) => rows.filter((r) => r.stdrYyquCd === q)
-        .reduce((acc, r) => acc + (valueOf(r) || 0), 0);
-    const prev = sumOf(quarters[quarters.length - 2]);
-    if (!prev) {
-        return null;
-    }
-    return ((sumOf(quarters[quarters.length - 1]) - prev) / prev) * 100;
+    const cur = totals[totals.length - 1].v;
+    const prev = totals[totals.length - 2].v;
+    return ((cur - prev) / prev) * 100;
 }
 
-// KPI 카드 값 채우기. 증감이 없으면 가짜 배지를 제거한다.
 function setKpi(key, num, unit, deltaPct) {
     const card = document.querySelector('[data-kpi="' + key + '"]');
     if (!card) {
@@ -50,86 +42,172 @@ function setKpi(key, num, unit, deltaPct) {
     }
 }
 
+// 최근 12분기 매출 추이
+function drawTrend(totals) {
+    const recent = totals.slice(-12);
+    const svg = document.querySelector(".trend-svg");
+    const axis = document.querySelector(".trend-axis");
+    if (!svg || !recent.length) {
+        return;
+    }
+    const pts = trendPoints(recent.map((t) => t.v));
+    const line = pts.map((p, i) => (i ? "L" : "M") + p.x + " " + p.y).join(" ");
+    const area = line + " L" + pts[pts.length - 1].x + " 150 L" + pts[0].x + " 150 Z";
+    svg.innerHTML =
+        '<defs><linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0" stop-color="#A8412C" stop-opacity="0.22"></stop>' +
+        '<stop offset="1" stop-color="#A8412C" stop-opacity="0"></stop></linearGradient></defs>' +
+        '<path d="' + area + '" fill="url(#tg)"></path>' +
+        '<path d="' + line + '" fill="none" stroke="#A8412C" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>' +
+        pts.map((p) => '<circle cx="' + p.x + '" cy="' + p.y + '" r="2.6" fill="#fff" stroke="#A8412C" stroke-width="1.6"></circle>').join("");
+    axis.innerHTML = recent.map((t) => "<span>" + t.q.slice(2, 4) + "." + t.q.slice(4) + "Q</span>").join("");
+}
+
+// 업종 구성: 최근 분기 매출 상위 업종 비중
+function drawMix(sales) {
+    const list = document.querySelector(".mix-list");
+    if (!list || !sales.length) {
+        return;
+    }
+    const q = latestQuarter(sales);
+    const byInduty = new Map();
+    let total = 0;
+    sales.filter((s) => s.stdrYyquCd === q).forEach((s) => {
+        byInduty.set(s.indutyCd, (byInduty.get(s.indutyCd) || 0) + (s.thsmonSelngAmt || 0));
+        total += s.thsmonSelngAmt || 0;
+    });
+    const top = [...byInduty.entries()].sort((a, b) => b[1] - a[1]).slice(0, 7);
+    const maxAmt = top.length ? top[0][1] : 0;
+    list.innerHTML = top.map(([cd, amt], i) => {
+        const nm = (typeof INDUTY_NM !== "undefined" && INDUTY_NM[cd]) || cd;
+        const pct = total ? Math.round((amt / total) * 100) : 0;
+        const width = maxAmt ? Math.round((amt / maxAmt) * 100) : 0;
+        return '<li class="mix-row"><span class="mix-name">' + nm + "</span>" +
+            '<span class="mix-bar"><span style="width:' + width + "%;background:" + MIX_COLORS[i] + '"></span></span>' +
+            '<span class="mix-pct">' + pct + "%</span></li>";
+    }).join("");
+}
+
+// 인접 경쟁 상권: 같은 자치구 매출 상위 4곳 + 직선거리
+function drawCompetitors(d, summaries) {
+    const list = document.querySelector(".comp-list");
+    if (!list) {
+        return;
+    }
+    const near = summaries
+        .filter((s) => s.signguNm === d.signguNm && s.trdarCd !== d.trdarCd)
+        .sort((a, b) => (b.salesAmt || 0) - (a.salesAmt || 0))
+        .slice(0, 4);
+    const maxAmt = near.length ? (near[0].salesAmt || 0) : 0;
+    list.innerHTML = near.map((s) => {
+        const km = (d.centerLat != null && s.centerLat != null)
+            ? distanceKm(+d.centerLat, +d.centerLot, +s.centerLat, +s.centerLot).toFixed(1) + "km" : "-";
+        const width = maxAmt ? Math.round(((s.salesAmt || 0) / maxAmt) * 100) : 0;
+        return '<li class="comp-row"><div class="comp-main"><span class="comp-name">' + s.trdarNm + "</span>" +
+            '<span class="minibar"><span style="width:' + width + '%;background:#c0664e"></span></span></div>' +
+            '<span class="comp-dist">' + km + "</span>" +
+            '<span class="comp-val">' + fmtEok(s.salesAmt) + "<span> 억</span></span></li>";
+    }).join("");
+}
+
 async function load() {
     const trdarCd = new URLSearchParams(location.search).get("trdarCd");
     if (!trdarCd) {
+        document.getElementById("detail-title").textContent = "상권을 선택하세요";
+        document.getElementById("detail-crumb").textContent = "지도에서 상권을 클릭하면 상세가 열립니다";
         return;
     }
 
-    // 비교 담기: 현재 상권을 목록에 추가하고 비교 화면으로 이동
+    // 비교 담기
     const cmpBtn = document.querySelector('a.detail-btn[href="/map/compare.html"]');
     if (cmpBtn) {
         cmpBtn.addEventListener("click", (e) => {
             e.preventDefault();
-            let ids = [];
-            try {
-                ids = JSON.parse(localStorage.getItem("cmpIds") || "[]");
-            } catch (err) {
-                ids = [];
-            }
-            if (!ids.includes(trdarCd)) {
-                ids.push(trdarCd);
-            }
-            localStorage.setItem("cmpIds", JSON.stringify(ids.slice(0, 4)));
+            cmpAdd(trdarCd);
             location.href = "/map/compare.html";
         });
     }
-
-    // 상권 이름 · 자치구
-    const d = await apiData("/api/districts/" + trdarCd);
-    if (d) {
-        document.getElementById("detail-crumb").textContent =
-            "지도 › " + (d.signguNm || "") + " › " + d.trdarNm;
-        document.getElementById("detail-title").innerHTML =
-            d.trdarNm + ' <span class="detail-title-sub">· ' + (d.signguNm || "") + "</span>";
+    // 리포트로 상권 전달
+    const reportBtn = document.querySelector(".detail-btn-primary");
+    if (reportBtn) {
+        reportBtn.href = "/map/report.html?trdarCd=" + trdarCd;
     }
 
-    // 추정 매출: 최근 분기, 업종 합계 (원 -> 억)
-    const sales = (await apiData("/api/sales?trdarCd=" + trdarCd)) || [];
-    if (sales.length) {
-        const q = latestQuarter(sales);
-        const won = sales.filter((s) => s.stdrYyquCd === q)
-            .reduce((acc, s) => acc + (s.thsmonSelngAmt || 0), 0);
-        setKpi("sales", Math.round(won / 1e8).toLocaleString(), "억", computeDelta(sales, (s) => s.thsmonSelngAmt));
+    // 하나가 실패해도 나머지 지표는 채운다
+    const settled = await Promise.allSettled([
+        apiData("/api/districts/" + trdarCd),
+        apiData("/api/sales?trdarCd=" + trdarCd),
+        apiData("/api/store-stats?trdarCd=" + trdarCd),
+        apiData("/api/street-pops?trdarCd=" + trdarCd),
+    ]);
+    let [d, sales, stores, pop] = settled.map((r) => (r.status === "fulfilled" ? r.value : null));
+    if (!d) {
+        document.getElementById("detail-title").textContent = "상권 정보를 불러오지 못했습니다";
+        return;
+    }
+    sales = sales || [];
+    stores = stores || [];
+    pop = pop || [];
+    // 인접 상권은 같은 자치구만 조회
+    const summaries = await apiData("/api/districts/summary?signguCd=" + d.signguCd).catch(() => []);
+
+    document.title = d.trdarNm + " 상권 상세 · 서울공화국";
+    document.querySelector(".app-search-text").textContent = (d.signguNm || "") + " " + d.trdarNm;
+    document.getElementById("detail-crumb").textContent = "지도 › " + (d.signguNm || "") + " › " + d.trdarNm;
+    document.getElementById("detail-title").innerHTML =
+        d.trdarNm + ' <span class="detail-title-sub">· ' + (d.signguNm || "") + "</span>";
+
+    const salesTotals = sumByQuarter(sales, (s) => s.thsmonSelngAmt);
+    if (salesTotals.length) {
+        setKpi("sales", fmtEok(salesTotals[salesTotals.length - 1].v), "억/분기", qoqPct(salesTotals));
+        document.querySelector(".app-quarter").textContent =
+            quarterLabel(salesTotals[salesTotals.length - 1].q);
     } else {
         setKpi("sales", "-", "", null);
     }
 
-    // 유동인구: 최근 분기 (명 -> 만)
-    const pop = (await apiData("/api/street-pops?trdarCd=" + trdarCd)) || [];
-    if (pop.length) {
-        const q = latestQuarter(pop);
-        const row = pop.find((p) => p.stdrYyquCd === q);
-        setKpi("pop", Math.round((row.totFlpopCo || 0) / 1e4).toLocaleString(), "만", computeDelta(pop, (p) => p.totFlpopCo));
+    const popTotals = sumByQuarter(pop, (p) => p.totFlpopCo);
+    if (popTotals.length) {
+        setKpi("pop", fmtMan(popTotals[popTotals.length - 1].v), "만 명", qoqPct(popTotals));
     } else {
         setKpi("pop", "-", "", null);
     }
 
-    // 점포 수: 최근 분기, 업종 합계
-    const stores = (await apiData("/api/store-stats?trdarCd=" + trdarCd)) || [];
-    if (stores.length) {
-        const q = latestQuarter(stores);
-        const cnt = stores.filter((s) => s.stdrYyquCd === q)
-            .reduce((acc, s) => acc + (s.storCo || 0), 0);
-        setKpi("store", cnt.toLocaleString(), "개", computeDelta(stores, (s) => s.storCo));
+    const storeTotals = sumByQuarter(stores, (s) => s.storCo);
+    if (storeTotals.length) {
+        setKpi("store", storeTotals[storeTotals.length - 1].v.toLocaleString(), "개", qoqPct(storeTotals));
     } else {
         setKpi("store", "-", "", null);
     }
 
-    // 임대료: 상권 단위 값은 원천에 없어 서울 소규모상가 기준으로 표기
-    const rentUrl = "/api/rents?metricCd=RENT&regionCd=500002&rlstTyCd=" + encodeURIComponent("소규모상가");
-    const rent = (await apiData(rentUrl)) || [];
-    if (rent.length) {
-        const q = latestQuarter(rent);
-        const row = rent.find((r) => r.stdrYyquCd === q);
+    // 임대료: 상권 단위 원천이 없어 서울 소규모상가 기준으로 표기
+    try {
+        const rent = await apiData("/api/rents?metricCd=RENT&regionCd=500002&rlstTyCd=" + encodeURIComponent("소규모상가"));
         const label = document.querySelector('[data-kpi="rent"] .kpi-label');
         if (label) {
             label.textContent = "임대료(서울 소규모)";
         }
-        setKpi("rent", Math.round(row.metricValue).toLocaleString(), "천원/㎡", computeDelta(rent, (r) => r.metricValue));
-    } else {
+        if (rent.length) {
+            const q = latestQuarter(rent);
+            const rows = rent.filter((r) => r.stdrYyquCd === q);
+            const prevQ = [...new Set(rent.map((r) => r.stdrYyquCd))].sort().slice(-2)[0];
+            const prevRows = rent.filter((r) => r.stdrYyquCd === prevQ);
+            const pct = prevRows.length && prevRows[0].metricValue
+                ? ((rows[0].metricValue - prevRows[0].metricValue) / prevRows[0].metricValue) * 100 : null;
+            setKpi("rent", Math.round(rows[0].metricValue).toLocaleString(), "천원/㎡", pct);
+        } else {
+            setKpi("rent", "-", "", null);
+        }
+    } catch (e) {
         setKpi("rent", "-", "", null);
     }
+
+    drawTrend(salesTotals);
+    drawMix(sales);
+    drawCompetitors(d, summaries || []);
 }
 
-load().catch((err) => console.error("상세 로드 실패:", err));
+load().catch((err) => {
+    console.error("상세 로드 실패:", err);
+    document.getElementById("detail-title").textContent = "상권 정보를 불러오지 못했습니다";
+});

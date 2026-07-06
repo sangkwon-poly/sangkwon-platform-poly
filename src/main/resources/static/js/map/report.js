@@ -1,23 +1,8 @@
-// 상권 리포트: URL의 trdarCd로 제목·메타·핵심 지표를 채운다.
+// 상권 리포트 화면
 
-async function apiData(path) {
-    const res = await fetch(path);
-    if (!res.ok) {
-        return null;
-    }
-    return (await res.json()).data;
-}
+const REPORT_MIX_COLORS = ["#8a3120", "#ca7860", "#d58e76", "#dfa48e", "#e7bba9", "#eccaba", "#f0d6c9"];
+const report = { totals: [], name: "" };
 
-function latestQuarter(rows) {
-    return rows.reduce((max, r) => (r.stdrYyquCd > max ? r.stdrYyquCd : max), "");
-}
-
-// 20261 -> 2026년 1분기
-function quarterLabel(code) {
-    return code ? code.slice(0, 4) + "년 " + code.slice(4) + "분기" : "";
-}
-
-// 라벨이 일치하는 KPI의 숫자만 바꾸고 단위 span은 유지
 function setPaperKpi(label, value) {
     document.querySelectorAll(".paper-kpi").forEach((kpi) => {
         const l = kpi.querySelector(".paper-kpi-label");
@@ -32,41 +17,103 @@ function setPaperKpi(label, value) {
     });
 }
 
+function drawPaperTrend(totals) {
+    const svg = document.querySelector(".paper-trend");
+    const recent = totals.slice(-12);
+    if (!svg || !recent.length) {
+        return;
+    }
+    const pts = trendPoints(recent.map((t) => t.amt));
+    const line = pts.map((p, i) => (i ? "L" : "M") + p.x + " " + p.y).join(" ");
+    const area = line + " L" + pts[pts.length - 1].x + " 150 L" + pts[0].x + " 150 Z";
+    svg.innerHTML = '<path d="' + area + '" fill="#F1DDD5"></path>' +
+        '<path d="' + line + '" fill="none" stroke="#A8412C" stroke-width="3" stroke-linejoin="round"></path>';
+}
+
+function drawPaperMix(sales) {
+    const list = document.querySelector(".paper-mix");
+    if (!list || !sales.length) {
+        return;
+    }
+    const q = latestQuarter(sales);
+    const byInduty = new Map();
+    let total = 0;
+    sales.filter((s) => s.stdrYyquCd === q).forEach((s) => {
+        byInduty.set(s.indutyCd, (byInduty.get(s.indutyCd) || 0) + (s.thsmonSelngAmt || 0));
+        total += s.thsmonSelngAmt || 0;
+    });
+    const top = [...byInduty.entries()].sort((a, b) => b[1] - a[1]).slice(0, 7);
+    const maxAmt = top.length ? top[0][1] : 0;
+    list.innerHTML = top.map(([cd, amt], i) => {
+        const nm = (typeof INDUTY_NM !== "undefined" && INDUTY_NM[cd]) || cd;
+        const pct = total ? Math.round((amt / total) * 100) : 0;
+        const width = maxAmt ? Math.round((amt / maxAmt) * 100) : 0;
+        return '<li><span class="paper-mix-name">' + nm + "</span>" +
+            '<span class="paper-mix-bar"><span style="width:' + width + "%;background:" + REPORT_MIX_COLORS[i] + '"></span></span>' +
+            '<span class="paper-mix-pct">' + pct + "%</span></li>";
+    }).join("");
+}
+
+// 분기 매출 CSV 다운로드
+function downloadCsv() {
+    if (!report.totals.length) {
+        return;
+    }
+    const lines = ["분기,매출(원)"].concat(report.totals.map((t) => t.q + "," + t.amt));
+    const blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = (report.name || "상권") + "_분기매출.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
 async function load() {
+    document.querySelector(".export-pdf").addEventListener("click", () => window.print());
+    document.querySelector(".export-csv").addEventListener("click", downloadCsv);
+
     const trdarCd = new URLSearchParams(location.search).get("trdarCd");
     if (!trdarCd) {
+        document.querySelector(".paper-title").textContent = "상권을 선택하세요";
+        document.querySelector(".paper-meta").textContent = "상세 화면에서 리포트 버튼으로 들어오면 채워집니다";
         return;
     }
 
-    const d = await apiData("/api/districts/" + trdarCd);
-    const sales = (await apiData("/api/sales?trdarCd=" + trdarCd)) || [];
+    const [d, sales] = await Promise.all([
+        apiData("/api/districts/" + trdarCd),
+        apiData("/api/sales?trdarCd=" + trdarCd),
+    ]);
+    report.name = d.trdarNm;
+    report.totals = quarterlyTotals(sales);
     const quarter = sales.length ? latestQuarter(sales) : "";
 
-    if (d) {
-        document.querySelector(".app-page-name").textContent = "리포트 · " + d.trdarNm;
-        document.querySelector(".paper-title").textContent = d.trdarNm + " 상권 분석 리포트";
-        document.querySelector(".paper-meta").textContent =
-            (d.signguNm || "") + " " + d.trdarNm + " · " + quarterLabel(quarter) + " · 서울공화국";
-    }
+    document.querySelector(".app-page-name").textContent = "리포트 · " + d.trdarNm;
+    document.title = "리포트 · " + d.trdarNm + " · 서울공화국";
+    document.querySelector(".paper-title").textContent = d.trdarNm + " 상권 분석 리포트";
+    document.querySelector(".paper-meta").textContent =
+        (d.signguNm || "") + " · " + quarterLabel(quarter) + " · 서울공화국";
 
-    if (sales.length) {
-        const won = sales.filter((s) => s.stdrYyquCd === quarter).reduce((a, s) => a + (s.thsmonSelngAmt || 0), 0);
-        setPaperKpi("추정 매출", Math.round(won / 1e8).toLocaleString());
+    if (report.totals.length) {
+        setPaperKpi("추정 매출", fmtEok(report.totals[report.totals.length - 1].amt));
     }
-
     const stores = (await apiData("/api/store-stats?trdarCd=" + trdarCd)) || [];
     if (stores.length) {
         const q = latestQuarter(stores);
         const cnt = stores.filter((s) => s.stdrYyquCd === q).reduce((a, s) => a + (s.storCo || 0), 0);
         setPaperKpi("점포 수", cnt.toLocaleString());
     }
-
     const pop = (await apiData("/api/street-pops?trdarCd=" + trdarCd)) || [];
     if (pop.length) {
         const q = latestQuarter(pop);
         const row = pop.find((p) => p.stdrYyquCd === q);
-        setPaperKpi("유동인구", Math.round((row.totFlpopCo || 0) / 1e4).toLocaleString());
+        setPaperKpi("유동인구", fmtMan(row.totFlpopCo));
     }
+
+    drawPaperTrend(report.totals);
+    drawPaperMix(sales);
 }
 
-load().catch((err) => console.error("리포트 로드 실패:", err));
+load().catch((err) => {
+    console.error("리포트 로드 실패:", err);
+    document.querySelector(".paper-title").textContent = "리포트를 불러오지 못했습니다";
+});
