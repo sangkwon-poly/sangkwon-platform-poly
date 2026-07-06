@@ -9,6 +9,35 @@
   <link rel="stylesheet" href="/css/common.css">
   <link rel="stylesheet" href="/css/map/shell.css">
   <link rel="stylesheet" href="/css/map/map.css">
+  <style>
+    /* 우측 패널을 열고 닫는 드로어로 전환 */
+    .map-body { position: relative; }
+    .map-panel {
+      position: absolute; top: 0; right: 0; bottom: 0; z-index: 30;
+      transform: translateX(105%); transition: transform .25s ease;
+      background: #fff; box-shadow: -10px 0 28px rgba(94, 30, 17, .14);
+    }
+    .map-panel.is-open { transform: none; }
+    .panel-close {
+      position: absolute; top: 10px; left: -14px; width: 28px; height: 28px;
+      border-radius: 50%; border: 1px solid #e2d6cf; background: #fff;
+      color: #7e2a1b; font-size: 13px; cursor: pointer; z-index: 31;
+    }
+    .map-back {
+      position: absolute; top: 16px; left: 16px; z-index: 20; display: none;
+      padding: 8px 14px; border-radius: 20px; border: 1px solid #e2d6cf;
+      background: #fff; color: #7e2a1b; font: inherit; font-weight: 600; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(94, 30, 17, .12);
+    }
+    .rank-fab {
+      position: absolute; top: 16px; right: 16px; z-index: 20;
+      padding: 8px 14px; border-radius: 20px; border: 1px solid #e2d6cf;
+      background: #fff; color: #7e2a1b; font: inherit; font-weight: 600; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(94, 30, 17, .12);
+    }
+    .sel-hero-delta.up { color: #4e7a3e; }
+    .sel-hero-delta.down { color: #b0503a; }
+  </style>
 </head>
 <body>
 <div class="app">
@@ -26,7 +55,7 @@
     <div class="app-search-wrap">
       <form class="app-search" role="search" action="/map/search.html">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B0857A" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.5" y2="16.5"></line></svg>
-        <input type="search" name="q" placeholder="자치구 · 상권 · 업종 검색" aria-label="상권 검색">
+        <input type="search" name="q" placeholder="상권 · 자치구 검색" aria-label="상권 검색">
       </form>
     </div>
 
@@ -44,6 +73,8 @@
     <main class="map-stage" aria-label="상권 지도">
       <h1 class="sr-only">메인 지도 대시보드</h1>
       <div id="map" class="map-canvas"></div>
+      <button type="button" class="map-back" id="map-back">← 서울 전체</button>
+      <button type="button" class="rank-fab" id="rank-fab">자치구 랭킹</button>
 
       <!-- 지도 위 요약 배지 -->
       <div class="map-summary">
@@ -71,8 +102,9 @@
       <p class="map-attr">지도 © Kakao · 데이터: 서울시 상권분석서비스 · 한국부동산원</p>
     </main>
 
-    <!-- 우측 패널: 선택 상권 + 랭킹 -->
-    <aside class="map-panel" aria-label="선택 상권과 자치구 랭킹">
+    <!-- 우측 드로어: 선택 구역 + 랭킹 -->
+    <aside class="map-panel" aria-label="선택 구역과 자치구 랭킹">
+      <button type="button" class="panel-close" aria-label="패널 닫기">✕</button>
 
       <!-- 선택 상권 카드 -->
       <section class="sel-card" style="display:none">
@@ -85,10 +117,10 @@
         </div>
         <p class="sel-hero"><span class="sel-hero-num">-</span><span class="sel-hero-unit">억/분기</span><span class="sel-hero-delta"></span></p>
         <dl class="sel-metrics">
-          <div class="sel-metric"><dt>추정 매출</dt><dd>-<span>억/분기</span></dd></div>
           <div class="sel-metric"><dt>유동인구</dt><dd>-<span>만 명</span></dd></div>
           <div class="sel-metric"><dt>점포 수</dt><dd>-<span>개</span></dd></div>
           <div class="sel-metric"><dt>변화지표</dt><dd>-<span></span></dd></div>
+          <div class="sel-metric"><dt>임대료(서울 소규모)</dt><dd>-<span>천원/㎡</span></dd></div>
         </dl>
         <div class="sel-actions">
           <a class="sel-report" href="/map/trdar-detail.html">상세 리포트 →</a>
