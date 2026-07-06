@@ -40,10 +40,15 @@ public class DistrictService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "상권을 찾을 수 없습니다"));
     }
 
-    // 상권 요약 목록 (검색 결과용)
-    public List<DistrictSummaryResponse> getSummaries(String signguCd, String trdarSeCd, String keyword) {
-        return trdarRepository.searchSummary(signguCd, trdarSeCd, keyword).stream()
+    // 상권 요약 목록 (지도·검색용). quarter가 없으면 최신 분기.
+    public List<DistrictSummaryResponse> getSummaries(String signguCd, String trdarSeCd, String keyword, String quarter) {
+        return trdarRepository.searchSummary(signguCd, trdarSeCd, keyword, quarter).stream()
                 .map(DistrictSummaryResponse::from)
                 .toList();
+    }
+
+    // 조회 가능한 분기 목록
+    public List<String> getQuarters() {
+        return trdarRepository.findSalesQuarters();
     }
 }

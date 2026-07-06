@@ -113,14 +113,21 @@ class DistrictServiceTest {
         when(s.getTrdarCd()).thenReturn("3110001");
         when(s.getSalesAmt()).thenReturn(74_000_000_000L);
         when(s.getQuarter()).thenReturn("20261");
-        when(trdarRepository.searchSummary(null, null, "강남")).thenReturn(List.of(s));
+        when(trdarRepository.searchSummary(null, null, "강남", null)).thenReturn(List.of(s));
 
-        List<DistrictSummaryResponse> result = districtService.getSummaries(null, null, "강남");
+        List<DistrictSummaryResponse> result = districtService.getSummaries(null, null, "강남", null);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).trdarCd()).isEqualTo("3110001");
         assertThat(result.get(0).salesAmt()).isEqualTo(74_000_000_000L);
         assertThat(result.get(0).quarter()).isEqualTo("20261");
-        verify(trdarRepository).searchSummary(null, null, "강남");
+        verify(trdarRepository).searchSummary(null, null, "강남", null);
+    }
+
+    @Test
+    void 분기_목록을_조회한다() {
+        when(trdarRepository.findSalesQuarters()).thenReturn(List.of("20261", "20254"));
+
+        assertThat(districtService.getQuarters()).containsExactly("20261", "20254");
     }
 }
