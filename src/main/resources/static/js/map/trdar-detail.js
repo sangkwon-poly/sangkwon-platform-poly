@@ -35,7 +35,9 @@ function setKpi(key, num, unit, deltaPct) {
         return;
     }
     if (deltaPct == null) {
-        badge.remove();
+        // 업종 전환으로 다시 그릴 수 있게 지우기만 한다
+        badge.className = "kpi-delta";
+        badge.textContent = "";
     } else {
         badge.className = "kpi-delta " + (deltaPct >= 0 ? "up" : "down");
         badge.textContent = (deltaPct >= 0 ? "+" : "") + deltaPct.toFixed(1) + "%";
@@ -273,13 +275,47 @@ async function load() {
     document.getElementById("detail-title").innerHTML =
         d.trdarNm + ' <span class="detail-title-sub">· ' + (d.signguNm || "") + "</span>";
 
-    const salesTotals = sumByQuarter(sales, (s) => s.thsmonSelngAmt);
+    // 업종 필터. 이 상권에 있는 업종만, 최근 분기 매출 순으로 채운다
+    const indutySel = document.getElementById("detail-induty");
+    if (sales.length) {
+        const q = latestQuarter(sales);
+        const byInduty = new Map();
+        sales.filter((s) => s.stdrYyquCd === q).forEach((s) => {
+            byInduty.set(s.indutyCd, (byInduty.get(s.indutyCd) || 0) + (s.thsmonSelngAmt || 0));
+        });
+        indutySel.innerHTML = '<option value="">전체 업종</option>' +
+            [...byInduty.entries()].sort((a, b) => b[1] - a[1]).map(([cd]) => {
+                const nm = (typeof INDUTY_NM !== "undefined" && INDUTY_NM[cd]) || cd;
+                return '<option value="' + cd + '">' + nm + "</option>";
+            }).join("");
+    }
+    // 업종을 바꾸면 매출·점포 KPI와 추이·히트맵을 그 업종 기준으로 다시 그린다
+    const renderSalesParts = (indutyCd) => {
+        const mySales = indutyCd ? sales.filter((s) => s.indutyCd === indutyCd) : sales;
+        const myStores = indutyCd ? stores.filter((s) => s.indutyCd === indutyCd) : stores;
+
+        const salesTotals = sumByQuarter(mySales, (s) => s.thsmonSelngAmt);
+        if (salesTotals.length) {
+            setKpi("sales", fmtEok(salesTotals[salesTotals.length - 1].v), "억/분기", qoqPct(salesTotals));
+        } else {
+            setKpi("sales", "-", "억/분기", null);
+        }
+        const storeTotals = sumByQuarter(myStores, (s) => s.storCo);
+        if (storeTotals.length) {
+            setKpi("store", storeTotals[storeTotals.length - 1].v.toLocaleString(), "개", qoqPct(storeTotals));
+        } else {
+            setKpi("store", "-", "개", null);
+        }
+        drawTrend(salesTotals);
+        drawHeat(mySales);
+        return salesTotals;
+    };
+    indutySel.addEventListener("change", () => renderSalesParts(indutySel.value));
+
+    const salesTotals = renderSalesParts("");
     if (salesTotals.length) {
-        setKpi("sales", fmtEok(salesTotals[salesTotals.length - 1].v), "억/분기", qoqPct(salesTotals));
         document.querySelector(".app-quarter").textContent =
             quarterLabel(salesTotals[salesTotals.length - 1].q);
-    } else {
-        setKpi("sales", "-", "", null);
     }
 
     const popTotals = sumByQuarter(pop, (p) => p.totFlpopCo);
@@ -289,17 +325,7 @@ async function load() {
         setKpi("pop", "-", "", null);
     }
 
-    const storeTotals = sumByQuarter(stores, (s) => s.storCo);
-    if (storeTotals.length) {
-        setKpi("store", storeTotals[storeTotals.length - 1].v.toLocaleString(), "개", qoqPct(storeTotals));
-    } else {
-        setKpi("store", "-", "", null);
-    }
-
-    // 차트는 확보된 매출 데이터로 즉시 그린다
-    drawTrend(salesTotals);
     drawMix(sales);
-    drawHeat(sales);
 
     // 임대료: 상권 단위 원천이 없어 서울 소규모상가 기준으로 표기
     const rent = await rentP;

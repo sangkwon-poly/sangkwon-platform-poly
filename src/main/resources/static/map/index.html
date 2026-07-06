@@ -57,7 +57,9 @@
 
     <div class="app-tools">
       <select class="app-quarter" id="quarter-select" aria-label="기준 분기"
-              style="appearance:auto;border:0;font:inherit;cursor:pointer"></select>
+              style="appearance:auto;border:0;font:inherit;cursor:pointer">
+        <option value="">최신 분기</option>
+      </select>
       <span class="app-status"><span class="app-status-dot" aria-hidden="true"></span><span id="app-status">연동 확인 중</span></span>
       <a class="app-user" href="/login"><span class="app-avatar" aria-hidden="true">이</span>이상혁</a>
     </div>
@@ -80,6 +82,12 @@
 
       <!-- 지도 레이어 · 범례 -->
       <aside class="map-legend card" aria-label="지도 레이어">
+        <p class="panel-label">업종</p>
+        <select id="induty-select" aria-label="업종 필터"
+                style="width:100%;margin:4px 0 10px;padding:7px 9px;border:1px solid #e2d6cf;border-radius:8px;font:inherit;background:#fff">
+          <option value="">전체 업종</option>
+        </select>
+        <p style="font-size:11px;color:#9a8c84;margin:-6px 0 10px">매출·점포 수 레이어에 적용</p>
         <p class="panel-label">지도 레이어</p>
         <ul class="layer-list">
           <li class="layer-item is-active" data-layer="sales"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">추정 매출</span></li>
@@ -138,7 +146,8 @@
     </aside>
   </div>
 </div>
-<script src="/js/map/common.js"></script>
-<script src="/js/map/index.js" defer></script>
+<script src="/js/map/common.js?v=20260706c"></script>
+<script src="/js/map/induty-map.js?v=20260706c"></script>
+<script src="/js/map/index.js?v=20260706c" defer></script>
 </body>
 </html>
