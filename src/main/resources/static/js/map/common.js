@@ -1,7 +1,7 @@
 // 지도 화면 공통 유틸
 
-async function apiData(path) {
-    const res = await fetch(path);
+async function apiData(path, signal) {
+    const res = await fetch(path, signal ? { signal: signal } : undefined);
     if (!res.ok) {
         throw new Error(path + " 응답 " + res.status);
     }
