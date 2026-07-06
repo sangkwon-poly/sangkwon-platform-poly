@@ -1,16 +1,20 @@
 // 메인 지도. 구 단위 단계구분도에서 시작해 구 클릭 시 상권 폴리곤으로 내려간다.
 
-const LEGEND_COLORS = ["#f7efea", "#edcbbc", "#db9880", "#c0664e", "#a8412c", "#7e2a1b"];
-// LL 다이나믹이 진한 쪽, HH 정체가 옅은 쪽
-const CHANGE_COLORS = { LL: "#7e2a1b", LH: "#c0664e", HL: "#db9880", HH: "#edcbbc" };
+// 레이어별 색. 매출은 브랜드 레드, 유동은 데님 블루, 점포는 틸.
+// 성장·쇠퇴는 범주형이라 색약에서도 갈리는 레드-틸 축 + 명도 사다리.
+const CHANGE_COLORS = { HH: "#9AA0A8", HL: "#A8412C", LH: "#1E7D70", LL: "#9973BD" };
+const CHANGE_ORDER = [["HH", "정체"], ["HL", "축소"], ["LH", "확장"], ["LL", "다이나믹"]];
 const CHANGE_SCORE = { LL: 3, LH: 2, HL: 1, HH: 0 };
 
 // 임대료는 상권 단위 원천이 없어 레이어 대신 드로어 지표(서울 소규모상가 기준)로 보여준다.
 const LAYERS = {
-    sales: { name: "추정 매출", unit: "억/분기", value: (d) => d.salesAmt },
-    flpop: { name: "유동인구", unit: "만 명", value: (d) => d.flpop },
-    store: { name: "점포 수", unit: "개", value: (d) => d.storeCnt },
-    change: { name: "성장·쇠퇴", unit: "변화지표", value: (d) => d.changeIx },
+    sales: { name: "추정 매출", unit: "억/분기", value: (d) => d.salesAmt,
+        colors: ["#F9DFD3", "#F0BCA6", "#E29679", "#CE7052", "#A8412C", "#7A2A1B"] },
+    flpop: { name: "유동인구", unit: "만 명", value: (d) => d.flpop,
+        colors: ["#DCE8F4", "#B3CDE8", "#84AED7", "#5A8EC0", "#3D6FA3", "#28517D"] },
+    store: { name: "점포 수", unit: "개", value: (d) => d.storeCnt,
+        colors: ["#D9ECE8", "#ABD6CE", "#7BBCB1", "#4F9E92", "#2F8175", "#1C5F55"] },
+    change: { name: "성장·쇠퇴", unit: "변화지표", value: (d) => d.changeIx, colors: null },
 };
 
 const state = {
@@ -41,11 +45,11 @@ function loadKakaoSdk(appKey) {
 }
 
 // 편차가 큰 값이라 순위 기반 6단계 색
-function makeColorScale(values) {
+function makeColorScale(values, ramp) {
     const sorted = values.filter((v) => v != null).sort((a, b) => a - b);
     return (v) => {
         if (v == null || !sorted.length) {
-            return LEGEND_COLORS[0];
+            return ramp[0];
         }
         let lo = 0;
         let hi = sorted.length - 1;
@@ -57,8 +61,16 @@ function makeColorScale(values) {
                 hi = mid;
             }
         }
-        return LEGEND_COLORS[Math.min(5, Math.floor((lo / sorted.length) * 6))];
+        return ramp[Math.min(5, Math.floor((lo / sorted.length) * 6))];
     };
+}
+
+// 단계별 구 폴리곤 투명도. 드릴다운 중엔 주변은 흐리게, 들어간 구는 더 옅게
+function guOpacity(gu) {
+    if (state.level === "gu") {
+        return 0.72;
+    }
+    return gu === state.currentGu ? 0.1 : 0.18;
 }
 
 function ringsOf(geo) {
@@ -121,7 +133,7 @@ function paintGu() {
         });
         return;
     }
-    const scale = makeColorScale([...state.byGu.values()].map(guValue));
+    const scale = makeColorScale([...state.byGu.values()].map(guValue), LAYERS[state.layer].colors);
     state.byGu.forEach((g, gu) => {
         const c = scale(guValue(g));
         (state.guPolys.get(gu) || []).forEach((p) => p.setOptions({ fillColor: c }));
@@ -133,7 +145,7 @@ function paintTrdar() {
     const colorOf = state.layer === "change"
         ? (d) => CHANGE_COLORS[d.changeIx] || "#e7e0da"
         : (() => {
-            const scale = makeColorScale(mine.map(LAYERS[state.layer].value));
+            const scale = makeColorScale(mine.map(LAYERS[state.layer].value), LAYERS[state.layer].colors);
             return (d) => scale(LAYERS[state.layer].value(d));
         })();
     mine.forEach((d) => {
@@ -155,12 +167,11 @@ function drawGuPolygons(features) {
         });
         kakao.maps.event.addListener(poly, "mouseover", () => {
             if (gu !== state.currentGu) {
-                poly.setOptions({ fillOpacity: 0.9, strokeWeight: 2.5 });
+                poly.setOptions({ fillOpacity: state.level === "gu" ? 0.9 : 0.3, strokeWeight: 2.5 });
             }
         });
         kakao.maps.event.addListener(poly, "mouseout", () => {
-            const inside = gu === state.currentGu && state.level === "trdar";
-            poly.setOptions({ fillOpacity: inside ? 0.15 : 0.72, strokeWeight: 1.5 });
+            poly.setOptions({ fillOpacity: guOpacity(gu), strokeWeight: 1.5 });
         });
         // 드릴다운 중이라도 다른 구를 누르면 그 구로 바로 전환
         kakao.maps.event.addListener(poly, "click", () => {
@@ -221,12 +232,11 @@ async function drillDown(gu, bounds) {
     if (bounds) {
         state.map.setBounds(bounds, 24);
     }
-    // 주변 구의 원래 색은 유지, 들어간 구만 옅게 해서 상권 폴리곤이 잘 보이게 한다
+    // 주변 구는 흐리게 두어 지금 보는 구가 어디인지 드러낸다
     state.guPolys.forEach((polys, name) => {
-        const inside = name === gu;
         polys.forEach((p) => p.setOptions({
-            fillOpacity: inside ? 0.15 : 0.72,
-            strokeWeight: inside ? 3 : 1.5,
+            fillOpacity: name === gu ? 0.1 : 0.18,
+            strokeWeight: name === gu ? 3 : 1.5,
         }));
     });
     setGuLabelsVisible(false);
@@ -421,12 +431,12 @@ function bindLayers() {
             const scaleBox = document.querySelector(".legend-scale");
             const ends = document.querySelector(".legend-ends");
             if (key === "change") {
-                // 범주형이라 4색 그대로 보여준다
-                scaleBox.innerHTML = ["HH", "HL", "LH", "LL"]
-                    .map((c) => '<span style="background:' + CHANGE_COLORS[c] + '"></span>').join("");
-                ends.innerHTML = "<span>정체</span><span>다이나믹</span>";
+                // 범주형이라 4색을 이름과 함께 보여준다
+                scaleBox.innerHTML = CHANGE_ORDER
+                    .map(([c]) => '<span style="background:' + CHANGE_COLORS[c] + '"></span>').join("");
+                ends.innerHTML = CHANGE_ORDER.map(([, nm]) => "<span>" + nm + "</span>").join("");
             } else {
-                scaleBox.innerHTML = LEGEND_COLORS
+                scaleBox.innerHTML = LAYERS[key].colors
                     .map((c) => '<span style="background:' + c + '"></span>').join("");
                 ends.innerHTML = "<span>낮음</span><span>높음</span>";
             }
@@ -438,6 +448,25 @@ function bindLayers() {
             }
         });
     });
+}
+
+// 선택한 분기 기준으로 요약을 다시 받아 지도·랭킹을 갱신한다
+let quarterReq = 0;
+async function reloadSummary(quarter) {
+    const my = ++quarterReq;
+    const rows = (await apiData("/api/districts/summary" + (quarter ? "?quarter=" + quarter : ""))) || [];
+    if (my !== quarterReq) {
+        return; // 더 최근 선택이 있으면 버린다
+    }
+    state.districts = rows;
+    aggregateByGu();
+    if (state.level === "gu") {
+        paintGu();
+    } else {
+        paintTrdar();
+    }
+    drawRanking();
+    closeDrawer();
 }
 
 async function init() {
@@ -478,11 +507,19 @@ async function init() {
     const gus = new Set(state.districts.map((d) => d.signguNm).filter(Boolean));
     document.getElementById("sum-gu").textContent = gus.size;
     document.getElementById("sum-trdar").textContent = state.districts.length.toLocaleString();
-    if (state.districts.length) {
-        document.querySelector(".app-quarter").childNodes[0].textContent = quarterLabel(state.districts[0].quarter);
-    }
     document.querySelector(".rank-foot").firstChild.textContent =
         "전체 " + state.districts.length.toLocaleString() + "개 상권";
+
+    // 분기 선택. 목록을 채우고 바꾸면 그 분기 기준으로 다시 칠한다
+    const quarterSel = document.getElementById("quarter-select");
+    apiData("/api/districts/quarters").then((quarters) => {
+        quarterSel.innerHTML = quarters
+            .map((q) => '<option value="' + q + '">' + quarterLabel(q) + "</option>").join("");
+        if (state.districts.length) {
+            quarterSel.value = state.districts[0].quarter;
+        }
+    }).catch(() => { /* 목록이 없으면 최신 분기 고정 */ });
+    quarterSel.addEventListener("change", () => reloadSummary(quarterSel.value));
 
     drawGuPolygons(guGeo.features);
     // 처음부터 서울 전체가 화면에 차게 맞춘다

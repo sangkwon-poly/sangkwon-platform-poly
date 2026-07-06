@@ -179,10 +179,10 @@ function drawEnv(att, res, apt, chg, stores) {
         ["버스정류장", a ? n(a.busStopCo) + "개" : "-"],
         ["학교 · 병원 · 은행", a ? n(a.schoolCo) + " · " + n(a.hospitalCo) + " · " + n(a.bankCo) : "-"],
         ["집객시설 총", a ? n(a.viatrFcltyCo) + "개" : "-"],
-        ["상주인구", r ? fmtMan(r.totRepopCo) + "만 명" : "-"],
+        ["상주인구", r ? (r.totRepopCo >= 10000 ? fmtMan(r.totRepopCo) + "만 명" : n(r.totRepopCo) + "명") : "-"],
         ["가구 수", r ? n(r.totHshldCo) + "가구" : "-"],
         ["아파트", p ? n(p.aptComplxCo) + "단지 · " + n(p.aptHshldCo) + "세대" : "-"],
-        ["개업률 · 폐업률", pct(opRt) + " · " + pct(clsRt)],
+        ["개업·폐업률", pct(opRt) + " · " + pct(clsRt)],
         ["프랜차이즈 비중", pct(frcShare)],
         ["평균 영업기간", c && c.oprSaleMtAvrg != null ? Math.round(c.oprSaleMtAvrg) + "개월" : "-"],
     ];

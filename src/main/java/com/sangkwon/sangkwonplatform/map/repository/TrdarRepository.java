@@ -32,22 +32,22 @@ public interface TrdarRepository extends JpaRepository<Trdar, String> {
                                 @Param("trdarSeCd") String trdarSeCd,
                                 @Param("trdarCd") String trdarCd);
 
-    // 상권별 최근 분기 요약(매출·유동·점포·변화). 지도 점·검색 결과·랭킹용.
+    // 상권별 분기 요약(매출·유동·점포·변화). quarter가 없으면 최신 분기.
     @Query(value = """
             select t.trdar_cd as "trdarCd", t.trdar_cd_nm as "trdarNm", t.signgu_nm as "signguNm",
                    t.center_lot as "centerLot", t.center_lat as "centerLat",
                    s.amt as "salesAmt", sp.flpop as "flpop", st.cnt as "storeCnt",
                    tc.chnge_ix as "changeIx", tc.chnge_ix_nm as "changeIxNm",
-                   (select max(stdr_yyqu_cd) from sales) as "quarter"
+                   coalesce(:quarter, (select max(stdr_yyqu_cd) from sales)) as "quarter"
             from trdar t
             left join (select trdar_cd, sum(thsmon_selng_amt) amt from sales
-                       where stdr_yyqu_cd = (select max(stdr_yyqu_cd) from sales) group by trdar_cd) s on s.trdar_cd = t.trdar_cd
+                       where stdr_yyqu_cd = coalesce(:quarter, (select max(stdr_yyqu_cd) from sales)) group by trdar_cd) s on s.trdar_cd = t.trdar_cd
             left join (select trdar_cd, sum(stor_co) cnt from store_stat
-                       where stdr_yyqu_cd = (select max(stdr_yyqu_cd) from store_stat) group by trdar_cd) st on st.trdar_cd = t.trdar_cd
+                       where stdr_yyqu_cd = coalesce(:quarter, (select max(stdr_yyqu_cd) from store_stat)) group by trdar_cd) st on st.trdar_cd = t.trdar_cd
             left join (select trdar_cd, tot_flpop_co flpop from street_pop
-                       where stdr_yyqu_cd = (select max(stdr_yyqu_cd) from street_pop)) sp on sp.trdar_cd = t.trdar_cd
+                       where stdr_yyqu_cd = coalesce(:quarter, (select max(stdr_yyqu_cd) from street_pop))) sp on sp.trdar_cd = t.trdar_cd
             left join (select trdar_cd, trdar_chnge_ix chnge_ix, trdar_chnge_ix_nm chnge_ix_nm from trdar_change
-                       where stdr_yyqu_cd = (select max(stdr_yyqu_cd) from trdar_change)) tc on tc.trdar_cd = t.trdar_cd
+                       where stdr_yyqu_cd = coalesce(:quarter, (select max(stdr_yyqu_cd) from trdar_change))) tc on tc.trdar_cd = t.trdar_cd
             where (:signguCd is null or t.signgu_cd = :signguCd)
               and (:trdarSeCd is null or t.trdar_se_cd = :trdarSeCd)
               and (:keyword is null or t.trdar_cd_nm like '%' || :keyword || '%')
@@ -55,5 +55,10 @@ public interface TrdarRepository extends JpaRepository<Trdar, String> {
             """, nativeQuery = true)
     List<DistrictSummary> searchSummary(@Param("signguCd") String signguCd,
                                         @Param("trdarSeCd") String trdarSeCd,
-                                        @Param("keyword") String keyword);
+                                        @Param("keyword") String keyword,
+                                        @Param("quarter") String quarter);
+
+    // 매출 데이터가 있는 분기 목록 (최신 먼저)
+    @Query(value = "select distinct stdr_yyqu_cd from sales order by stdr_yyqu_cd desc", nativeQuery = true)
+    List<String> findSalesQuarters();
 }

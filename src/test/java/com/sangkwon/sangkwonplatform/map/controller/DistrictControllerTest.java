@@ -73,7 +73,7 @@ class DistrictControllerTest {
                 "3110001", "역삼역", "강남구",
                 new BigDecimal("127.03"), new BigDecimal("37.50"),
                 74_000_000_000L, 590_000L, 3596L, "LL", "다이나믹", "20261");
-        when(districtService.getSummaries(null, null, "강남")).thenReturn(List.of(s));
+        when(districtService.getSummaries(null, null, "강남", null)).thenReturn(List.of(s));
 
         mvc.perform(get("/api/districts/summary").param("keyword", "강남"))
                 .andExpect(status().isOk())
