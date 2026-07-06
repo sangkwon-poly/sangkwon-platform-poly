@@ -10,16 +10,17 @@
   <link rel="stylesheet" href="/css/map/shell.css">
   <link rel="stylesheet" href="/css/map/map.css">
   <style>
-    /* 우측 패널을 열고 닫는 드로어로 전환 */
-    .map-body { position: relative; }
+    /* 우측 패널을 열고 닫는 드로어로 전환. overflow를 잘라 가로 스크롤이 생기지 않게 한다 */
+    .map-body { position: relative; overflow: hidden; }
     .map-panel {
       position: absolute; top: 0; right: 0; bottom: 0; z-index: 30;
-      transform: translateX(105%); transition: transform .25s ease;
+      transform: translateX(105%); transition: transform .25s ease, visibility .25s;
+      visibility: hidden;
       background: #fff; box-shadow: -10px 0 28px rgba(94, 30, 17, .14);
     }
-    .map-panel.is-open { transform: none; }
+    .map-panel.is-open { transform: none; visibility: visible; }
     .map-back {
-      position: absolute; top: 16px; left: 16px; z-index: 20; display: none;
+      position: absolute; top: 64px; left: 16px; z-index: 20; display: none;
       padding: 8px 14px; border-radius: 20px; border: 1px solid #e2d6cf;
       background: #fff; color: #7e2a1b; font: inherit; font-weight: 600; cursor: pointer;
       box-shadow: 0 2px 8px rgba(94, 30, 17, .12);
