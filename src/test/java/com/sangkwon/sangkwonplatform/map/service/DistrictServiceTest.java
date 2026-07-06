@@ -1,8 +1,10 @@
 package com.sangkwon.sangkwonplatform.map.service;
 
 import com.sangkwon.sangkwonplatform.map.dto.request.DistrictSearchRequest;
+import com.sangkwon.sangkwonplatform.map.dto.response.DistrictGeoResponse;
 import com.sangkwon.sangkwonplatform.map.dto.response.DistrictResponse;
 import com.sangkwon.sangkwonplatform.map.entity.Trdar;
+import com.sangkwon.sangkwonplatform.map.repository.DistrictGeo;
 import com.sangkwon.sangkwonplatform.map.repository.TrdarRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -51,5 +53,20 @@ class DistrictServiceTest {
 
         assertThat(result).isEmpty();
         verify(trdarRepository).search(null, null);
+    }
+
+    @Test
+    void 경계_조회해서_GeoJSON_DTO로_변환한다() {
+        DistrictGeo geo = mock(DistrictGeo.class);
+        when(geo.getTrdarCd()).thenReturn("3110001");
+        when(geo.getGeoJson()).thenReturn(null);   // CLOB 읽기는 앱 구동 검증에서 확인
+        when(trdarRepository.searchGeo("11680", null)).thenReturn(List.of(geo));
+
+        List<DistrictGeoResponse> result =
+                districtService.getGeometries(new DistrictSearchRequest("11680", null));
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).trdarCd()).isEqualTo("3110001");
+        verify(trdarRepository).searchGeo("11680", null);
     }
 }
