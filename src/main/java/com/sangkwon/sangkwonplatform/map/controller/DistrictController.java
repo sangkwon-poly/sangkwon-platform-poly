@@ -35,14 +35,15 @@ public class DistrictController {
         return ApiResponse.ok(districtService.getGeometries(request, trdarCd));
     }
 
-    // 상권 요약 검색 (매출·유동·점포·변화). quarter가 없으면 최신 분기
+    // 상권 요약 검색 (매출·유동·점포·변화). quarter가 없으면 최신 분기, indutyCd는 매출·점포에만 적용
     @GetMapping("/summary")
     public ApiResponse<List<DistrictSummaryResponse>> getSummaries(
             @RequestParam(required = false) String signguCd,
             @RequestParam(required = false) String trdarSeCd,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String quarter) {
-        return ApiResponse.ok(districtService.getSummaries(signguCd, trdarSeCd, keyword, quarter));
+            @RequestParam(required = false) String quarter,
+            @RequestParam(required = false) String indutyCd) {
+        return ApiResponse.ok(districtService.getSummaries(signguCd, trdarSeCd, keyword, quarter, indutyCd));
     }
 
     // 조회 가능한 분기 목록 (최신 먼저)

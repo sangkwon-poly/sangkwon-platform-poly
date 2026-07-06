@@ -450,12 +450,22 @@ function bindLayers() {
     });
 }
 
-// 선택한 분기 기준으로 요약을 다시 받아 지도·랭킹을 갱신한다
-let quarterReq = 0;
-async function reloadSummary(quarter) {
-    const my = ++quarterReq;
-    const rows = (await apiData("/api/districts/summary" + (quarter ? "?quarter=" + quarter : ""))) || [];
-    if (my !== quarterReq) {
+// 선택한 분기·업종 기준으로 요약을 다시 받아 지도·랭킹을 갱신한다
+let summaryReq = 0;
+async function reloadSummary() {
+    const my = ++summaryReq;
+    const params = new URLSearchParams();
+    const quarter = document.getElementById("quarter-select").value;
+    const induty = document.getElementById("induty-select").value;
+    if (quarter) {
+        params.set("quarter", quarter);
+    }
+    if (induty) {
+        params.set("indutyCd", induty);
+    }
+    const qs = params.toString();
+    const rows = (await apiData("/api/districts/summary" + (qs ? "?" + qs : ""))) || [];
+    if (my !== summaryReq) {
         return; // 더 최근 선택이 있으면 버린다
     }
     state.districts = rows;
@@ -513,13 +523,27 @@ async function init() {
     // 분기 선택. 목록을 채우고 바꾸면 그 분기 기준으로 다시 칠한다
     const quarterSel = document.getElementById("quarter-select");
     apiData("/api/districts/quarters").then((quarters) => {
-        quarterSel.innerHTML = quarters
+        const valid = (quarters || []).filter((q) => q && q.length === 5);
+        if (!valid.length) {
+            return; // 목록이 없으면 최신 분기 고정
+        }
+        quarterSel.innerHTML = valid
             .map((q) => '<option value="' + q + '">' + quarterLabel(q) + "</option>").join("");
         if (state.districts.length) {
             quarterSel.value = state.districts[0].quarter;
         }
     }).catch(() => { /* 목록이 없으면 최신 분기 고정 */ });
-    quarterSel.addEventListener("change", () => reloadSummary(quarterSel.value));
+    quarterSel.addEventListener("change", reloadSummary);
+
+    // 업종 필터. 이름순으로 채우고 바꾸면 매출·점포 집계가 그 업종 기준이 된다
+    const indutySel = document.getElementById("induty-select");
+    if (typeof INDUTY_NM !== "undefined") {
+        indutySel.innerHTML = '<option value="">전체 업종</option>' +
+            Object.entries(INDUTY_NM)
+                .sort((a, b) => a[1].localeCompare(b[1], "ko"))
+                .map(([cd, nm]) => '<option value="' + cd + '">' + nm + "</option>").join("");
+    }
+    indutySel.addEventListener("change", reloadSummary);
 
     drawGuPolygons(guGeo.features);
     // 처음부터 서울 전체가 화면에 차게 맞춘다

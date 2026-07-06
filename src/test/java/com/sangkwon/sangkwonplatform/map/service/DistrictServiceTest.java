@@ -113,15 +113,15 @@ class DistrictServiceTest {
         when(s.getTrdarCd()).thenReturn("3110001");
         when(s.getSalesAmt()).thenReturn(74_000_000_000L);
         when(s.getQuarter()).thenReturn("20261");
-        when(trdarRepository.searchSummary(null, null, "강남", null)).thenReturn(List.of(s));
+        when(trdarRepository.searchSummary(null, null, "강남", null, null)).thenReturn(List.of(s));
 
-        List<DistrictSummaryResponse> result = districtService.getSummaries(null, null, "강남", null);
+        List<DistrictSummaryResponse> result = districtService.getSummaries(null, null, "강남", null, null);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).trdarCd()).isEqualTo("3110001");
         assertThat(result.get(0).salesAmt()).isEqualTo(74_000_000_000L);
         assertThat(result.get(0).quarter()).isEqualTo("20261");
-        verify(trdarRepository).searchSummary(null, null, "강남", null);
+        verify(trdarRepository).searchSummary(null, null, "강남", null, null);
     }
 
     @Test
