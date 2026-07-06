@@ -56,6 +56,25 @@ async function load() {
         return;
     }
 
+    // 비교 담기: 현재 상권을 목록에 추가하고 비교 화면으로 이동
+    const cmpBtn = document.querySelector('a.detail-btn[href="/map/compare.html"]');
+    if (cmpBtn) {
+        cmpBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            let ids = [];
+            try {
+                ids = JSON.parse(localStorage.getItem("cmpIds") || "[]");
+            } catch (err) {
+                ids = [];
+            }
+            if (!ids.includes(trdarCd)) {
+                ids.push(trdarCd);
+            }
+            localStorage.setItem("cmpIds", JSON.stringify(ids.slice(0, 4)));
+            location.href = "/map/compare.html";
+        });
+    }
+
     // 상권 이름 · 자치구
     const d = await apiData("/api/districts/" + trdarCd);
     if (d) {
