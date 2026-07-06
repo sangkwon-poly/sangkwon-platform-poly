@@ -18,11 +18,6 @@
       background: #fff; box-shadow: -10px 0 28px rgba(94, 30, 17, .14);
     }
     .map-panel.is-open { transform: none; }
-    .panel-close {
-      position: absolute; top: 10px; left: -14px; width: 28px; height: 28px;
-      border-radius: 50%; border: 1px solid #e2d6cf; background: #fff;
-      color: #7e2a1b; font-size: 13px; cursor: pointer; z-index: 31;
-    }
     .map-back {
       position: absolute; top: 16px; left: 16px; z-index: 20; display: none;
       padding: 8px 14px; border-radius: 20px; border: 1px solid #e2d6cf;
@@ -102,9 +97,8 @@
       <p class="map-attr">지도 © Kakao · 데이터: 서울시 상권분석서비스 · 한국부동산원</p>
     </main>
 
-    <!-- 우측 드로어: 선택 구역 + 랭킹 -->
+    <!-- 우측 드로어: 선택 구역 + 랭킹. 지도 빈 곳을 누르면 닫힌다 -->
     <aside class="map-panel" aria-label="선택 구역과 자치구 랭킹">
-      <button type="button" class="panel-close" aria-label="패널 닫기">✕</button>
 
       <!-- 선택 상권 카드 -->
       <section class="sel-card" style="display:none">
