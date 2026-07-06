@@ -4,11 +4,13 @@ import com.sangkwon.sangkwonplatform.global.common.ApiResponse;
 import com.sangkwon.sangkwonplatform.map.dto.request.DistrictSearchRequest;
 import com.sangkwon.sangkwonplatform.map.dto.response.DistrictGeoResponse;
 import com.sangkwon.sangkwonplatform.map.dto.response.DistrictResponse;
+import com.sangkwon.sangkwonplatform.map.dto.response.DistrictSummaryResponse;
 import com.sangkwon.sangkwonplatform.map.service.DistrictService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -29,6 +31,15 @@ public class DistrictController {
     @GetMapping("/geo")
     public ApiResponse<List<DistrictGeoResponse>> getGeometries(DistrictSearchRequest request) {
         return ApiResponse.ok(districtService.getGeometries(request));
+    }
+
+    // 상권 요약 검색 (매출·유동·점포·변화)
+    @GetMapping("/summary")
+    public ApiResponse<List<DistrictSummaryResponse>> getSummaries(
+            @RequestParam(required = false) String signguCd,
+            @RequestParam(required = false) String trdarSeCd,
+            @RequestParam(required = false) String keyword) {
+        return ApiResponse.ok(districtService.getSummaries(signguCd, trdarSeCd, keyword));
     }
 
     // 단일 상권 조회 (상세 화면용)
