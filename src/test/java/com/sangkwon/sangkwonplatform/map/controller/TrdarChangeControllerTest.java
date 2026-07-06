@@ -29,7 +29,7 @@ class TrdarChangeControllerTest {
     @Test
     void 상권변화지표_목록을_200으로_반환한다() throws Exception {
         TrdarChangeResponse t = new TrdarChangeResponse(
-                "20242", "3110001", "HH", "다이나믹",
+                "20242", "3110001", "LL", "다이나믹",
                 new BigDecimal("1234.56"), new BigDecimal("789.01"));
         when(trdarChangeService.getTrdarChanges(any())).thenReturn(List.of(t));
 
@@ -37,6 +37,6 @@ class TrdarChangeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].trdarCd").value("3110001"))
-                .andExpect(jsonPath("$.data[0].trdarChngeIx").value("HH"));
+                .andExpect(jsonPath("$.data[0].trdarChngeIx").value("LL"));
     }
 }

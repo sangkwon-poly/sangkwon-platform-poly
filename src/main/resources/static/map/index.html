@@ -32,7 +32,7 @@
 
     <div class="app-tools">
       <button type="button" class="app-quarter">2026 1분기<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.8)" stroke-width="2.4" aria-hidden="true"><polyline points="6 9 12 15 18 9"></polyline></svg></button>
-      <span class="app-status"><span class="app-status-dot" aria-hidden="true"></span>연동 정상</span>
+      <span class="app-status"><span class="app-status-dot" aria-hidden="true"></span><span id="app-status">연동 확인 중</span></span>
       <a class="app-user" href="/login"><span class="app-avatar" aria-hidden="true">이</span>이상혁</a>
     </div>
   </header>
@@ -40,49 +40,27 @@
   <!-- 지도 + 좌우 패널 -->
   <div class="app-body map-body">
 
-    <!-- 지도 영역 (Kakao 연동 예정 · 지금은 목업 코로플레스) -->
+    <!-- 지도 영역 -->
     <main class="map-stage" aria-label="상권 지도">
       <h1 class="sr-only">메인 지도 대시보드</h1>
-      <div id="map" class="map-canvas" aria-hidden="true">
-        <!-- 코로플레스 데모 (장식) -->
-        <svg class="map-choro" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <rect x="0" y="0" width="1000" height="700" fill="#e9e3de"></rect>
-          <g stroke="rgba(126,42,27,.28)" stroke-width="1.5" fill-opacity=".82">
-            <polygon points="120,90 260,70 320,150 250,240 130,220" fill="#e6b7a4"></polygon>
-            <polygon points="320,150 470,110 520,210 430,270 250,240" fill="#c16951"></polygon>
-            <polygon points="520,210 660,150 720,240 620,320 430,270" fill="#862f1e"></polygon>
-            <polygon points="720,240 860,190 900,300 800,360 620,320" fill="#d38971"></polygon>
-            <polygon points="130,220 250,240 300,360 190,410 90,320" fill="#f1d8cc"></polygon>
-            <polygon points="250,240 430,270 470,400 360,450 300,360" fill="#a23e29"></polygon>
-            <polygon points="430,270 620,320 660,450 520,510 470,400" fill="#c16951"></polygon>
-            <polygon points="620,320 800,360 840,470 700,520 660,450" fill="#dd9d86"></polygon>
-            <polygon points="190,410 360,450 400,560 280,610 200,520" fill="#eac3b3"></polygon>
-            <polygon points="360,450 520,510 560,620 420,660 400,560" fill="#bc6049"></polygon>
-            <polygon points="520,510 700,520 740,630 600,660 560,620" fill="#ad4833"></polygon>
-            <polygon points="700,520 840,470 900,560 860,650 740,630" fill="#89301f"></polygon>
-          </g>
-          <!-- 선택 상권 강조 -->
-          <polygon points="470,400 620,320 660,450 520,510" fill="#a9432e" fill-opacity=".9" stroke="#5e1e11" stroke-width="3.2"></polygon>
-        </svg>
-      </div>
+      <div id="map" class="map-canvas"></div>
 
       <!-- 지도 위 요약 배지 -->
       <div class="map-summary">
-        서울시 자치구 <b>25</b><span class="map-summary-sep" aria-hidden="true"></span>분석 상권 <b class="hl">1,247</b>
+        서울시 자치구 <b id="sum-gu">-</b><span class="map-summary-sep" aria-hidden="true"></span>분석 상권 <b class="hl" id="sum-trdar">-</b>
       </div>
 
-      <!-- 지도 레이어 · 범례 (좌하단) -->
+      <!-- 지도 레이어 · 범례 -->
       <aside class="map-legend card" aria-label="지도 레이어">
         <p class="panel-label">지도 레이어</p>
         <ul class="layer-list">
-          <li class="layer-item is-active"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">추정 매출</span></li>
-          <li class="layer-item"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">유동인구</span></li>
-          <li class="layer-item"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">점포 수</span></li>
-          <li class="layer-item"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">평균 임대료</span></li>
-          <li class="layer-item"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">성장·쇠퇴</span></li>
+          <li class="layer-item is-active" data-layer="sales"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">추정 매출</span></li>
+          <li class="layer-item" data-layer="flpop"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">유동인구</span></li>
+          <li class="layer-item" data-layer="store"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">점포 수</span></li>
+          <li class="layer-item" data-layer="change"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">성장·쇠퇴</span></li>
         </ul>
         <hr class="map-legend-divider">
-        <div class="legend-head"><span class="legend-title">추정 매출</span><span class="legend-unit">억/월</span></div>
+        <div class="legend-head"><span class="legend-title">추정 매출</span><span class="legend-unit">억/분기</span></div>
         <div class="legend-scale" aria-hidden="true">
           <span style="background:#f7efea"></span><span style="background:#edcbbc"></span><span style="background:#db9880"></span><span style="background:#c0664e"></span><span style="background:#a8412c"></span><span style="background:#7e2a1b"></span>
         </div>
@@ -90,27 +68,27 @@
       </aside>
 
       <!-- 출처 -->
-      <p class="map-attr">지도 데이터 © OpenStreetMap · © CARTO · 상권 추정치는 데모</p>
+      <p class="map-attr">지도 © Kakao · 데이터: 서울시 상권분석서비스 · 한국부동산원</p>
     </main>
 
     <!-- 우측 패널: 선택 상권 + 랭킹 -->
     <aside class="map-panel" aria-label="선택 상권과 자치구 랭킹">
 
       <!-- 선택 상권 카드 -->
-      <section class="sel-card">
+      <section class="sel-card" style="display:none">
         <div class="sel-head">
           <div>
             <p class="sel-eyebrow">선택 · SELECTED</p>
-            <h2 class="sel-name">강남구</h2>
+            <h2 class="sel-name">-</h2>
           </div>
           <button type="button" class="sel-close" aria-label="선택 해제">✕</button>
         </div>
-        <p class="sel-hero"><span class="sel-hero-num">740</span><span class="sel-hero-unit">억/월</span><span class="sel-hero-delta">전분기 -4.2%</span></p>
+        <p class="sel-hero"><span class="sel-hero-num">-</span><span class="sel-hero-unit">억/분기</span><span class="sel-hero-delta"></span></p>
         <dl class="sel-metrics">
-          <div class="sel-metric"><dt>추정 매출</dt><dd>740<span>억/월</span></dd></div>
-          <div class="sel-metric"><dt>유동인구</dt><dd>59<span>만/월</span></dd></div>
-          <div class="sel-metric"><dt>점포 수</dt><dd>3,596<span>개</span></dd></div>
-          <div class="sel-metric"><dt>평균 임대료</dt><dd>157<span>천원/㎡</span></dd></div>
+          <div class="sel-metric"><dt>추정 매출</dt><dd>-<span>억/분기</span></dd></div>
+          <div class="sel-metric"><dt>유동인구</dt><dd>-<span>만 명</span></dd></div>
+          <div class="sel-metric"><dt>점포 수</dt><dd>-<span>개</span></dd></div>
+          <div class="sel-metric"><dt>변화지표</dt><dd>-<span></span></dd></div>
         </dl>
         <div class="sel-actions">
           <a class="sel-report" href="/map/trdar-detail.html">상세 리포트 →</a>
@@ -125,74 +103,14 @@
       </div>
 
       <!-- 랭킹 목록 -->
-      <ol class="rank-list scroll">
-        <li class="rank-row">
-          <span class="rank-num is-top">1</span>
-          <div class="rank-main"><span class="rank-name is-lead">양천구</span><span class="minibar"><span style="width:100%;background:#7e2a1b"></span></span></div>
-          <div class="rank-val"><b>900</b><span>억/월</span></div>
-        </li>
-        <li class="rank-row">
-          <span class="rank-num">2</span>
-          <div class="rank-main"><span class="rank-name">영등포구</span><span class="minibar"><span style="width:95%;background:#89301f"></span></span></div>
-          <div class="rank-val"><b>862</b><span>억/월</span></div>
-        </li>
-        <li class="rank-row">
-          <span class="rank-num">3</span>
-          <div class="rank-main"><span class="rank-name">용산구</span><span class="minibar"><span style="width:94%;background:#8b3120"></span></span></div>
-          <div class="rank-val"><b>854</b><span>억/월</span></div>
-        </li>
-        <li class="rank-row">
-          <span class="rank-num">4</span>
-          <div class="rank-main"><span class="rank-name">강북구</span><span class="minibar"><span style="width:83%;background:#a23e29"></span></span></div>
-          <div class="rank-val"><b>771</b><span>억/월</span></div>
-        </li>
-        <li class="rank-row is-selected">
-          <span class="rank-num is-sel">5</span>
-          <div class="rank-main"><span class="rank-name is-sel-name">강남구</span><span class="minibar"><span style="width:79%;background:#a9432e"></span></span></div>
-          <div class="rank-val"><b>740</b><span>억/월</span></div>
-        </li>
-        <li class="rank-row">
-          <span class="rank-num">6</span>
-          <div class="rank-main"><span class="rank-name">강동구</span><span class="minibar"><span style="width:72%;background:#b2503a"></span></span></div>
-          <div class="rank-val"><b>687</b><span>억/월</span></div>
-        </li>
-        <li class="rank-row">
-          <span class="rank-num">7</span>
-          <div class="rank-main"><span class="rank-name">도봉구</span><span class="minibar"><span style="width:71%;background:#b3523b"></span></span></div>
-          <div class="rank-val"><b>680</b><span>억/월</span></div>
-        </li>
-        <li class="rank-row">
-          <span class="rank-num">8</span>
-          <div class="rank-main"><span class="rank-name">은평구</span><span class="minibar"><span style="width:69%;background:#b5553f"></span></span></div>
-          <div class="rank-val"><b>664</b><span>억/월</span></div>
-        </li>
-        <li class="rank-row">
-          <span class="rank-num">9</span>
-          <div class="rank-main"><span class="rank-name">강서구</span><span class="minibar"><span style="width:69%;background:#b5553f"></span></span></div>
-          <div class="rank-val"><b>664</b><span>억/월</span></div>
-        </li>
-        <li class="rank-row">
-          <span class="rank-num">10</span>
-          <div class="rank-main"><span class="rank-name">노원구</span><span class="minibar"><span style="width:65%;background:#ba5d46"></span></span></div>
-          <div class="rank-val"><b>634</b><span>억/월</span></div>
-        </li>
-        <li class="rank-row">
-          <span class="rank-num">11</span>
-          <div class="rank-main"><span class="rank-name">관악구</span><span class="minibar"><span style="width:60%;background:#c0664e"></span></span></div>
-          <div class="rank-val"><b>596</b><span>억/월</span></div>
-        </li>
-        <li class="rank-row">
-          <span class="rank-num">12</span>
-          <div class="rank-main"><span class="rank-name">동대문구</span><span class="minibar"><span style="width:58%;background:#c36b53"></span></span></div>
-          <div class="rank-val"><b>581</b><span>억/월</span></div>
-        </li>
-      </ol>
+      <ol class="rank-list scroll"></ol>
 
       <!-- 랭킹 푸터 -->
-      <div class="rank-foot">전체 1,247개 상권<a class="rank-more" href="/map/search.html">목록 →</a></div>
+      <div class="rank-foot">전체 -개 상권<a class="rank-more" href="/map/search.html">목록 →</a></div>
     </aside>
   </div>
 </div>
+<script src="/js/map/common.js"></script>
 <script src="/js/map/index.js" defer></script>
 </body>
 </html>
