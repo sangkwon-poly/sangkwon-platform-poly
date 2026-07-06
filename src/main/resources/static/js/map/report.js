@@ -54,12 +54,13 @@ function drawPaperMix(sales) {
     }).join("");
 }
 
-// 분기 매출 CSV 다운로드
+// 분기 매출 CSV 다운로드. 엑셀에서 지수표기가 되지 않게 억원 단위로 내린다
 function downloadCsv() {
     if (!report.totals.length) {
         return;
     }
-    const lines = ["분기,매출(원)"].concat(report.totals.map((t) => t.q + "," + t.amt));
+    const lines = ["분기,매출(억원)"].concat(
+        report.totals.map((t) => quarterLabel(t.q) + "," + (t.amt / 1e8).toFixed(1)));
     const blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
