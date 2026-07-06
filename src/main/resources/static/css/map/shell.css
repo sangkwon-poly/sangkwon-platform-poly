@@ -1,0 +1,243 @@
+/* 지도(map) 도메인 공통 앱 chrome
+   상단 앱 헤더·사이드바/패널 뼈대·공통 카드/툴바를 모은다.
+   토큰은 common.css 에서만 관리하고 여기서 재정의하지 않는다. */
+
+/* 앱 셸: 전체폭·전체높이 세로 배치 */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #eee9e5;
+}
+
+/* 앱 헤더 (인주 레드) */
+.app-header {
+  height: 58px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 18px;
+  background: var(--brand);
+  color: #fff;
+  z-index: 600;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .12), 0 6px 22px rgba(120, 42, 27, .22);
+}
+
+/* 헤더 브랜드 (흰 반투명 타일) */
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex: 0 0 auto;
+}
+.app-brand-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .16);
+  border: 1px solid rgba(255, 255, 255, .28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  color: #fff;
+}
+.app-brand-text { line-height: 1.15; }
+.app-brand-name { font-weight: 800; font-size: 15px; letter-spacing: -.01em; }
+.app-brand-sub { font-size: 9.5px; color: rgba(255, 255, 255, .68); letter-spacing: .02em; }
+
+/* 헤더 검색창 */
+.app-search-wrap {
+  flex: 1 1 0;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+.app-search {
+  width: 100%;
+  max-width: 440px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  background: #fff;
+  border-radius: 9px;
+  box-shadow: 0 2px 8px rgba(80, 30, 20, .14);
+}
+.app-search input {
+  border: none;
+  outline: none;
+  flex: 1 1 0;
+  font-size: 13px;
+  color: var(--text);
+  background: transparent;
+  font-family: inherit;
+}
+.app-search .app-search-text { font-size: 13px; color: var(--text); }
+
+/* 헤더 페이지명 (검색창 대신 쓰는 화면) */
+.app-page-name { font-size: 13.5px; font-weight: 600; color: rgba(255, 255, 255, .9); }
+
+/* 헤더 우측 도구 묶음 */
+.app-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+/* 분기 선택 pill */
+.app-quarter {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 13px;
+  background: rgba(255, 255, 255, .14);
+  border: 1px solid rgba(255, 255, 255, .24);
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #fff;
+}
+.app-quarter svg { flex: 0 0 auto; }
+
+/* 연동 상태 */
+.app-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, .9);
+}
+.app-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #8fe3b0;
+  box-shadow: 0 0 0 3px rgba(143, 227, 176, .25);
+}
+
+/* 사용자 */
+.app-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.app-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .9);
+  color: var(--brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 11px;
+  flex: 0 0 auto;
+}
+
+/* 본문 영역 */
+.app-body {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+}
+
+/* 공통 카드 */
+.card {
+  background: #fff;
+  border: 1px solid #efe7e2;
+  border-radius: 12px;
+}
+
+/* 섹션 라벨 (mono 대문자 캡션) */
+.panel-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: #a99c94;
+}
+
+/* 스크롤 영역 */
+.scroll { overflow: auto; }
+
+/* 미니 진행 바 (랭킹·업종 구성 공통) */
+.minibar {
+  height: 4px;
+  border-radius: 3px;
+  background: #f0e8e3;
+  overflow: hidden;
+}
+.minibar > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--brand);
+}
+
+/* 순위 배지 */
+.rank-num {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-weight: 800;
+  background: #f6f1ee;
+  color: #7a5147;
+  border: 1px solid #eadfd9;
+}
+.rank-num.is-top {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+
+/* 토글 스위치 (리포트 섹션·옵션 공통) */
+.toggle {
+  width: 34px;
+  height: 19px;
+  flex: 0 0 auto;
+  border-radius: 11px;
+  background: #e4d8d1;
+  position: relative;
+}
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+}
+.toggle.is-on { background: var(--brand); }
+.toggle.is-on::after { left: auto; right: 2px; }
+
+/* 반응형 · 태블릿 */
+@media (max-width: 900px) {
+  .app-header { gap: 12px; padding: 0 14px; }
+  .app-brand-sub { display: none; }
+  .app-status { display: none; }
+  .app-search { max-width: none; }
+}
+
+/* 반응형 · 모바일 */
+@media (max-width: 640px) {
+  .app-header { height: auto; flex-wrap: wrap; padding: 10px 14px; gap: 10px; }
+  .app-search-wrap { order: 3; flex-basis: 100%; }
+  .app-search { max-width: none; }
+  .app-brand-text { display: none; }
+  .app-quarter { padding: 0 10px; }
+  .app-user span:not(.app-avatar) { display: none; }
+}

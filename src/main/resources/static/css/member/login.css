@@ -1,0 +1,259 @@
+/* 로그인·회원가입(LOGIN-01) 전용 스타일
+   공통 토큰·프리미티브(.container/.btn/.brand)는 common.css 에서 로드됨 */
+
+/* 페이지 배경 · 중앙 정렬 */
+.auth-body {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 36px;
+  background: #eee9e5;
+}
+
+/* 카드 (2단: 브랜드 패널 + 폼 패널) */
+.auth-card {
+  width: 100%;
+  max-width: 1000px;
+  display: grid;
+  grid-template-columns: 1.08fr 0.92fr;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 26px 70px rgba(90, 45, 28, .13);
+  overflow: hidden;
+}
+
+/* 왼쪽 브랜드 패널 */
+.auth-brand {
+  position: relative;
+  display: flex; flex-direction: column;
+  padding: 54px 52px;
+  color: #fff;
+  background: linear-gradient(150deg, #a8412c 0%, #8b3323 55%, #6e2a1b 100%);
+  overflow: hidden;
+}
+.auth-brand-dots {
+  position: absolute; inset: 0;
+  opacity: .14;
+  background-image: radial-gradient(circle at 1px 1px, #fff 1.2px, transparent 0);
+  background-size: 26px 26px;
+}
+.auth-brand-logo { position: relative; gap: 11px; }
+.auth-brand-mark {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .16);
+  border: 1px solid rgba(255, 255, 255, .3);
+  font-size: 15px;
+}
+.auth-brand-logo .brand-name { font-size: 17px; }
+.auth-brand-body { position: relative; margin-top: auto; }
+.auth-brand-title {
+  font-size: 34px; font-weight: 800; line-height: 1.25; letter-spacing: -.02em;
+}
+.auth-brand-lead {
+  margin-top: 18px;
+  max-width: 360px;
+  font-size: 14.5px; line-height: 1.7;
+  color: rgba(255, 255, 255, .8);
+}
+
+/* 고객 후기 */
+.auth-quote {
+  display: flex; align-items: center; gap: 11px;
+  margin-top: 30px;
+  max-width: 380px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, .1);
+  border: 1px solid rgba(255, 255, 255, .18);
+  border-radius: 12px;
+}
+.auth-quote-avatar {
+  width: 38px; height: 38px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .85);
+  color: var(--brand);
+  font-weight: 800;
+}
+.auth-quote-text { font-size: 12.5px; line-height: 1.55; }
+.auth-quote-by { color: rgba(255, 255, 255, .66); }
+
+/* 오른쪽 폼 패널 */
+.auth-panel {
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px;
+}
+.auth-form-wrap { width: 344px; }
+
+/* 탭 전환 */
+.auth-tabs {
+  display: flex;
+  margin-bottom: 26px;
+  padding: 4px;
+  background: #f4eeea;
+  border-radius: 11px;
+}
+.auth-tab {
+  flex: 1;
+  text-align: center;
+  padding: 9px 0;
+  font-size: 13px; font-weight: 700;
+  color: #8c8078;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+/* 선택된 탭 강조 */
+#tab-login:checked ~ .auth-card .auth-tab[data-tab="login"],
+#tab-signup:checked ~ .auth-card .auth-tab[data-tab="signup"] {
+  color: #fff;
+  background: var(--brand);
+}
+
+/* 폼 표시/숨김: 선택된 탭에 해당하는 폼만 노출 */
+.auth-form-signup { display: none; }
+#tab-login:checked ~ .auth-card .auth-form-login { display: block; }
+#tab-login:checked ~ .auth-card .auth-form-signup { display: none; }
+#tab-signup:checked ~ .auth-card .auth-form-login { display: none; }
+#tab-signup:checked ~ .auth-card .auth-form-signup { display: block; }
+
+/* 입력 필드 */
+.field { margin-bottom: 15px; }
+.field-label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 12px; font-weight: 700;
+  color: #6e635c;
+}
+.field-input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  font-family: inherit;
+  font-size: 13.5px;
+  color: var(--text);
+  background: #fff;
+  border: 1px solid #e4d8d1;
+  border-radius: 10px;
+}
+.field-input::placeholder { color: #a99c94; }
+.field-input:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(168, 65, 44, .12);
+}
+
+/* 비밀번호 표시 토글 */
+.field-password { position: relative; }
+.pw-toggle {
+  position: absolute; top: 0; right: 0;
+  height: 46px;
+  display: flex; align-items: center;
+  padding: 0 14px;
+  font-size: 12px; color: #a99c94;
+  cursor: pointer;
+}
+.pw-toggle:hover { color: var(--brand); }
+/* 표시 상태면 비밀번호 텍스트로 전환 */
+.pw-toggle-state:checked ~ .field-input[type="password"] { -webkit-text-security: none; }
+
+/* 자동 로그인 · 보조 링크 행 */
+.auth-form-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.auth-form-row-terms { align-items: flex-start; }
+.remember {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12.5px; color: #6e635c;
+  cursor: pointer;
+}
+.remember input { position: absolute; opacity: 0; width: 0; height: 0; }
+.remember-box {
+  width: 18px; height: 18px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 5px;
+  background: #e7ddd6;
+  color: transparent;
+  font-size: 11px;
+  transition: background .15s ease, color .15s ease;
+}
+.remember input:checked ~ .remember-box {
+  background: var(--brand);
+  color: #fff;
+}
+.remember input:focus-visible ~ .remember-box {
+  box-shadow: 0 0 0 3px rgba(168, 65, 44, .2);
+}
+.link-brand {
+  font-size: 12.5px; font-weight: 600;
+  color: var(--brand);
+}
+.link-brand:hover { text-decoration: underline; }
+.auth-form-row-terms .remember { flex-wrap: wrap; }
+
+/* 제출 버튼 */
+.auth-submit {
+  width: 100%;
+  height: 48px;
+  font-size: 14.5px;
+  border-radius: 11px;
+  box-shadow: 0 8px 20px rgba(168, 65, 44, .26);
+}
+
+/* 구분선 */
+.auth-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 20px 0;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1; height: 1px;
+  background: #ede5e0;
+}
+.auth-divider span { font-size: 11.5px; color: #b7aba2; }
+
+/* 소셜 로그인 */
+.auth-social { display: flex; gap: 10px; }
+.social-btn {
+  flex: 1;
+  height: 44px;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  font-family: inherit;
+  font-size: 13px; font-weight: 700;
+  border: none;
+  border-radius: 10px;
+}
+.social-kakao { background: #fee500; color: #3a2e00; }
+.social-google {
+  background: #fff;
+  color: #4a403a;
+  border: 1px solid #e4d8d1;
+}
+.social-btn:hover { filter: brightness(.98); }
+
+/* 반응형 · 태블릿: 브랜드 패널 축소 */
+@media (max-width: 900px) {
+  .auth-card { grid-template-columns: 1fr; max-width: 440px; }
+  .auth-brand { padding: 40px 40px 34px; }
+  .auth-brand-body { margin-top: 28px; }
+  .auth-brand-title { font-size: 28px; }
+  .auth-quote { max-width: none; }
+}
+
+/* 반응형 · 모바일: 전체폭 1열 */
+@media (max-width: 640px) {
+  .auth-body { padding: 0; align-items: stretch; }
+  .auth-card {
+    max-width: none;
+    border: none; border-radius: 0;
+    box-shadow: none;
+    min-height: 100vh;
+    grid-template-rows: auto 1fr;
+  }
+  .auth-brand { padding: 32px 24px 28px; }
+  .auth-panel { padding: 28px 24px 40px; align-items: flex-start; }
+  .auth-form-wrap { width: 100%; }
+}

@@ -1,0 +1,101 @@
+/* TRDAR-ADM-01 상권 데이터 관리 고유 스타일
+   공통 chrome·표는 shell.css. 여기서는 2단 레이아웃과 상세 패널만. */
+
+/* 본문: 좌 목록 + 우 상세 (topbar 아래 전체 높이 채움) */
+.trd-body {
+  flex: 1 1 0;
+  display: flex;
+  min-height: 0;
+}
+
+/* 좌: 목록 (스크롤) */
+.trd-list {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 20px 22px;
+  overflow: auto;
+}
+
+/* 표 세부 */
+.trd-table thead th { padding: 12px 18px; }
+.trd-table tbody td { padding: 13px 18px; }
+.trd-code { color: var(--faint); font-size: 12px; }
+.trd-gu { display: flex; align-items: center; gap: 9px; }
+.trd-swatch { width: 12px; height: 12px; border-radius: 3px; flex: 0 0 auto; }
+.trd-gu-name { font-size: 13px; font-weight: 700; color: var(--text); }
+
+/* 검수 상태 텍스트 (배지 아닌 색 텍스트) */
+.trd-state { font-size: 11px; font-weight: 700; }
+.trd-done { color: #4e7a3e; }
+.trd-review { color: var(--warn); }
+.trd-fix { color: var(--brand); }
+
+/* 우: 상세 패널 */
+.trd-detail {
+  width: 388px;
+  flex: 0 0 auto;
+  border-left: 1px solid var(--card-line);
+  background: #fff;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: auto;
+}
+.trd-detail-title {
+  font-size: 13px; font-weight: 800; color: var(--text);
+  margin-bottom: 10px;
+}
+
+/* 폴리곤 미리보기 그리드 */
+.trd-preview-box {
+  border: 1px solid #eadfd9;
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--surface);
+}
+.trd-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+.trd-grid span {
+  aspect-ratio: 1 / 1;
+  border-radius: 3px;
+}
+
+/* 매핑 정보 목록 */
+.trd-mapping { border-top: 1px solid var(--line-soft); padding-top: 15px; }
+.trd-mapping .trd-detail-title { margin-bottom: 12px; }
+.trd-info-row {
+  display: flex; justify-content: space-between;
+  padding: 8px 0;
+  font-size: 12.5px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.trd-info-last { border-bottom: 0; }
+.trd-info-row dt { color: var(--faint); }
+.trd-info-row dd { color: #3a322e; }
+.trd-done-text { color: #4e7a3e; font-weight: 700; }
+
+/* 하단 액션 버튼 */
+.trd-actions { margin-top: auto; display: flex; gap: 9px; }
+.trd-btn-edit {
+  flex: 1 1 0; height: 42px; border-radius: 10px;
+  font-size: 13px;
+}
+.trd-btn-recheck {
+  height: 42px; padding: 0 15px; border-radius: 10px;
+  font-size: 13px; font-weight: 600;
+  color: #5a5049; border-color: var(--line);
+}
+
+/* 반응형: 상세 패널을 목록 아래로 */
+@media (max-width: 900px) {
+  .trd-body { flex-direction: column; }
+  .trd-detail {
+    width: 100%;
+    border-left: 0;
+    border-top: 1px solid var(--card-line);
+  }
+}

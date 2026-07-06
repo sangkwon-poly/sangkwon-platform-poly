@@ -1,0 +1,132 @@
+/* INSIGHT-01 업종·상권 동향 전용
+   공통 chrome 은 shell.css, 여기선 동향 카드(잠금 오버레이)만 담는다. */
+
+.insight {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  min-height: 0;
+}
+
+/* 제목 바 */
+.insight-titlebar {
+  padding: 18px 24px 6px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.insight-title { font-size: 16px; font-weight: 800; color: var(--ink); }
+.insight-title-sub { color: #9a8e86; font-weight: 600; font-size: 13px; }
+.insight-note {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: #6b5e86;
+  background: #efeaf3;
+  border: 1px solid #e0d6ec;
+  border-radius: 20px;
+  padding: 5px 12px;
+}
+
+/* 카드 그리드 */
+.insight-grid {
+  flex: 1 1 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  padding: 12px 24px 24px;
+  min-height: 0;
+}
+
+/* 동향 카드 */
+.feed {
+  position: relative;
+  background: #fbf7f4;
+  border-radius: 13px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 260px;
+}
+.feed-head {
+  padding: 15px 17px;
+  border-bottom: 1px solid #efe7e2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.feed-title { font-size: 14px; font-weight: 800; color: var(--text); }
+.feed-source {
+  font-size: 10.5px;
+  color: #a99c94;
+  font-family: var(--mono);
+  margin-top: 2px;
+}
+.feed-icon { font-size: 16px; color: #c4b8b0; }
+
+/* 블러 처리된 스켈레톤 */
+.feed-skeleton {
+  padding: 16px 17px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  filter: blur(1.5px);
+  opacity: .5;
+}
+.sk { display: block; }
+.sk span { display: block; border-radius: 4px; }
+.sk-a { height: 9px; background: #e7ddd6; }
+.sk-b { height: 9px; background: #eee6e0; margin-top: 7px; }
+.sk-c { height: 7px; background: #f0e9e4; margin-top: 9px; }
+
+/* 잠금 오버레이 */
+.feed-lock {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(251, 247, 244, .35);
+  text-align: center;
+}
+.lock-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #eadfd9;
+  box-shadow: 0 6px 18px rgba(90, 45, 28, .12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: var(--brand);
+}
+.lock-title { font-size: 13px; font-weight: 800; color: #3a322e; }
+.lock-desc {
+  font-size: 11px;
+  color: #9a8e86;
+  max-width: 170px;
+  line-height: 1.5;
+}
+.lock-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b5e86;
+  background: #efeaf3;
+  border-radius: 20px;
+  padding: 4px 11px;
+}
+
+/* 반응형 · 태블릿: 카드 세로 쌓기 (넓은 카드) */
+@media (max-width: 900px) {
+  .insight-grid { grid-template-columns: 1fr; }
+}
+
+/* 반응형 · 모바일: 제목 바 세로 */
+@media (max-width: 640px) {
+  .insight-titlebar { flex-wrap: wrap; }
+  .insight-note { margin-left: 0; }
+}
