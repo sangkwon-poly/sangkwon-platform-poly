@@ -1,5 +1,6 @@
 package com.sangkwon.sangkwonplatform.map.controller;
 
+import com.sangkwon.sangkwonplatform.map.dto.response.DistrictGeoResponse;
 import com.sangkwon.sangkwonplatform.map.dto.response.DistrictResponse;
 import com.sangkwon.sangkwonplatform.map.service.DistrictService;
 import org.junit.jupiter.api.Test;
@@ -38,5 +39,18 @@ class DistrictControllerTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data[0].trdarCd").value("3110001"))
                 .andExpect(jsonPath("$.data[0].signguNm").value("강남구"));
+    }
+
+    @Test
+    void 상권_경계를_200으로_반환한다() throws Exception {
+        DistrictGeoResponse geo = new DistrictGeoResponse(
+                "3110001", "역삼역", "{\"type\":\"Polygon\",\"coordinates\":[]}");
+        when(districtService.getGeometries(any())).thenReturn(List.of(geo));
+
+        mvc.perform(get("/api/districts/geo"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data[0].trdarCd").value("3110001"))
+                .andExpect(jsonPath("$.data[0].geoJson").exists());
     }
 }
