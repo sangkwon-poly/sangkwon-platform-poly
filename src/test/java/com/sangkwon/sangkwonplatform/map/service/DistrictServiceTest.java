@@ -3,8 +3,10 @@ package com.sangkwon.sangkwonplatform.map.service;
 import com.sangkwon.sangkwonplatform.map.dto.request.DistrictSearchRequest;
 import com.sangkwon.sangkwonplatform.map.dto.response.DistrictGeoResponse;
 import com.sangkwon.sangkwonplatform.map.dto.response.DistrictResponse;
+import com.sangkwon.sangkwonplatform.map.dto.response.DistrictSummaryResponse;
 import com.sangkwon.sangkwonplatform.map.entity.Trdar;
 import com.sangkwon.sangkwonplatform.map.repository.DistrictGeo;
+import com.sangkwon.sangkwonplatform.map.repository.DistrictSummary;
 import com.sangkwon.sangkwonplatform.map.repository.TrdarRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -90,5 +92,20 @@ class DistrictServiceTest {
 
         assertThatThrownBy(() -> districtService.getDistrict("nope"))
                 .isInstanceOf(ResponseStatusException.class);
+    }
+
+    @Test
+    void 상권_요약을_조회해서_DTO로_변환한다() {
+        DistrictSummary s = mock(DistrictSummary.class);
+        when(s.getTrdarCd()).thenReturn("3110001");
+        when(s.getSalesAmt()).thenReturn(74_000_000_000L);
+        when(trdarRepository.searchSummary(null, null, "강남")).thenReturn(List.of(s));
+
+        List<DistrictSummaryResponse> result = districtService.getSummaries(null, null, "강남");
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).trdarCd()).isEqualTo("3110001");
+        assertThat(result.get(0).salesAmt()).isEqualTo(74_000_000_000L);
+        verify(trdarRepository).searchSummary(null, null, "강남");
     }
 }

@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.map.controller;
 
 import com.sangkwon.sangkwonplatform.map.dto.response.DistrictGeoResponse;
 import com.sangkwon.sangkwonplatform.map.dto.response.DistrictResponse;
+import com.sangkwon.sangkwonplatform.map.dto.response.DistrictSummaryResponse;
 import com.sangkwon.sangkwonplatform.map.service.DistrictService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,5 +65,17 @@ class DistrictControllerTest {
         mvc.perform(get("/api/districts/3110001"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.trdarNm").value("역삼역"));
+    }
+
+    @Test
+    void 상권_요약_검색을_200으로_반환한다() throws Exception {
+        DistrictSummaryResponse s = new DistrictSummaryResponse(
+                "3110001", "역삼역", "강남구", 74_000_000_000L, 590_000L, 3596L, "HH");
+        when(districtService.getSummaries(null, null, "강남")).thenReturn(List.of(s));
+
+        mvc.perform(get("/api/districts/summary").param("keyword", "강남"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[0].trdarNm").value("역삼역"))
+                .andExpect(jsonPath("$.data[0].salesAmt").value(74000000000L));
     }
 }
