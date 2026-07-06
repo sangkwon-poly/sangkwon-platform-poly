@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>리포트 · 역삼동 상권 · 서울공화국</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/map/shell.css">
+  <link rel="stylesheet" href="/css/map/report.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- 앱 헤더 -->
+  <header class="app-header">
+    <a class="app-brand" href="/">
+      <span class="app-brand-mark" aria-hidden="true">서</span>
+      <span class="app-brand-text"><span class="app-brand-name">서울공화국</span></span>
+    </a>
+    <span class="app-page-name">리포트 · 역삼동 상권</span>
+    <div class="app-tools">
+      <a class="app-user" href="/login"><span class="app-avatar" aria-hidden="true">이</span></a>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <!-- 포함 섹션 사이드바 -->
+    <aside class="report-side scroll" aria-label="포함 섹션">
+      <p class="panel-label">포함 섹션</p>
+      <ul class="sec-list">
+        <li class="sec-row"><span class="sec-name">표지·요약</span><span class="toggle is-on" role="switch" aria-checked="true"></span></li>
+        <li class="sec-row"><span class="sec-name">매출 분석</span><span class="toggle is-on" role="switch" aria-checked="true"></span></li>
+        <li class="sec-row"><span class="sec-name">유동인구 패턴</span><span class="toggle is-on" role="switch" aria-checked="true"></span></li>
+        <li class="sec-row"><span class="sec-name">업종 구성</span><span class="toggle is-on" role="switch" aria-checked="true"></span></li>
+        <li class="sec-row"><span class="sec-name is-off">경쟁 상권</span><span class="toggle" role="switch" aria-checked="false"></span></li>
+        <li class="sec-row"><span class="sec-name">임대 시세</span><span class="toggle is-on" role="switch" aria-checked="true"></span></li>
+        <li class="sec-row"><span class="sec-name is-off">지원사업 매칭</span><span class="toggle" role="switch" aria-checked="false"></span></li>
+      </ul>
+    </aside>
+
+    <!-- 리포트 미리보기 -->
+    <main class="report-preview scroll" aria-label="리포트 미리보기">
+      <article class="paper">
+        <div class="paper-top" aria-hidden="true"></div>
+        <div class="paper-body">
+          <p class="paper-kicker">SEOUL TRDAR REPORT</p>
+          <h1 class="paper-title">역삼동 상권 분석 리포트</h1>
+          <p class="paper-meta">강남구 역삼동 · 2026년 1분기 · 서울공화국</p>
+
+          <div class="paper-kpis">
+            <div class="paper-kpi"><span class="paper-kpi-label">추정 매출</span><span class="paper-kpi-val">1,182<span> 억</span></span></div>
+            <div class="paper-kpi"><span class="paper-kpi-label">유동인구</span><span class="paper-kpi-val">148<span> 만</span></span></div>
+            <div class="paper-kpi"><span class="paper-kpi-label">점포 수</span><span class="paper-kpi-val">3,540</span></div>
+          </div>
+
+          <h2 class="paper-h">월 매출 추이</h2>
+          <svg class="paper-trend" viewBox="0 0 680 150" preserveAspectRatio="none" aria-hidden="true">
+            <path d="M8.0 125.8 L68.4 142.0 L128.7 117.6 L189.1 93.3 L249.5 109.5 L309.8 77.0 L370.2 60.8 L430.5 85.2 L490.9 52.7 L551.3 28.3 L611.6 40.5 L672.0 8.0 L672.0 150 L8.0 150 Z" fill="#F1DDD5"></path>
+            <path d="M8.0 125.8 L68.4 142.0 L128.7 117.6 L189.1 93.3 L249.5 109.5 L309.8 77.0 L370.2 60.8 L430.5 85.2 L490.9 52.7 L551.3 28.3 L611.6 40.5 L672.0 8.0" fill="none" stroke="#A8412C" stroke-width="3" stroke-linejoin="round"></path>
+          </svg>
+
+          <h2 class="paper-h">업종 구성</h2>
+          <ul class="paper-mix">
+            <li><span class="paper-mix-name">음식점</span><span class="paper-mix-bar"><span style="width:100%;background:#8a3120"></span></span><span class="paper-mix-pct">32%</span></li>
+            <li><span class="paper-mix-name">카페·디저트</span><span class="paper-mix-bar"><span style="width:56%;background:#ca7860"></span></span><span class="paper-mix-pct">18%</span></li>
+            <li><span class="paper-mix-name">소매</span><span class="paper-mix-bar"><span style="width:47%;background:#d58e76"></span></span><span class="paper-mix-pct">15%</span></li>
+            <li><span class="paper-mix-name">생활서비스</span><span class="paper-mix-bar"><span style="width:38%;background:#dfa48e"></span></span><span class="paper-mix-pct">12%</span></li>
+            <li><span class="paper-mix-name">의료·건강</span><span class="paper-mix-bar"><span style="width:28%;background:#e7bba9"></span></span><span class="paper-mix-pct">9%</span></li>
+            <li><span class="paper-mix-name">교육</span><span class="paper-mix-bar"><span style="width:22%;background:#eccaba"></span></span><span class="paper-mix-pct">7%</span></li>
+            <li><span class="paper-mix-name">기타</span><span class="paper-mix-bar"><span style="width:22%;background:#eccaba"></span></span><span class="paper-mix-pct">7%</span></li>
+          </ul>
+        </div>
+      </article>
+    </main>
+
+    <!-- 내보내기 옵션 -->
+    <aside class="export-side" aria-label="내보내기 옵션">
+      <p class="panel-label">내보내기</p>
+      <h2 class="export-title">형식</h2>
+      <div class="fmt-switch" role="tablist" aria-label="내보내기 형식">
+        <button type="button" class="fmt is-on" role="tab" aria-selected="true">PDF</button>
+        <button type="button" class="fmt" role="tab" aria-selected="false">CSV</button>
+        <button type="button" class="fmt" role="tab" aria-selected="false">PPT</button>
+      </div>
+
+      <ul class="opt-list">
+        <li class="opt-row"><span class="opt-name">로고 포함</span><span class="toggle is-on" role="switch" aria-checked="true"></span></li>
+        <li class="opt-row"><span class="opt-name">페이지 번호</span><span class="toggle is-on" role="switch" aria-checked="true"></span></li>
+        <li class="opt-row opt-row-last"><span class="opt-name">워터마크</span><span class="toggle" role="switch" aria-checked="false"></span></li>
+      </ul>
+
+      <div class="export-actions">
+        <button type="button" class="export-pdf">PDF 내보내기</button>
+        <button type="button" class="export-csv">CSV 다운로드</button>
+      </div>
+    </aside>
+  </div>
+</div>
+</body>
+</html>

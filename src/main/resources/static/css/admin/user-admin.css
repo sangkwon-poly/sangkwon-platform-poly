@@ -1,0 +1,58 @@
+/* USER-ADM-01 사용자 관리 고유 스타일
+   공통 chrome·표는 shell.css. 여기서는 필터 칩·사용자 셀·플랜 태그만. */
+
+/* 상단바 초대 버튼은 검색 오른쪽에 붙음 */
+.ua-invite { margin-left: 0; }
+
+/* 필터 칩 */
+.ua-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.ua-chip {
+  font-size: 12px; font-weight: 600;
+  color: #7a6e66; background: #fff;
+  border: 1px solid #eae1db; border-radius: 20px;
+  padding: 6px 14px;
+}
+.ua-chip-active {
+  font-weight: 700; color: #fff;
+  background: var(--brand); border-color: var(--brand);
+}
+
+/* 사용자 셀 */
+.ua-table tbody td { padding: 13px 20px; }
+.ua-user { display: flex; align-items: center; gap: 11px; }
+.ua-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #f1e0d9; color: #8a5748;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 12px; flex: 0 0 auto;
+}
+.ua-id { min-width: 0; display: flex; flex-direction: column; }
+.ua-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.ua-email { font-size: 11px; color: var(--faint); }
+.ua-role { font-size: 12.5px; color: #5a5049; }
+.ua-muted { font-size: 12px; color: var(--faint); }
+
+/* 플랜 태그 */
+.ua-plan {
+  font-size: 11px; font-weight: 700;
+  border-radius: 6px; padding: 3px 9px;
+}
+.ua-plan-ent { color: #8a5748; background: #f1e0d9; }
+.ua-plan-pro { color: #4e7a3e; background: #eaf3e6; }
+.ua-plan-free { color: var(--faint); background: #f1edea; }
+
+/* 휴면 상태 배지 (common 배지 밖 회색) */
+.ua-badge-dormant { color: #9a8e86; background: #f1edea; padding: 4px 10px; }
+.ua-dot-dormant { background: #b7aba2; }
+
+/* 상태 배지 안 점 */
+.ua-table .badge { gap: 6px; font-size: 11px; padding: 4px 10px; }
+.ua-table .dot { width: 6px; height: 6px; }
+
+/* 더보기 버튼 */
+.ua-more {
+  background: none; border: 0;
+  color: #c4b8b0; font-weight: 800; font-size: 15px;
+  line-height: 1; padding: 0;
+}
+.ua-more:hover { color: var(--brand); }

@@ -1,0 +1,224 @@
+/* 관리자 백오피스 공통 chrome
+   좌측 사이드바 · 상단바 · 카드 · 표 툴바를 모든 관리자 화면이 공유한다.
+   화면별 CSS 에서 고유 차이만 정의. common.css 먼저 로드. */
+
+/* 전체 레이아웃: 사이드바 + 본문 */
+.admin {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* 좌측 사이드바 네비 */
+.admin-side {
+  width: 204px;
+  flex: 0 0 auto;
+  background: var(--dark);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 14px;
+}
+.admin-brand {
+  display: flex; align-items: center; gap: 9px;
+  padding: 6px 8px 22px;
+}
+.admin-brand .brand-mark { width: 30px; height: 30px; }
+.admin-brand-text { line-height: 1.2; }
+.admin-brand-name { font-weight: 800; font-size: 13.5px; }
+.admin-brand-sub { font-size: 10px; color: rgba(255,255,255,.5); }
+
+.admin-nav { display: flex; flex-direction: column; gap: 3px; }
+.admin-nav a {
+  padding: 10px 11px;
+  border-radius: 8px;
+  color: rgba(255,255,255,.62);
+  font-size: 13px; font-weight: 600;
+}
+.admin-nav a:hover { color: #fff; background: rgba(255,255,255,.06); }
+.admin-nav a[aria-current="page"] {
+  background: var(--brand);
+  color: #fff; font-weight: 700;
+}
+.admin-nav-sep {
+  margin: 10px 4px;
+  border: 0; border-top: 1px solid rgba(255,255,255,.1);
+}
+.admin-nav-out a { font-size: 12px; color: rgba(255,255,255,.5); }
+
+/* 사이드바 하단 사용자 */
+.admin-user {
+  margin-top: auto;
+  display: flex; align-items: center; gap: 9px;
+  padding: 10px 8px;
+  border-top: 1px solid rgba(255,255,255,.1);
+}
+.admin-user-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(255,255,255,.9); color: var(--dark);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 11px;
+}
+.admin-user-name { font-size: 12px; font-weight: 700; }
+.admin-user-role { font-size: 10px; color: rgba(255,255,255,.5); }
+
+/* 본문 컬럼 */
+.admin-main {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: #f6f1ed;
+}
+
+/* 상단바 */
+.admin-topbar {
+  height: 56px;
+  flex: 0 0 auto;
+  display: flex; align-items: center; gap: 14px;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1px solid var(--card-line);
+}
+.admin-topbar h1 {
+  font-size: 16px; font-weight: 800; color: var(--ink);
+}
+.admin-topbar-meta {
+  margin-left: auto;
+  font-size: 12px; color: var(--faint);
+}
+/* 상단바 검색 상자 */
+.admin-search {
+  margin-left: auto;
+  height: 34px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--faint);
+  font-size: 12px;
+}
+.admin-search + .btn-topbar { margin-left: 0; }
+/* 상단바 우측 버튼 */
+.btn-topbar {
+  margin-left: auto;
+  height: 36px; padding: 0 15px;
+  border-radius: 9px;
+  background: var(--brand); color: #fff;
+  font-size: 12.5px; font-weight: 700;
+}
+.btn-topbar:hover { filter: brightness(1.06); }
+
+/* 본문 콘텐츠 영역 */
+.admin-content {
+  flex: 1 1 0;
+  overflow: auto;
+  padding: 20px 24px;
+}
+
+/* 공통 카드 */
+.card {
+  background: #fff;
+  border: 1px solid var(--card-line);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+.card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.card-title { font-size: 14px; font-weight: 800; color: var(--text); }
+.card-link { font-size: 11.5px; color: var(--brand); font-weight: 600; }
+
+/* 지표(스탯) 카드 그리드 */
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 13px;
+}
+.stat-card {
+  background: #fff;
+  border: 1px solid var(--card-line);
+  border-radius: 12px;
+  padding: 15px 17px;
+}
+.stat-card-label { font-size: 12px; color: var(--faint); }
+.stat-card-value {
+  font-size: 22px; font-weight: 800; color: var(--ink);
+  margin-top: 4px;
+}
+
+/* 공통 표: 진짜 table 로 카드형 표 렌더 */
+.data-table-wrap {
+  background: #fff;
+  border: 1px solid var(--card-line);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.table-scroll { overflow-x: auto; }
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.data-table thead th {
+  padding: 12px 20px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--card-line);
+  font-family: var(--mono);
+  font-size: 10px; font-weight: 700; letter-spacing: .06em;
+  color: var(--faint);
+  text-align: left;
+  white-space: nowrap;
+}
+.data-table tbody td {
+  padding: 14px 20px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 12.5px; color: var(--text);
+  vertical-align: middle;
+}
+.data-table tbody tr:first-child td { border-top: 0; }
+.col-num { text-align: right; }
+.col-center { text-align: center; }
+.mono { font-family: var(--mono); }
+
+/* 상태 점 표식 */
+.dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  flex: 0 0 auto; display: inline-block;
+}
+.dot-ok { background: var(--ok); }
+.dot-warn { background: var(--warn); }
+.dot-danger { background: var(--brand); }
+
+/* 표 안 재실행/작업 링크 */
+.row-action {
+  font-size: 11.5px; font-weight: 600; color: var(--brand);
+  background: none; border: 0; padding: 0;
+}
+.row-action:hover { text-decoration: underline; }
+
+/* 반응형: 태블릿 */
+@media (max-width: 900px) {
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* 반응형: 모바일 (사이드바 접힘) */
+@media (max-width: 640px) {
+  .admin { flex-direction: column; }
+  .admin-side {
+    width: 100%;
+    flex-direction: row; align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    overflow-x: auto;
+  }
+  .admin-brand { padding: 0; }
+  .admin-nav {
+    flex-direction: row; gap: 4px;
+    flex-wrap: nowrap;
+  }
+  .admin-nav a { padding: 8px 10px; white-space: nowrap; }
+  .admin-nav-sep { display: none; }
+  .admin-user { margin-top: 0; padding: 4px 8px; border-top: 0; }
+  .admin-content { padding: 16px; }
+  .admin-topbar { flex-wrap: wrap; height: auto; padding: 12px 16px; }
+}

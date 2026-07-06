@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>필터 설정 · 서울공화국</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/map/modals.css">
+</head>
+<body>
+
+  <!-- 지도 배경 (실제 Kakao 연동은 이후) -->
+  <div class="map-bg" id="map" aria-hidden="true">
+    <div class="map-bg-top"></div>
+    <div class="map-bg-grid"></div>
+  </div>
+
+  <!-- 어두운 배경 + 모달 -->
+  <div class="scrim">
+    <section class="modal filter-modal" role="dialog" aria-modal="true" aria-labelledby="filter-title">
+      <header class="modal-head">
+        <h2 class="modal-title" id="filter-title">필터 설정</h2>
+        <button type="button" class="modal-close" aria-label="닫기">✕</button>
+      </header>
+
+      <div class="modal-body">
+        <div class="field-label">자치구</div>
+        <div class="chip-row">
+          <button type="button" class="chip chip-on">강남구 ✕</button>
+          <button type="button" class="chip chip-on">서초구 ✕</button>
+          <button type="button" class="chip">＋ 자치구 추가</button>
+        </div>
+
+        <div class="field-label">업종</div>
+        <div class="chip-row">
+          <button type="button" class="chip chip-on">카페·디저트</button>
+          <button type="button" class="chip">음식점</button>
+          <button type="button" class="chip">소매</button>
+          <button type="button" class="chip">서비스</button>
+        </div>
+
+        <div class="range-head">
+          <span class="field-label">월 추정 매출</span>
+          <span class="range-value">450 – 1,400억</span>
+        </div>
+        <div class="range" role="group" aria-label="월 추정 매출 범위">
+          <span class="range-fill"></span>
+          <span class="range-knob" style="left:22%"></span>
+          <span class="range-knob" style="left:80%"></span>
+        </div>
+      </div>
+
+      <div class="modal-foot">
+        <button type="button" class="btn btn-ghost">초기화</button>
+        <button type="button" class="btn btn-primary">필터 적용 · 128건</button>
+      </div>
+    </section>
+  </div>
+
+</body>
+</html>
