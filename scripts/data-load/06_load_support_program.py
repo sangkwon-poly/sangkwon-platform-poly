@@ -13,7 +13,7 @@ import requests
 import oracledb
 from dotenv import load_dotenv
 
-#load_dotenv("properties.env")
+load_dotenv("properties.env")
 
 DB_USERNAME = os.environ["DB_USERNAME"]
 DB_PASSWORD = os.environ["DB_PASSWORD"]
@@ -45,23 +45,28 @@ def strip_html(text):
 
 
 def parse_period(raw):
-    """'20220727 ~ 20220930' -> (date, date). '상시접수' 등은 (None, None)"""
+    """
+    기업마당 실제 응답 형식: '2026-07-01 ~ 2026-07-31' (하이픈 포함)
+    """
     if not raw or "~" not in raw:
         return None, None
     try:
         start_str, end_str = [p.strip() for p in raw.split("~")]
-        start = datetime.strptime(start_str, "%Y%m%d").date()
-        end = datetime.strptime(end_str, "%Y%m%d").date()
+        start = datetime.strptime(start_str, "%Y-%m-%d").date()   # %Y%m%d → %Y-%m-%d 로 변경
+        end = datetime.strptime(end_str, "%Y-%m-%d").date()
         return start, end
     except ValueError:
         return None, None
 
 
 def parse_kstartup_date(value):
+    """
+    K-Startup 날짜 형식: '20260703' (YYYYMMDD, 하이픈 없음)
+    """
     if not value:
         return None
     try:
-        return datetime.strptime(value[:10], "%Y-%m-%d").date()
+        return datetime.strptime(str(value), "%Y%m%d").date()
     except ValueError:
         return None
 
