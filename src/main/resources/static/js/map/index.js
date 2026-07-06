@@ -27,6 +27,7 @@ const state = {
     layer: "sales",
     seoulRent: null,
     drill: null,            // 드릴다운 요청 취소용 AbortController
+    polyClicked: false,     // 폴리곤 클릭이 지도 클릭으로 전파돼 드로어가 닫히는 것 방지
 };
 
 function loadKakaoSdk(appKey) {
@@ -154,14 +155,16 @@ function drawGuPolygons(features) {
         });
         kakao.maps.event.addListener(poly, "mouseover", () => {
             if (gu !== state.currentGu) {
-                poly.setOptions({ fillOpacity: state.level === "gu" ? 0.9 : 0.35, strokeWeight: 2.5 });
+                poly.setOptions({ fillOpacity: 0.9, strokeWeight: 2.5 });
             }
         });
         kakao.maps.event.addListener(poly, "mouseout", () => {
-            poly.setOptions({ fillOpacity: state.level === "gu" ? 0.72 : 0.12, strokeWeight: 1.5 });
+            const inside = gu === state.currentGu && state.level === "trdar";
+            poly.setOptions({ fillOpacity: inside ? 0.15 : 0.72, strokeWeight: 1.5 });
         });
         // 드릴다운 중이라도 다른 구를 누르면 그 구로 바로 전환
         kakao.maps.event.addListener(poly, "click", () => {
+            state.polyClicked = true;
             if (gu !== state.currentGu) {
                 drillDown(gu, boundsOf(paths));
             }
@@ -170,16 +173,25 @@ function drawGuPolygons(features) {
         arr.push(poly);
         state.guPolys.set(gu, arr);
 
-        // 구 이름 라벨. 폴리곤 중심에 놓고 드릴다운 중에는 숨긴다.
-        const center = boundsOf(paths).getCenter ? boundsOf(paths).getCenter() : null;
-        if (center) {
-            const el = document.createElement("div");
-            el.textContent = gu;
-            el.style.cssText = "padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.75);"
-                + "font-size:11px;font-weight:600;color:#5e2a1b;pointer-events:none;white-space:nowrap";
-            const label = new kakao.maps.CustomOverlay({ map: state.map, position: center, content: el, zIndex: 2 });
-            state.guLabels.push(label);
-        }
+        // 구 이름 라벨. 가장 큰 링의 꼭짓점 평균을 중심으로 잡는다.
+        const main = ringsOf(f.geometry).reduce((a, b) => (b.length > a.length ? b : a));
+        let latSum = 0;
+        let lngSum = 0;
+        main.forEach(([lng, lat]) => {
+            latSum += lat;
+            lngSum += lng;
+        });
+        const el = document.createElement("div");
+        el.textContent = gu;
+        el.style.cssText = "padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.75);"
+            + "font-size:11px;font-weight:600;color:#5e2a1b;pointer-events:none;white-space:nowrap";
+        const label = new kakao.maps.CustomOverlay({
+            map: state.map,
+            position: new kakao.maps.LatLng(latSum / main.length, lngSum / main.length),
+            content: el,
+            zIndex: 2,
+        });
+        state.guLabels.push(label);
     });
     paintGu();
 }
@@ -209,8 +221,14 @@ async function drillDown(gu, bounds) {
     if (bounds) {
         state.map.setBounds(bounds, 24);
     }
-    // 구 폴리곤은 흐리게 남겨 맥락만 유지, 이름 라벨은 숨긴다
-    state.guPolys.forEach((polys) => polys.forEach((p) => p.setOptions({ fillOpacity: 0.12 })));
+    // 주변 구의 원래 색은 유지, 들어간 구만 옅게 해서 상권 폴리곤이 잘 보이게 한다
+    state.guPolys.forEach((polys, name) => {
+        const inside = name === gu;
+        polys.forEach((p) => p.setOptions({
+            fillOpacity: inside ? 0.15 : 0.72,
+            strokeWeight: inside ? 3 : 1.5,
+        }));
+    });
     setGuLabelsVisible(false);
 
     const g = state.byGu.get(gu);
@@ -253,6 +271,7 @@ async function drillDown(gu, bounds) {
             poly.setOptions({ fillOpacity: sel ? 0.95 : 0.78, strokeWeight: sel ? 3 : 1.5 });
         });
         kakao.maps.event.addListener(poly, "click", () => {
+            state.polyClicked = true;
             if (d) {
                 selectTrdar(d);
             }
@@ -275,8 +294,9 @@ function backToSeoul() {
     state.guPolys.forEach((polys) => polys.forEach((p) => p.setOptions({ fillOpacity: 0.72, strokeWeight: 1.5 })));
     setGuLabelsVisible(true);
     document.getElementById("map-back").style.display = "none";
-    state.map.setCenter(new kakao.maps.LatLng(37.5665, 126.978));
-    state.map.setLevel(9);
+    if (state.seoulBounds) {
+        state.map.setBounds(state.seoulBounds, 8);
+    }
     closeDrawer();
 }
 
@@ -465,6 +485,13 @@ async function init() {
         "전체 " + state.districts.length.toLocaleString() + "개 상권";
 
     drawGuPolygons(guGeo.features);
+    // 처음부터 서울 전체가 화면에 차게 맞춘다
+    state.seoulBounds = new kakao.maps.LatLngBounds();
+    state.guBounds.forEach((b) => {
+        state.seoulBounds.extend(b.getSouthWest());
+        state.seoulBounds.extend(b.getNorthEast());
+    });
+    state.map.setBounds(state.seoulBounds, 8);
     drawRanking();
     bindLayers();
 
@@ -479,7 +506,14 @@ async function init() {
             openDrawer();
         }
     });
-    kakao.maps.event.addListener(state.map, "click", closeDrawer);
+    kakao.maps.event.addListener(state.map, "click", () => {
+        // 폴리곤 클릭이 지도까지 전파된 경우는 무시하고, 진짜 빈 곳 클릭만 닫는다
+        if (state.polyClicked) {
+            state.polyClicked = false;
+            return;
+        }
+        closeDrawer();
+    });
     document.querySelector(".sel-close").addEventListener("click", closeDrawer);
     document.querySelector(".sel-add").addEventListener("click", (e) => {
         e.preventDefault();
