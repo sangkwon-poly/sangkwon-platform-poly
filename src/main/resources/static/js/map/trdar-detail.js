@@ -139,6 +139,60 @@ function drawHeat(sales) {
     box.innerHTML = html;
 }
 
+// 상권 환경: 집객시설·상주인구·아파트·개폐업·프랜차이즈를 한 카드에
+function drawEnv(att, res, apt, chg, stores) {
+    const box = document.getElementById("env-grid");
+    if (!box) {
+        return;
+    }
+    const pick = (rows) => {
+        if (!rows || !rows.length) {
+            return null;
+        }
+        const q = latestQuarter(rows);
+        return rows.find((r) => r.stdrYyquCd === q);
+    };
+    const a = pick(att);
+    const r = pick(res);
+    const p = pick(apt);
+    const c = pick(chg);
+
+    // 개업·폐업률은 업종 합산 기준
+    let opRt = null;
+    let clsRt = null;
+    let frcShare = null;
+    if (stores && stores.length) {
+        const q = latestQuarter(stores);
+        const mine = stores.filter((s) => s.stdrYyquCd === q);
+        const tot = mine.reduce((x, s) => x + (s.storCo || 0), 0);
+        if (tot) {
+            opRt = mine.reduce((x, s) => x + (s.opbizStorCo || 0), 0) / tot * 100;
+            clsRt = mine.reduce((x, s) => x + (s.clsbizStorCo || 0), 0) / tot * 100;
+            frcShare = mine.reduce((x, s) => x + (s.frcStorCo || 0), 0) / tot * 100;
+        }
+    }
+
+    const n = (v) => (v != null ? (+v).toLocaleString() : "-");
+    const pct = (v) => (v != null ? v.toFixed(1) + "%" : "-");
+    const items = [
+        ["지하철역", a ? n(a.subwayStatnCo) + "개" : "-"],
+        ["버스정류장", a ? n(a.busStopCo) + "개" : "-"],
+        ["학교 · 병원 · 은행", a ? n(a.schoolCo) + " · " + n(a.hospitalCo) + " · " + n(a.bankCo) : "-"],
+        ["집객시설 총", a ? n(a.viatrFcltyCo) + "개" : "-"],
+        ["상주인구", r ? fmtMan(r.totRepopCo) + "만 명" : "-"],
+        ["가구 수", r ? n(r.totHshldCo) + "가구" : "-"],
+        ["아파트", p ? n(p.aptComplxCo) + "단지 · " + n(p.aptHshldCo) + "세대" : "-"],
+        ["개업률 · 폐업률", pct(opRt) + " · " + pct(clsRt)],
+        ["프랜차이즈 비중", pct(frcShare)],
+        ["평균 영업기간", c && c.oprSaleMtAvrg != null ? Math.round(c.oprSaleMtAvrg) + "개월" : "-"],
+    ];
+    box.innerHTML = '<dl style="display:grid;grid-template-columns:1fr 1fr;gap:9px 18px;margin:0">' +
+        items.map(([k, v]) =>
+            '<div style="display:flex;justify-content:space-between;border-bottom:1px solid #f4ece6;padding-bottom:7px">' +
+            '<dt style="font-size:13px;color:#8c7f78">' + k + "</dt>" +
+            '<dd style="font-size:13px;font-weight:600;color:#3f342e;margin:0">' + v + "</dd></div>").join("") + "</dl>";
+}
+
 // 인접 경쟁 상권: 같은 자치구 매출 상위 4곳 + 직선거리
 function drawCompetitors(d, summaries) {
     const list = document.querySelector(".comp-list");
@@ -203,9 +257,15 @@ async function load() {
     sales = sales || [];
     stores = stores || [];
     pop = pop || [];
-    // 인접 상권(같은 자치구)과 임대료는 차트를 막지 않게 병렬로 시작만 해둔다
+    // 인접 상권·임대료·환경 지표는 차트를 막지 않게 병렬로 시작만 해둔다
     const summariesP = apiData("/api/districts/summary?signguCd=" + d.signguCd).catch(() => []);
     const rentP = apiData("/api/rents?metricCd=RENT&regionCd=500002&rlstTyCd=" + encodeURIComponent("소규모상가")).catch(() => []);
+    const envP = Promise.allSettled([
+        apiData("/api/attractions?trdarCd=" + trdarCd),
+        apiData("/api/resident-pops?trdarCd=" + trdarCd),
+        apiData("/api/apts?trdarCd=" + trdarCd),
+        apiData("/api/trdar-changes?trdarCd=" + trdarCd),
+    ]);
 
     document.title = d.trdarNm + " 상권 상세 · 서울공화국";
     document.querySelector(".app-search-text").textContent = (d.signguNm || "") + " " + d.trdarNm;
@@ -255,6 +315,9 @@ async function load() {
     } else {
         setKpi("rent", "-", "", null);
     }
+
+    const env = (await envP).map((r) => (r.status === "fulfilled" ? r.value : null));
+    drawEnv(env[0], env[1], env[2], env[3], stores);
 
     drawCompetitors(d, await summariesP);
 }

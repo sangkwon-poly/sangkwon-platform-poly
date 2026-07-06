@@ -19,6 +19,7 @@ const state = {
     byGu: new Map(),        // 구 이름 -> 집계
     guPolys: new Map(),     // 구 이름 -> kakao.maps.Polygon[]
     guBounds: new Map(),    // 구 이름 -> LatLngBounds
+    guLabels: [],           // 구 이름 라벨 오버레이
     trdarPolys: new Map(),  // 상권 코드 -> kakao.maps.Polygon[]
     level: "gu",
     currentGu: null,
@@ -152,23 +153,39 @@ function drawGuPolygons(features) {
             fillColor: "#e7e0da", fillOpacity: 0.72,
         });
         kakao.maps.event.addListener(poly, "mouseover", () => {
-            if (state.level === "gu") {
-                poly.setOptions({ fillOpacity: 0.9, strokeWeight: 2.5 });
+            if (gu !== state.currentGu) {
+                poly.setOptions({ fillOpacity: state.level === "gu" ? 0.9 : 0.35, strokeWeight: 2.5 });
             }
         });
         kakao.maps.event.addListener(poly, "mouseout", () => {
             poly.setOptions({ fillOpacity: state.level === "gu" ? 0.72 : 0.12, strokeWeight: 1.5 });
         });
+        // 드릴다운 중이라도 다른 구를 누르면 그 구로 바로 전환
         kakao.maps.event.addListener(poly, "click", () => {
-            if (state.level === "gu") {
+            if (gu !== state.currentGu) {
                 drillDown(gu, boundsOf(paths));
             }
         });
         const arr = state.guPolys.get(gu) || [];
         arr.push(poly);
         state.guPolys.set(gu, arr);
+
+        // 구 이름 라벨. 폴리곤 중심에 놓고 드릴다운 중에는 숨긴다.
+        const center = boundsOf(paths).getCenter ? boundsOf(paths).getCenter() : null;
+        if (center) {
+            const el = document.createElement("div");
+            el.textContent = gu;
+            el.style.cssText = "padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.75);"
+                + "font-size:11px;font-weight:600;color:#5e2a1b;pointer-events:none;white-space:nowrap";
+            const label = new kakao.maps.CustomOverlay({ map: state.map, position: center, content: el, zIndex: 2 });
+            state.guLabels.push(label);
+        }
     });
     paintGu();
+}
+
+function setGuLabelsVisible(visible) {
+    state.guLabels.forEach((l) => l.setMap(visible ? state.map : null));
 }
 
 function clearTrdarPolygons() {
@@ -192,8 +209,9 @@ async function drillDown(gu, bounds) {
     if (bounds) {
         state.map.setBounds(bounds, 24);
     }
-    // 구 폴리곤은 흐리게 남겨 맥락만 유지
+    // 구 폴리곤은 흐리게 남겨 맥락만 유지, 이름 라벨은 숨긴다
     state.guPolys.forEach((polys) => polys.forEach((p) => p.setOptions({ fillOpacity: 0.12 })));
+    setGuLabelsVisible(false);
 
     const g = state.byGu.get(gu);
     if (g) {
@@ -255,6 +273,7 @@ function backToSeoul() {
     state.selected = null;
     clearTrdarPolygons();
     state.guPolys.forEach((polys) => polys.forEach((p) => p.setOptions({ fillOpacity: 0.72, strokeWeight: 1.5 })));
+    setGuLabelsVisible(true);
     document.getElementById("map-back").style.display = "none";
     state.map.setCenter(new kakao.maps.LatLng(37.5665, 126.978));
     state.map.setLevel(9);
@@ -295,7 +314,8 @@ function openDrawerForGu(g) {
     document.querySelector(".sel-eyebrow").textContent = "자치구 · " + g.count + "개 상권";
     document.querySelector(".sel-name").textContent = g.gu;
     document.querySelector(".sel-hero-delta").textContent = "";
-    const nm = { LL: "다이나믹", LH: "상권확장", HL: "상권축소", HH: "정체" }[guChangeIx(g)];
+    // 카드 칸이 좁아 짧은 이름을 쓴다
+    const nm = { LL: "다이나믹", LH: "확장", HL: "축소", HH: "정체" }[guChangeIx(g)];
     fillDrawerMetrics(g.salesAmt, g.flpop, g.storeCnt, nm ? nm + " 우세" : null);
     document.querySelector(".sel-report").style.display = "none";
     document.querySelector(".sel-add").style.display = "none";
@@ -449,11 +469,17 @@ async function init() {
     bindLayers();
 
     document.getElementById("map-back").addEventListener("click", backToSeoul);
+    // 랭킹 버튼은 토글, 지도 빈 곳을 누르면 드로어를 닫는다
     document.getElementById("rank-fab").addEventListener("click", () => {
-        document.querySelector(".sel-card").style.display = "none";
-        openDrawer();
+        const panel = document.querySelector(".map-panel");
+        if (panel.classList.contains("is-open")) {
+            closeDrawer();
+        } else {
+            document.querySelector(".sel-card").style.display = "none";
+            openDrawer();
+        }
     });
-    document.querySelector(".panel-close").addEventListener("click", closeDrawer);
+    kakao.maps.event.addListener(state.map, "click", closeDrawer);
     document.querySelector(".sel-close").addEventListener("click", closeDrawer);
     document.querySelector(".sel-add").addEventListener("click", (e) => {
         e.preventDefault();

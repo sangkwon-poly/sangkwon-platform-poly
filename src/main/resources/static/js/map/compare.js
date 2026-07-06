@@ -5,7 +5,7 @@ const AGE_FIELDS = [["10대", "agrde10SelngAmt"], ["20대", "agrde20SelngAmt"], 
     ["40대", "agrde40SelngAmt"], ["50대", "agrde50SelngAmt"], ["60+", "agrde60AboveSelngAmt"]];
 const AGE_COLORS = ["#f0d6c9", "#e2ac96", "#d18a6f", "#bb6247", "#a8412c", "#7e2a1b"];
 
-const cmp = { ids: [], picked: [], sales: new Map() };
+const cmp = { ids: [], picked: [], sales: new Map(), all: [], query: "" };
 
 function chip(i) {
     return '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:' + COL_COLORS[i] + ';margin-right:7px"></span>';
@@ -77,14 +77,74 @@ function mixCard() {
     return card("업종 구성 TOP3", "최근 분기 매출 비중", rows);
 }
 
+// 상권 검색으로 비교함에 바로 담는다
+function searchBox() {
+    const full = cmp.picked.length >= 4;
+    return '<div style="position:relative;max-width:340px;margin-bottom:14px">' +
+        '<input type="search" id="cmp-search" placeholder="' + (full ? "최대 4개까지 비교할 수 있습니다" : "상권 이름으로 추가") + '" ' +
+        (full ? "disabled " : "") + 'value="' + cmp.query + '" ' +
+        'style="width:100%;padding:9px 13px;border:1px solid #e2d6cf;border-radius:10px;font:inherit;background:#fff">' +
+        '<div id="cmp-suggest" style="position:absolute;top:100%;left:0;right:0;z-index:10;background:#fff;' +
+        'border:1px solid #e2d6cf;border-radius:10px;margin-top:4px;box-shadow:0 6px 18px rgba(94,30,17,.12);display:none"></div></div>';
+}
+
+function bindSearch() {
+    const input = document.getElementById("cmp-search");
+    const box = document.getElementById("cmp-suggest");
+    if (!input || input.disabled) {
+        return;
+    }
+    let timer = null;
+    input.addEventListener("input", () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            cmp.query = input.value.trim();
+            if (!cmp.query) {
+                box.style.display = "none";
+                return;
+            }
+            const hits = cmp.all
+                .filter((d) => !cmp.ids.includes(d.trdarCd))
+                .filter((d) => d.trdarNm.includes(cmp.query) || (d.signguNm || "").includes(cmp.query))
+                .slice(0, 8);
+            box.innerHTML = hits.length
+                ? hits.map((d) =>
+                    '<div class="cmp-hit" data-cd="' + d.trdarCd + '" style="padding:9px 13px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between">' +
+                    "<span>" + d.trdarNm + '</span><span style="color:#9a8c84">' + (d.signguNm || "") + "</span></div>").join("")
+                : '<div style="padding:9px 13px;font-size:13px;color:#9a8c84">일치하는 상권이 없습니다</div>';
+            box.style.display = "";
+            box.querySelectorAll(".cmp-hit").forEach((row) => {
+                row.addEventListener("click", () => addDistrict(row.dataset.cd));
+            });
+        }, 250);
+    });
+}
+
+async function addDistrict(trdarCd) {
+    const d = cmp.all.find((x) => x.trdarCd === trdarCd);
+    if (!d || cmp.ids.includes(trdarCd) || cmp.picked.length >= 4) {
+        return;
+    }
+    cmp.ids.push(trdarCd);
+    cmp.picked.push(d);
+    cmpSave(cmp.ids);
+    cmp.query = "";
+    render();
+    try {
+        cmp.sales.set(trdarCd, digestSales(await apiData("/api/sales?trdarCd=" + trdarCd)));
+        render();
+    } catch (e) { /* 연령·업종만 비면 데이터 없음으로 남는다 */ }
+}
+
 function render() {
     const main = document.querySelector("main.compare");
     if (!cmp.picked.length) {
         main.innerHTML =
             '<div style="margin:80px auto;max-width:420px;text-align:center;color:#8c7f78">' +
             '<p style="font-size:17px;font-weight:600;margin-bottom:8px">비교함이 비어 있습니다</p>' +
-            '<p style="font-size:14px;line-height:1.6">지도나 상권 상세에서 비교 담기를 누르면<br>최대 4개까지 나란히 볼 수 있습니다.</p>' +
-            '<p style="margin-top:16px"><a href="/map/search.html" style="color:#a8412c;font-weight:600">상권 검색으로 이동 →</a></p></div>';
+            '<p style="font-size:14px;line-height:1.6;margin-bottom:16px">아래에서 상권을 검색해 담거나,<br>지도·상권 상세에서 비교 담기를 누르세요.</p>' +
+            searchBox() + "</div>";
+        bindSearch();
         return;
     }
 
@@ -97,6 +157,7 @@ function render() {
 
     main.innerHTML =
         '<div style="max-width:1060px;margin:22px auto;padding:0 20px">' +
+        searchBox() +
         '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">' + chips + "</div>" +
         '<div class="cmp-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">' +
         barCard("추정 매출", "억/분기", (d) => d.salesAmt, (v) => fmtEok(v)) +
@@ -113,6 +174,7 @@ function render() {
             render();
         });
     });
+    bindSearch();
 }
 
 // 상권별 최근 분기 매출을 합쳐 연령·성별·업종 비중을 만든다
@@ -141,6 +203,7 @@ async function load() {
     cmp.ids = (q ? q.split(",").filter(Boolean) : cmpList()).slice(0, 4);
 
     const all = (await apiData("/api/districts/summary")) || [];
+    cmp.all = all;
     const byId = new Map(all.map((d) => [d.trdarCd, d]));
     cmp.picked = cmp.ids.map((id) => byId.get(id)).filter(Boolean);
 
