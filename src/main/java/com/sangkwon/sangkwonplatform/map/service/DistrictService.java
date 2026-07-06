@@ -3,6 +3,7 @@ package com.sangkwon.sangkwonplatform.map.service;
 import com.sangkwon.sangkwonplatform.map.dto.request.DistrictSearchRequest;
 import com.sangkwon.sangkwonplatform.map.dto.response.DistrictGeoResponse;
 import com.sangkwon.sangkwonplatform.map.dto.response.DistrictResponse;
+import com.sangkwon.sangkwonplatform.map.dto.response.DistrictSummaryResponse;
 import com.sangkwon.sangkwonplatform.map.repository.TrdarRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -37,5 +38,12 @@ public class DistrictService {
         return trdarRepository.findById(trdarCd)
                 .map(DistrictResponse::from)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "상권을 찾을 수 없습니다"));
+    }
+
+    // 상권 요약 목록 (검색 결과용)
+    public List<DistrictSummaryResponse> getSummaries(String signguCd, String trdarSeCd, String keyword) {
+        return trdarRepository.searchSummary(signguCd, trdarSeCd, keyword).stream()
+                .map(DistrictSummaryResponse::from)
+                .toList();
     }
 }
