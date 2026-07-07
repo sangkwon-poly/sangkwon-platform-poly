@@ -57,6 +57,9 @@
 .ua-table .badge { gap: 6px; font-size: 11px; padding: 4px 10px; }
 .ua-table .dot { width: 6px; height: 6px; }
 
+/* 작업 버튼 묶음 (잠금/해제 · 비번 재설정) */
+.ua-actions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+
 /* 작업 버튼 (잠금/해제) */
 .ua-act {
   font-size: 12px; font-weight: 700;
@@ -80,6 +83,7 @@
   box-shadow: var(--shadow-card); padding: 26px 26px 22px;
 }
 .ua-modal-card h2 { font-size: 17px; font-weight: 800; color: var(--ink); margin: 0 0 18px; }
+.ua-reset-target { font-size: 13px; color: var(--muted); margin: -8px 0 16px; }
 .ua-form { display: flex; flex-direction: column; gap: 13px; }
 .ua-field { display: flex; flex-direction: column; gap: 6px; }
 .ua-field span { font-size: 12px; font-weight: 700; color: var(--text-soft); }

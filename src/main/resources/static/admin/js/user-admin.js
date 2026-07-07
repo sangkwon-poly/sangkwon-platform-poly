@@ -102,9 +102,15 @@
             + "</select>";
 
         var act;
-        if (isSelf) { act = '<button type="button" class="ua-act" disabled>본인</button>'; }
-        else if (a.status === "ACTIVE") { act = '<button type="button" class="ua-act ua-act-lock" data-act="lock" data-id="' + a.adminId + '">잠금</button>'; }
-        else { act = '<button type="button" class="ua-act" data-act="unlock" data-id="' + a.adminId + '">해제</button>'; }
+        if (isSelf) {
+            act = '<button type="button" class="ua-act" disabled>본인</button>';
+        } else {
+            var lock = a.status === "ACTIVE"
+                ? '<button type="button" class="ua-act ua-act-lock" data-act="lock" data-id="' + a.adminId + '">잠금</button>'
+                : '<button type="button" class="ua-act" data-act="unlock" data-id="' + a.adminId + '">해제</button>';
+            var reset = '<button type="button" class="ua-act" data-act="reset" data-id="' + a.adminId + '">비번 재설정</button>';
+            act = '<div class="ua-actions">' + lock + reset + "</div>";
+        }
 
         var failCls = a.failedLoginCnt >= 3 ? " is-hot" : "";
 
@@ -126,8 +132,11 @@
             sel.addEventListener("change", function () { changeRole(Number(sel.getAttribute("data-id")), sel.value, sel); });
         });
         Array.prototype.forEach.call(tbody.querySelectorAll(".ua-act[data-act]"), function (btn) {
+            var act = btn.getAttribute("data-act");
             btn.addEventListener("click", function () {
-                changeStatus(Number(btn.getAttribute("data-id")), btn.getAttribute("data-act") === "lock" ? "LOCKED" : "ACTIVE", btn);
+                var id = Number(btn.getAttribute("data-id"));
+                if (act === "reset") { openReset(id); }
+                else { changeStatus(id, act === "lock" ? "LOCKED" : "ACTIVE", btn); }
             });
         });
     }
@@ -160,7 +169,50 @@
 
     if (addBtn) { addBtn.addEventListener("click", openModal); }
     Array.prototype.forEach.call(modal.querySelectorAll("[data-close]"), function (el) { el.addEventListener("click", closeModal); });
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modal.hidden) { closeModal(); } });
+    document.addEventListener("keydown", function (e) {
+        if (e.key !== "Escape") { return; }
+        if (!modal.hidden) { closeModal(); }
+        if (!resetModal.hidden) { closeReset(); }
+    });
+
+    // 비밀번호 재설정 모달 (최고관리자가 다른 관리자 비번 초기화)
+    var resetModal = document.getElementById("ua-reset-modal");
+    var resetForm = document.getElementById("ua-reset-form");
+    var resetMsg = document.getElementById("ua-reset-msg");
+    var resetTarget = document.getElementById("ua-reset-target");
+    var resetSubmit = document.getElementById("ua-reset-submit");
+    var resetPw = resetForm.querySelector('[name="newPassword"]');
+    var resetId = null;
+
+    function openReset(id) {
+        var a = find(id);
+        resetId = id;
+        resetTarget.textContent = (a ? a.adminName + " (" + a.loginId + ")" : "관리자") + " 계정의 새 비밀번호를 설정합니다.";
+        resetPw.value = "";
+        resetMsg.hidden = true;
+        resetModal.hidden = false;
+        resetPw.focus();
+    }
+    function closeReset() { resetModal.hidden = true; resetId = null; }
+
+    Array.prototype.forEach.call(resetModal.querySelectorAll("[data-reset-close]"), function (el) { el.addEventListener("click", closeReset); });
+
+    resetForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        resetMsg.hidden = true;
+        var pw = resetPw.value;
+        if (!pw || pw.length < 4) { resetMsg.textContent = "비밀번호는 4자 이상으로 입력하세요."; resetMsg.hidden = false; return; }
+        if (resetId == null) { return; }
+        resetSubmit.disabled = true;
+        api("/api/admin/admin-users/" + resetId + "/reset-password", jsonOpts("PATCH", { newPassword: pw })).then(function (r) {
+            resetSubmit.disabled = false;
+            if (!r.ok) { resetMsg.textContent = msgOf(r, "재설정에 실패했습니다."); resetMsg.hidden = false; return; }
+            var a = find(resetId);
+            if (a) { a.status = "ACTIVE"; a.failedLoginCnt = 0; } // 재설정은 잠금도 해제
+            closeReset();
+            render();
+        });
+    });
 
     form.addEventListener("submit", function (e) {
         e.preventDefault();
