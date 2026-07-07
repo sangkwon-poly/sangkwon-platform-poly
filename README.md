@@ -40,8 +40,8 @@ src/main/resources/db/schema.sql   # 25개 테이블, Oracle에 한 번 실행
 com.sangkwon.sangkwonplatform
 ├─ global/    공통 (예외처리, 응답포맷, BaseEntity, 외부API)   조장
 ├─ map/       상권/지도            이상혁
-├─ member/    회원/인증            곽소정
-├─ admin/     관리자 백오피스       김민혁
+├─ member/    회원/인증            김민혁
+├─ admin/     관리자 백오피스       곽소정
 └─ support/   창업지원/업계동향     양은영
 ```
 

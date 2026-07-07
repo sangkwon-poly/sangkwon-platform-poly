@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>로그인 · 서울상권</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="css/member.css">
+</head>
+<body>
+  <main class="page">
+    <div class="container">
+      <section class="auth-card" aria-labelledby="auth-heading">
+
+        <!-- 좌측 브랜드 히어로 -->
+        <aside class="auth-card__hero">
+          <span class="auth-card__hero-badge">
+            <span class="app-header__logo" aria-hidden="true">서</span>
+            서울상권
+          </span>
+          <h1 class="auth-card__hero-title" id="auth-heading">데이터로 시작하는<br>창업 의사결정</h1>
+          <p class="auth-card__hero-desc">
+            서울시 공공데이터 약 230만 행을 지도 위에서 분석합니다.
+            유동인구·매출·폐업률을 상권별로 비교해 더 나은 자리를 찾으세요.
+          </p>
+          <ul class="auth-card__hero-points">
+            <li class="auth-card__hero-point">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>관심 상권을 찜하고 변화를 추적</span>
+            </li>
+            <li class="auth-card__hero-point">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>검색 이력으로 관심사를 한눈에</span>
+            </li>
+            <li class="auth-card__hero-point">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span>지도 기반 상권 비교로 인사이트 확보</span>
+            </li>
+          </ul>
+        </aside>
+
+        <!-- 우측 폼 영역 -->
+        <div class="auth-card__form">
+
+          <div class="tabs" role="tablist" aria-label="로그인 또는 회원가입 선택">
+            <button type="button" class="tab is-active" role="tab" id="tab-login"
+                    aria-selected="true" aria-controls="panel-login" data-tab="login">로그인</button>
+            <button type="button" class="tab" role="tab" id="tab-signup"
+                    aria-selected="false" aria-controls="panel-signup" data-tab="signup">회원가입</button>
+          </div>
+
+          <!-- 로그인 패널 -->
+          <form id="panel-login" class="stack" role="tabpanel" aria-labelledby="tab-login" novalidate>
+            <div class="field">
+              <label class="label" for="login-id">로그인 아이디 또는 이메일 <span class="label__req" aria-hidden="true">*</span></label>
+              <input class="input" id="login-id" name="loginId" type="text"
+                     autocomplete="username" placeholder="minhyuk" required
+                     aria-describedby="login-id-error">
+              <p class="field__error" id="login-id-error" role="alert"></p>
+            </div>
+
+            <div class="field">
+              <label class="label" for="login-pw">비밀번호 <span class="label__req" aria-hidden="true">*</span></label>
+              <div class="input-affix">
+                <input class="input" id="login-pw" name="password" type="password"
+                       autocomplete="current-password" placeholder="비밀번호를 입력하세요" required
+                       aria-describedby="login-pw-error">
+                <button type="button" class="input-affix__btn" data-toggle-pw="login-pw"
+                        aria-label="비밀번호 표시" aria-pressed="false">표시</button>
+              </div>
+              <p class="field__error" id="login-pw-error" role="alert"></p>
+            </div>
+
+            <div class="row row--between">
+              <label class="toggle-row" for="login-remember">
+                <input type="checkbox" class="checkbox" id="login-remember" name="remember">
+                자동 로그인
+              </label>
+              <a href="#" class="link-sm" data-action="find-pw">비밀번호 찾기</a>
+            </div>
+
+            <button type="submit" class="btn btn--primary btn--block" data-submit="login">로그인</button>
+          </form>
+
+          <!-- 회원가입 패널 -->
+          <form id="panel-signup" class="stack" role="tabpanel" aria-labelledby="tab-signup" novalidate hidden>
+            <div class="field">
+              <label class="label" for="signup-id">로그인 아이디 <span class="label__req" aria-hidden="true">*</span></label>
+              <input class="input" id="signup-id" name="loginId" type="text"
+                     autocomplete="username" placeholder="영문·숫자 4자 이상" required
+                     aria-describedby="signup-id-error">
+              <p class="field__error" id="signup-id-error" role="alert"></p>
+            </div>
+
+            <div class="field">
+              <label class="label" for="signup-email">이메일 <span class="label__req" aria-hidden="true">*</span></label>
+              <input class="input" id="signup-email" name="email" type="email"
+                     autocomplete="email" placeholder="you@example.com" required
+                     aria-describedby="signup-email-error">
+              <p class="field__error" id="signup-email-error" role="alert"></p>
+            </div>
+
+            <div class="field">
+              <label class="label" for="signup-nick">닉네임 <span class="label__req" aria-hidden="true">*</span></label>
+              <input class="input" id="signup-nick" name="nickname" type="text"
+                     autocomplete="nickname" placeholder="표시할 이름" required
+                     aria-describedby="signup-nick-error">
+              <p class="field__error" id="signup-nick-error" role="alert"></p>
+            </div>
+
+            <div class="field">
+              <label class="label" for="signup-pw">비밀번호 <span class="label__req" aria-hidden="true">*</span></label>
+              <div class="input-affix">
+                <input class="input" id="signup-pw" name="password" type="password"
+                       autocomplete="new-password" placeholder="8자 이상" required
+                       aria-describedby="signup-pw-error signup-pw-hint">
+                <button type="button" class="input-affix__btn" data-toggle-pw="signup-pw"
+                        aria-label="비밀번호 표시" aria-pressed="false">표시</button>
+              </div>
+              <p class="field__hint" id="signup-pw-hint">영문·숫자를 섞어 8자 이상 권장합니다.</p>
+              <p class="field__error" id="signup-pw-error" role="alert"></p>
+            </div>
+
+            <div class="field">
+              <label class="label" for="signup-pw2">비밀번호 확인 <span class="label__req" aria-hidden="true">*</span></label>
+              <div class="input-affix">
+                <input class="input" id="signup-pw2" name="passwordConfirm" type="password"
+                       autocomplete="new-password" placeholder="비밀번호를 다시 입력하세요" required
+                       aria-describedby="signup-pw2-error">
+                <button type="button" class="input-affix__btn" data-toggle-pw="signup-pw2"
+                        aria-label="비밀번호 표시" aria-pressed="false">표시</button>
+              </div>
+              <p class="field__error" id="signup-pw2-error" role="alert"></p>
+            </div>
+
+            <button type="submit" class="btn btn--primary btn--block" data-submit="signup">회원가입</button>
+          </form>
+
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

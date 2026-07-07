@@ -18,3 +18,7 @@ DATAGOKR_SERVICE_KEY=여기에_data.go.kr_일반인증키
 SEOUL_OPENDATA_KEY=여기에_서울_열린데이터광장_인증키
 FTC_FRANCHISE_KEY=여기에_franchise.ftc.go.kr_키
 REB_RONE_KEY=여기에_R-ONE_키
+
+# JWT (회원 인증) — 32자 이상 랜덤 문자열. 커밋 금지.
+JWT_SECRET=여기에_32자이상_랜덤_시크릿_문자열
+JWT_EXPIRATION_MS=1800000

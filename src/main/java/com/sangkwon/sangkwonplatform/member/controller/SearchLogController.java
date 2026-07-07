@@ -1,0 +1,35 @@
+package com.sangkwon.sangkwonplatform.member.controller;
+
+import com.sangkwon.sangkwonplatform.global.common.ApiResponse;
+import com.sangkwon.sangkwonplatform.member.dto.request.SearchLogCreateRequest;
+import com.sangkwon.sangkwonplatform.member.dto.response.SearchLogResponse;
+import com.sangkwon.sangkwonplatform.member.service.SearchLogService;
+import jakarta.validation.Valid;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/search-logs")
+@RequiredArgsConstructor
+public class SearchLogController {
+
+    private final SearchLogService searchLogService;
+
+    @GetMapping
+    public ApiResponse<List<SearchLogResponse>> recent(@AuthenticationPrincipal Long memberId) {
+        return ApiResponse.ok(searchLogService.recent(memberId));
+    }
+
+    @PostMapping
+    public ApiResponse<Void> log(@AuthenticationPrincipal Long memberId,
+                                 @Valid @RequestBody SearchLogCreateRequest req) {
+        searchLogService.log(memberId, req);
+        return ApiResponse.<Void>ok(null);
+    }
+}
