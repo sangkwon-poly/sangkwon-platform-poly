@@ -77,7 +77,7 @@
                 if (r.ok) {
                     var name = r.body && r.body.data ? r.body.data.adminName : "";
                     showMsg((name ? name + "님, " : "") + "로그인 성공. 대시보드로 이동합니다.", "ok");
-                    setTimeout(function () { window.location.href = "/admin/dashboard.html"; }, 700);
+                    setTimeout(function () { window.location.href = "/admin/index.html"; }, 700);
                 } else if (r.body && r.body.code === "OTP_REQUIRED") {
                     revealOtpStep();
                     showMsg("인증 앱에 표시된 6자리 코드를 입력하세요.", "info");
