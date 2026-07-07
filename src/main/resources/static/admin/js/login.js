@@ -86,7 +86,7 @@
                 if (r.ok) {
                     var name = r.body && r.body.data ? r.body.data.adminName : "";
                     showMsg((name ? name + "님, " : "") + "로그인 성공. 관리자 콘솔로 이동합니다.", "ok");
-                    // 대시보드가 생기면: window.location.href = "/admin";
+                    setTimeout(function () { window.location.href = "/admin/console.html"; }, 700);
                 } else {
                     var reason = r.body && r.body.message ? r.body.message : "로그인에 실패했습니다.";
                     showMsg(reason, "error");

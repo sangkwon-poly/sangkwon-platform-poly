@@ -113,6 +113,21 @@ public class AdminUserService {
         findAdminUser(adminId).disableOtp();
     }
 
+    @Transactional(readOnly = true)
+    public boolean isOtpEnabled(Long adminId) {
+        return findAdminUser(adminId).isOtpEnabled();
+    }
+
+    // 현재 설정 중인 비밀키로 인증 앱 등록용 otpauth URL을 만든다 (QR 렌더링에 사용)
+    @Transactional(readOnly = true)
+    public String otpauthUrlFor(Long adminId) {
+        AdminUser admin = findAdminUser(adminId);
+        if (admin.getOtpSecret() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "먼저 OTP 설정을 시작하세요.");
+        }
+        return Totp.otpauthUrl("서울공화국 ADMIN", admin.getLoginId(), admin.getOtpSecret());
+    }
+
     // 관리자 이름 수정 (본인)
     public void updateName(Long adminId, AdminNameUpdateRequest request) {
         AdminUser adminUser = findAdminUser(adminId);
