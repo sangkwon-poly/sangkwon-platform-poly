@@ -1,101 +1,67 @@
-/* TRDAR-ADM-01 상권 데이터 관리 고유 스타일
-   공통 chrome·표는 shell.css. 여기서는 2단 레이아웃과 상세 패널만. */
+/* TRDAR-ADM 상권 데이터 고유 스타일
+   공통 chrome·표·통계카드는 shell.css / common.css. 여기서는 컨트롤바·정렬헤더·변화배지만. */
 
-/* 본문: 좌 목록 + 우 상세 (topbar 아래 전체 높이 채움) */
-.trd-body {
-  flex: 1 1 0;
+/* 컨트롤 바 (분기·자치구·검색) */
+.trd-controls {
   display: flex;
-  min-height: 0;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
 }
+.trd-ctrl { display: flex; align-items: center; gap: 8px; }
+.trd-ctrl > span { font-size: 12px; font-weight: 700; color: var(--text-soft); white-space: nowrap; }
+.trd-ctrl select {
+  font-size: 13px; font-weight: 600; color: var(--text);
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 8px 30px 8px 12px;
+  cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239a8e86' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 11px center;
+}
+.trd-ctrl select:hover { border-color: var(--brand); }
 
-/* 좌: 목록 (스크롤) */
-.trd-list {
-  flex: 1 1 0;
-  min-width: 0;
-  padding: 20px 22px;
-  overflow: auto;
+.trd-search {
+  display: flex; align-items: center; gap: 8px;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 8px 12px; background: var(--bg); color: var(--faint);
+  min-width: 220px; flex: 1 1 220px; max-width: 340px;
 }
+.trd-search:focus-within { border-color: var(--brand); color: var(--brand); }
+.trd-search input {
+  border: 0; outline: 0; background: transparent;
+  font-size: 13px; color: var(--text); width: 100%;
+}
+.trd-count { font-size: 12px; color: var(--faint); margin-left: auto; white-space: nowrap; }
 
-/* 표 세부 */
-.trd-table thead th { padding: 12px 18px; }
-.trd-table tbody td { padding: 13px 18px; }
-.trd-code { color: var(--faint); font-size: 12px; }
-.trd-gu { display: flex; align-items: center; gap: 9px; }
-.trd-swatch { width: 12px; height: 12px; border-radius: 3px; flex: 0 0 auto; }
-.trd-gu-name { font-size: 13px; font-weight: 700; color: var(--text); }
+/* 통계 카드: 3열 */
+.trd-stats { grid-template-columns: repeat(3, 1fr); margin-bottom: 16px; }
 
-/* 검수 상태 텍스트 (배지 아닌 색 텍스트) */
-.trd-state { font-size: 11px; font-weight: 700; }
-.trd-done { color: #4e7a3e; }
-.trd-review { color: var(--warn); }
-.trd-fix { color: var(--brand); }
+/* 표 */
+.trd-table th, .trd-table td { white-space: nowrap; }
+.trd-table tbody td { padding: 12px 18px; }
+.trd-name { font-weight: 700; color: var(--text); }
+.trd-code { font-size: 11px; color: var(--faint); font-family: var(--mono); margin-top: 2px; }
+.trd-gu { color: var(--text-soft); }
+.trd-num { font-variant-numeric: tabular-nums; color: var(--text); }
+.trd-num-sub { font-size: 11px; color: var(--faint); }
 
-/* 우: 상세 패널 */
-.trd-detail {
-  width: 388px;
-  flex: 0 0 auto;
-  border-left: 1px solid var(--card-line);
-  background: #fff;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  overflow: auto;
-}
-.trd-detail-title {
-  font-size: 13px; font-weight: 800; color: var(--text);
-  margin-bottom: 10px;
-}
+/* 정렬 헤더 */
+.trd-sort { cursor: pointer; user-select: none; }
+.trd-sort:hover { color: var(--brand); }
+.trd-arrow { margin-left: 4px; opacity: 0; font-size: 9px; }
+.trd-sort[aria-sort] .trd-arrow { opacity: 1; }
+.trd-sort[aria-sort="ascending"] .trd-arrow { display: inline-block; transform: rotate(180deg); }
 
-/* 폴리곤 미리보기 그리드 */
-.trd-preview-box {
-  border: 1px solid #eadfd9;
-  border-radius: 10px;
-  padding: 10px;
-  background: var(--surface);
+/* 상권 변화 배지 */
+.trd-chg {
+  display: inline-block; font-size: 11px; font-weight: 700;
+  padding: 3px 10px; border-radius: 999px; white-space: nowrap;
 }
-.trd-grid {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 4px;
-}
-.trd-grid span {
-  aspect-ratio: 1 / 1;
-  border-radius: 3px;
-}
+.trd-chg-up   { color: var(--ok); background: var(--ok-bg); }      /* 상권확장 */
+.trd-chg-dyn  { color: var(--info); background: var(--info-bg); }  /* 다이나믹 */
+.trd-chg-flat { color: var(--warn); background: var(--warn-bg); }  /* 정체 */
+.trd-chg-down { color: var(--danger); background: var(--danger-bg); } /* 상권축소 */
 
-/* 매핑 정보 목록 */
-.trd-mapping { border-top: 1px solid var(--line-soft); padding-top: 15px; }
-.trd-mapping .trd-detail-title { margin-bottom: 12px; }
-.trd-info-row {
-  display: flex; justify-content: space-between;
-  padding: 8px 0;
-  font-size: 12.5px;
-  border-bottom: 1px solid var(--line-soft);
-}
-.trd-info-last { border-bottom: 0; }
-.trd-info-row dt { color: var(--faint); }
-.trd-info-row dd { color: #3a322e; }
-.trd-done-text { color: #4e7a3e; font-weight: 700; }
-
-/* 하단 액션 버튼 */
-.trd-actions { margin-top: auto; display: flex; gap: 9px; }
-.trd-btn-edit {
-  flex: 1 1 0; height: 42px; border-radius: 10px;
-  font-size: 13px;
-}
-.trd-btn-recheck {
-  height: 42px; padding: 0 15px; border-radius: 10px;
-  font-size: 13px; font-weight: 600;
-  color: #5a5049; border-color: var(--line);
-}
-
-/* 반응형: 상세 패널을 목록 아래로 */
-@media (max-width: 900px) {
-  .trd-body { flex-direction: column; }
-  .trd-detail {
-    width: 100%;
-    border-left: 0;
-    border-top: 1px solid var(--card-line);
-  }
-}
+.trd-empty { padding: 32px 16px; text-align: center; color: var(--faint); font-size: 14px; }
+.trd-note { margin: 12px 2px 0; font-size: 12px; color: var(--faint); }
