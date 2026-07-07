@@ -6,6 +6,8 @@ import com.sangkwon.sangkwonplatform.admin.account.otp.OtpRequiredException;
 import com.sangkwon.sangkwonplatform.admin.account.service.AdminUserService;
 import com.sangkwon.sangkwonplatform.admin.account.session.LoginAdmin;
 import com.sangkwon.sangkwonplatform.admin.account.session.SessionConst;
+import com.sangkwon.sangkwonplatform.admin.ops.AuditAction;
+import com.sangkwon.sangkwonplatform.admin.ops.service.AdminAuditService;
 import com.sangkwon.sangkwonplatform.global.common.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminAuthController {
 
     private final AdminUserService adminUserService;
+    private final AdminAuditService auditService;
 
     @PostMapping("/login")
     public ApiResponse<AdminSession> login(@Valid @RequestBody AdminLoginRequest request,
@@ -32,6 +35,7 @@ public class AdminAuthController {
         httpRequest.changeSessionId();
         httpRequest.getSession().setAttribute(SessionConst.LOGIN_ADMIN, adminSession);
 
+        auditService.record(adminSession.adminId(), AuditAction.LOGIN, null, null, null, httpRequest);
         return ApiResponse.ok(adminSession);
     }
 
