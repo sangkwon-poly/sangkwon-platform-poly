@@ -6,7 +6,10 @@ import com.sangkwon.sangkwonplatform.admin.account.dto.session.AdminSession;
 import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminRole;
 import com.sangkwon.sangkwonplatform.admin.account.service.AdminUserService;
 import com.sangkwon.sangkwonplatform.admin.account.session.LoginAdmin;
+import com.sangkwon.sangkwonplatform.admin.ops.AuditAction;
+import com.sangkwon.sangkwonplatform.admin.ops.service.AdminAuditService;
 import com.sangkwon.sangkwonplatform.global.common.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,24 +24,25 @@ import java.util.List;
 public class AdminUserController {
 
     private final AdminUserService adminUserService;
+    private final AdminAuditService auditService;
 
-    // 관리자 생성 (SUPER_ADMIN 전용)
     @PostMapping
     public ApiResponse<Void> join(@LoginAdmin AdminSession admin,
-                                  @Valid @RequestBody AdminJoinRequest request) {
+                                  @Valid @RequestBody AdminJoinRequest request,
+                                  HttpServletRequest http) {
         requireSuperAdmin(admin);
         adminUserService.join(request);
+        auditService.record(admin.adminId(), AuditAction.ADMIN_CREATE, "ADMIN",
+                request.loginId(), "role=" + request.role(), http);
         return ApiResponse.ok(null);
     }
 
-    // 관리자 목록 (SUPER_ADMIN 전용)
     @GetMapping
     public ApiResponse<List<AdminListResponse>> getAdminList(@LoginAdmin AdminSession admin) {
         requireSuperAdmin(admin);
         return ApiResponse.ok(adminUserService.getAdminList());
     }
 
-    // 이름 수정 (본인만)
     @PatchMapping("/{adminId}/name")
     public ApiResponse<Void> updateName(@LoginAdmin AdminSession admin,
                                         @PathVariable Long adminId,
@@ -48,7 +52,6 @@ public class AdminUserController {
         return ApiResponse.ok(null);
     }
 
-    // 비밀번호 수정 (본인만)
     @PatchMapping("/{adminId}/password")
     public ApiResponse<Void> updatePassword(@LoginAdmin AdminSession admin,
                                             @PathVariable Long adminId,
@@ -58,27 +61,30 @@ public class AdminUserController {
         return ApiResponse.ok(null);
     }
 
-    // 역할 변경 (SUPER_ADMIN 전용)
     @PatchMapping("/{adminId}/role")
     public ApiResponse<Void> updateRole(@LoginAdmin AdminSession admin,
                                         @PathVariable Long adminId,
-                                        @Valid @RequestBody AdminRoleUpdateRequest request) {
+                                        @Valid @RequestBody AdminRoleUpdateRequest request,
+                                        HttpServletRequest http) {
         requireSuperAdmin(admin);
         adminUserService.updateRole(adminId, request);
+        auditService.record(admin.adminId(), AuditAction.ADMIN_ROLE_UPDATE, "ADMIN",
+                String.valueOf(adminId), "role=" + request.role(), http);
         return ApiResponse.ok(null);
     }
 
-    // 상태 변경 (SUPER_ADMIN 전용)
     @PatchMapping("/{adminId}/status")
     public ApiResponse<Void> updateStatus(@LoginAdmin AdminSession admin,
                                           @PathVariable Long adminId,
-                                          @Valid @RequestBody AdminStatusUpdateRequest request) {
+                                          @Valid @RequestBody AdminStatusUpdateRequest request,
+                                          HttpServletRequest http) {
         requireSuperAdmin(admin);
         adminUserService.updateStatus(adminId, request);
+        auditService.record(admin.adminId(), AuditAction.ADMIN_STATUS_UPDATE, "ADMIN",
+                String.valueOf(adminId), "status=" + request.status(), http);
         return ApiResponse.ok(null);
     }
 
-    // 세션은 @LoginAdmin 리졸버가 보장(비로그인 401)하므로 여기서는 역할/본인 여부만 본다
     private void requireSuperAdmin(AdminSession admin) {
         if (admin.role() != AdminRole.SUPER_ADMIN) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "SUPER_ADMIN 권한이 필요합니다.");

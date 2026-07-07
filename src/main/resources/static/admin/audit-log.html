@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>감사 로그 · 서울공화국</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/admin/shell.css">
+  <link rel="stylesheet" href="/admin/css/ops.css">
+</head>
+<body>
+
+  <div class="admin">
+
+    <aside class="admin-side" aria-label="관리자 메뉴">
+      <a class="admin-brand" href="/admin/">
+        <span class="brand-mark" aria-hidden="true">서</span>
+        <span class="admin-brand-text">
+          <span class="admin-brand-name">서울공화국</span>
+          <span class="admin-brand-sub">관리자 콘솔</span>
+        </span>
+      </a>
+      <nav class="admin-nav" aria-label="관리자 내비게이션">
+        <a href="/admin/">개요</a>
+        <a href="/admin/batch.html">데이터 적재</a>
+        <a href="/admin/trdar-admin.html">상권 데이터</a>
+        <a href="/admin/user-admin.html">사용자 관리</a>
+        <hr class="admin-nav-sep">
+        <span class="admin-nav-out">
+          <a href="/map/">지도로 이동</a>
+          <a href="/">랜딩으로</a>
+        </span>
+      </nav>
+      <div class="admin-user">
+        <span class="admin-user-avatar" aria-hidden="true">이</span>
+        <span>
+          <span class="admin-user-name">이상혁</span>
+          <span class="admin-user-role">PM</span>
+        </span>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <header class="admin-topbar">
+        <h1>감사 로그</h1>
+        <span class="admin-topbar-meta">관리자 행위 기록 · 최근 100건</span>
+      </header>
+
+      <main class="admin-content" aria-label="관리자 감사 로그">
+        <section class="data-table-wrap">
+          <div class="table-scroll">
+            <table class="data-table audit-table">
+              <thead>
+                <tr>
+                  <th scope="col">시각</th>
+                  <th scope="col">관리자</th>
+                  <th scope="col">행위</th>
+                  <th scope="col">대상</th>
+                  <th scope="col">상세</th>
+                  <th scope="col">IP</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="6" class="ops-empty">불러오는 중…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="/admin/js/admin-shell.js"></script>
+  <script src="/admin/js/audit-log.js"></script>
+</body>
+</html>

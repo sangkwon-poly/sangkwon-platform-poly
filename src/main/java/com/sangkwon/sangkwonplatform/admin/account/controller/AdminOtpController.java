@@ -7,7 +7,10 @@ import com.sangkwon.sangkwonplatform.admin.account.dto.session.AdminSession;
 import com.sangkwon.sangkwonplatform.admin.account.otp.QrCodes;
 import com.sangkwon.sangkwonplatform.admin.account.service.AdminUserService;
 import com.sangkwon.sangkwonplatform.admin.account.session.LoginAdmin;
+import com.sangkwon.sangkwonplatform.admin.ops.AuditAction;
+import com.sangkwon.sangkwonplatform.admin.ops.service.AdminAuditService;
 import com.sangkwon.sangkwonplatform.global.common.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminOtpController {
 
     private final AdminUserService adminUserService;
+    private final AdminAuditService auditService;
 
     @GetMapping("/status")
     public ApiResponse<OtpStatusResponse> status(@LoginAdmin AdminSession admin) {
@@ -42,14 +46,19 @@ public class AdminOtpController {
 
     @PostMapping("/enable")
     public ApiResponse<Void> enable(@LoginAdmin AdminSession admin,
-                                    @Valid @RequestBody OtpEnableRequest request) {
+                                    @Valid @RequestBody OtpEnableRequest request,
+                                    HttpServletRequest http) {
         adminUserService.enableOtp(admin.adminId(), request.otp());
+        auditService.record(admin.adminId(), AuditAction.OTP_ENABLE, "ADMIN",
+                String.valueOf(admin.adminId()), null, http);
         return ApiResponse.ok(null);
     }
 
     @PostMapping("/disable")
-    public ApiResponse<Void> disable(@LoginAdmin AdminSession admin) {
+    public ApiResponse<Void> disable(@LoginAdmin AdminSession admin, HttpServletRequest http) {
         adminUserService.disableOtp(admin.adminId());
+        auditService.record(admin.adminId(), AuditAction.OTP_DISABLE, "ADMIN",
+                String.valueOf(admin.adminId()), null, http);
         return ApiResponse.ok(null);
     }
 }
