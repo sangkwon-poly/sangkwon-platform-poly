@@ -1,6 +1,9 @@
 """
 지원사업 데이터 적재 스크립트 (SUPPORT_PROGRAM)
 - Oracle Autonomous DB (지갑, Thick 모드) 연결
+- 날짜(APPLY_BGNG_DE, APPLY_END_DE)는 SQL 문자열에 TO_DATE(...) 리터럴로 직접 삽입
+- SOURCE_REG_DT(TIMESTAMP)는 파이썬 datetime 객체로 변환해서 바인딩
+- CREATED_AT / UPDATED_AT은 SYSTIMESTAMP(UTC) 대신 파이썬에서 한국시간(KST)으로 생성해서 바인딩
 - 기업마당(BIZINFO) + K-Startup(KSTARTUP) API 호출 (서울 지역 필터, 전체 페이지, 재시도 포함)
 - SUPPORT_PROGRAM / SUPPORT_PROGRAM_KSTARTUP_DETAIL 테이블에 저장
 """
@@ -9,7 +12,7 @@ import os
 import re
 import html
 import time
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 import requests
 import oracledb
@@ -32,6 +35,13 @@ oracledb.init_oracle_client(
 # Thick 모드는 config_dir이 아니라 TNS_ADMIN 환경변수로 지갑 위치를 찾음
 os.environ["TNS_ADMIN"] = DB_WALLET_DIR
 
+# 한국시간(KST) 정의 - DB 서버(UTC) 시간대와 무관하게 항상 한국시간으로 저장
+KST = timezone(timedelta(hours=9))
+
+
+def now_kst():
+    return datetime.now(KST)
+
 
 def get_connection():
     return oracledb.connect(
@@ -48,31 +58,49 @@ def get_connection():
 def strip_html(text):
     if not text:
         return None
-    text = re.sub(r"<[^>]*>", "", text)
-    return html.unescape(text).strip()
+    return re.sub(r"<[^>]*>", "", text).strip()
 
 
 def parse_period(raw):
-    """기업마당 실제 응답: '2026-07-01 ~ 2026-07-31' (하이픈 포함)"""
+    """기업마당 실제 응답: '2026-07-01 ~ 2026-07-31' (하이픈 포함) -> 'YYYYMMDD' 문자열"""
     if not raw or "~" not in raw:
         return None, None
     try:
         start_str, end_str = [p.strip() for p in raw.split("~")]
-        start = datetime.strptime(start_str, "%Y-%m-%d").date()
-        end = datetime.strptime(end_str, "%Y-%m-%d").date()
+        start = datetime.strptime(start_str, "%Y-%m-%d").strftime("%Y%m%d")
+        end = datetime.strptime(end_str, "%Y-%m-%d").strftime("%Y%m%d")
         return start, end
     except ValueError:
         return None, None
 
 
 def parse_kstartup_date(value):
-    """K-Startup 실제 응답: '20260703' (하이픈 없는 YYYYMMDD)"""
+    """K-Startup 실제 응답: '20260703' (하이픈 없는 YYYYMMDD) -> 'YYYYMMDD' 문자열"""
     if not value:
         return None
     try:
-        return datetime.strptime(str(value), "%Y%m%d").date()
+        return datetime.strptime(str(value), "%Y%m%d").strftime("%Y%m%d")
     except ValueError:
         return None
+
+
+def parse_source_reg_dt(value):
+    """기업마당 creatPnttm: '2022-09-02 15:38:29' -> datetime 객체 (TIMESTAMP 컬럼용)"""
+    if not value:
+        return None
+    try:
+        return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return None
+
+
+def date_literal(yyyymmdd):
+    """'20260703' -> "TO_DATE('20260703','YYYYMMDD')" / None -> "NULL" (SQL에 직접 박아넣을 리터럴)"""
+    if not yyyymmdd:
+        return "NULL"
+    if not re.fullmatch(r"\d{8}", yyyymmdd):
+        return "NULL"
+    return f"TO_DATE('{yyyymmdd}', 'YYYYMMDD')"
 
 
 def fetch_with_retry(url, params, max_retries=3, timeout=30):
@@ -128,7 +156,7 @@ def fetch_bizinfo():
                 "recruit_yn": None,
                 "contact": None,
                 "detail_url": item.get("pblancUrl"),
-                "source_reg_dt": item.get("creatPnttm"),
+                "source_reg_dt": parse_source_reg_dt(item.get("creatPnttm")),
             })
 
         print(f"  기업마당 {page_index}페이지 {len(items)}건 수집")
@@ -216,36 +244,42 @@ def fetch_kstartup():
 
 
 # ============================================================
-# 3) DB 저장 SQL (IS_VISIBLE은 UPDATE 절에 없음 - 관리자 값 보존)
+# 3) DB 저장 - SUPPORT_PROGRAM
+#    - APPLY_BGNG_DE / APPLY_END_DE: SQL 문자열에 TO_DATE(...) 리터럴로 직접 삽입
+#    - SOURCE_REG_DT: 파이썬 datetime 객체로 바인딩 (TIMESTAMP 컬럼)
+#    - CREATED_AT / UPDATED_AT: SYSTIMESTAMP 대신 파이썬에서 만든 KST 시각을 바인딩
 # ============================================================
-MERGE_PROGRAM_SQL = """
-MERGE INTO SUPPORT_PROGRAM tgt
-USING (SELECT :program_id AS PROGRAM_ID, :source_cd AS SOURCE_CD FROM dual) src
-ON (tgt.PROGRAM_ID = src.PROGRAM_ID AND tgt.SOURCE_CD = src.SOURCE_CD)
-WHEN MATCHED THEN UPDATE SET
-    TITLE = :title,
-    PROGRAM_TYPE = :program_type,
-    TARGET = :target,
-    REGION = :region,
-    DESCRIPTION = :description,
-    APPLY_BGNG_DE = :apply_bgng_de,
-    APPLY_END_DE = :apply_end_de,
-    APPLY_PERIOD_RAW = :apply_period_raw,
-    RECRUIT_YN = :recruit_yn,
-    CONTACT = :contact,
-    DETAIL_URL = :detail_url,
-    SOURCE_REG_DT = :source_reg_dt,
-    UPDATED_AT = SYSTIMESTAMP
-WHEN NOT MATCHED THEN INSERT (
-    PROGRAM_ID, SOURCE_CD, TITLE, PROGRAM_TYPE, TARGET, REGION, DESCRIPTION,
-    APPLY_BGNG_DE, APPLY_END_DE, APPLY_PERIOD_RAW, RECRUIT_YN,
-    CONTACT, DETAIL_URL, SOURCE_REG_DT
-) VALUES (
-    :program_id, :source_cd, :title, :program_type, :target, :region, :description,
-    :apply_bgng_de, :apply_end_de, :apply_period_raw, :recruit_yn,
-    :contact, :detail_url, :source_reg_dt
-)
-"""
+def build_merge_program_sql(bgng_literal, end_literal):
+    return f"""
+    MERGE INTO SUPPORT_PROGRAM tgt
+    USING (SELECT :program_id AS PROGRAM_ID, :source_cd AS SOURCE_CD FROM dual) src
+    ON (tgt.PROGRAM_ID = src.PROGRAM_ID AND tgt.SOURCE_CD = src.SOURCE_CD)
+    WHEN MATCHED THEN UPDATE SET
+        TITLE = :title,
+        PROGRAM_TYPE = :program_type,
+        TARGET = :target,
+        REGION = :region,
+        DESCRIPTION = :description,
+        APPLY_BGNG_DE = {bgng_literal},
+        APPLY_END_DE = {end_literal},
+        APPLY_PERIOD_RAW = :apply_period_raw,
+        RECRUIT_YN = :recruit_yn,
+        CONTACT = :contact,
+        DETAIL_URL = :detail_url,
+        SOURCE_REG_DT = :source_reg_dt,
+        UPDATED_AT = :updated_at
+    WHEN NOT MATCHED THEN INSERT (
+        PROGRAM_ID, SOURCE_CD, TITLE, PROGRAM_TYPE, TARGET, REGION, DESCRIPTION,
+        APPLY_BGNG_DE, APPLY_END_DE, APPLY_PERIOD_RAW, RECRUIT_YN,
+        CONTACT, DETAIL_URL, SOURCE_REG_DT, CREATED_AT, UPDATED_AT
+    ) VALUES (
+        :program_id, :source_cd, :title, :program_type, :target, :region, :description,
+        {bgng_literal}, {end_literal},
+        :apply_period_raw, :recruit_yn,
+        :contact, :detail_url, :source_reg_dt, :created_at, :updated_at
+    )
+    """
+
 
 MERGE_DETAIL_SQL = """
 MERGE INTO SUPPORT_PROGRAM_KSTARTUP_DETAIL tgt
@@ -266,17 +300,17 @@ WHEN MATCHED THEN UPDATE SET
     PBANC_NTRP_NM = :pbanc_ntrp_nm,
     BIZ_GDNC_URL = :biz_gdnc_url,
     INTG_PBANC_YN = :intg_pbanc_yn,
-    UPDATED_AT = SYSTIMESTAMP
+    UPDATED_AT = :updated_at
 WHEN NOT MATCHED THEN INSERT (
     PROGRAM_ID, SOURCE_CD, APLY_MTHD_VST, APLY_MTHD_PSSR, APLY_MTHD_FAX,
     APLY_MTHD_EML, APLY_MTHD_ONLI, APLY_MTHD_ETC, APLY_EXCL_TRGT_CTNT,
     BIZ_ENYY, BIZ_TRGT_AGE, PRFN_MATR, SPRV_INST, PBANC_NTRP_NM,
-    BIZ_GDNC_URL, INTG_PBANC_YN
+    BIZ_GDNC_URL, INTG_PBANC_YN, CREATED_AT, UPDATED_AT
 ) VALUES (
     :program_id, :source_cd, :aply_mthd_vst, :aply_mthd_pssr, :aply_mthd_fax,
     :aply_mthd_eml, :aply_mthd_onli, :aply_mthd_etc, :aply_excl_trgt_ctnt,
     :biz_enyy, :biz_trgt_age, :prfn_matr, :sprv_inst, :pbanc_ntrp_nm,
-    :biz_gdnc_url, :intg_pbanc_yn
+    :biz_gdnc_url, :intg_pbanc_yn, :created_at, :updated_at
 )
 """
 
@@ -286,14 +320,38 @@ def save_programs(rows):
         print("SUPPORT_PROGRAM: 저장할 데이터 없음")
         return
     conn = get_connection()
-    try:
-        cursor = conn.cursor()
-        cursor.executemany(MERGE_PROGRAM_SQL, rows)
-        conn.commit()
-        print(f"SUPPORT_PROGRAM: {len(rows)}건 저장 완료")
-    finally:
-        cursor.close()
-        conn.close()
+    cursor = conn.cursor()
+    ok = 0
+    failed = []
+    now = now_kst()
+    for row in rows:
+        bgng_literal = date_literal(row["apply_bgng_de"])
+        end_literal = date_literal(row["apply_end_de"])
+        sql = build_merge_program_sql(bgng_literal, end_literal)
+
+        # 날짜 두 개는 SQL에 이미 리터럴로 박혀있으니 바인드에서 제외
+        bind = {k: v for k, v in row.items() if k not in ("apply_bgng_de", "apply_end_de")}
+        bind["created_at"] = now
+        bind["updated_at"] = now
+
+        try:
+            cursor.execute(sql, bind)
+            ok += 1
+        except oracledb.DatabaseError as e:
+            failed.append((row, str(e)))
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    print(f"SUPPORT_PROGRAM: 성공 {ok}건 / 실패 {len(failed)}건")
+    if failed:
+        print("\n=== 실패한 행 (최대 10건) ===")
+        for row, err in failed[:10]:
+            print(f"- program_id={row['program_id']} source_cd={row['source_cd']}")
+            print(f"  apply_bgng_de={row['apply_bgng_de']!r} apply_end_de={row['apply_end_de']!r}")
+            print(f"  source_reg_dt={row['source_reg_dt']!r}")
+            print(f"  에러: {err}\n")
 
 
 def save_details(rows):
@@ -301,6 +359,10 @@ def save_details(rows):
         print("SUPPORT_PROGRAM_KSTARTUP_DETAIL: 저장할 데이터 없음")
         return
     conn = get_connection()
+    now = now_kst()
+    for row in rows:
+        row["created_at"] = now
+        row["updated_at"] = now
     try:
         cursor = conn.cursor()
         cursor.executemany(MERGE_DETAIL_SQL, rows)
