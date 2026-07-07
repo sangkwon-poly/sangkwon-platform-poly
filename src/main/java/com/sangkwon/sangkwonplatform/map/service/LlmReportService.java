@@ -72,8 +72,8 @@ public class LlmReportService {
         JsonNode res;
         try {
             res = restClient.post()
-                    .uri("https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}",
-                            model, apiKey)
+                    .uri("https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent", model)
+                    .header("x-goog-api-key", apiKey)
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(Map.of("contents", List.of(Map.of("parts", List.of(Map.of("text", prompt))))))
                     .retrieve()

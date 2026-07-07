@@ -564,7 +564,10 @@ async function init() {
     // 초기 로드는 요약 + 구 경계 두 개만
     const [districts, guGeo] = await Promise.all([
         apiData("/api/districts/summary"),
-        fetch("/geo/seoul-gu.json").then((r) => r.json()),
+        fetch("/geo/seoul-gu.json").then((r) => {
+            if (!r.ok) throw new Error("/geo/seoul-gu.json 응답 " + r.status);
+            return r.json();
+        }),
     ]);
     state.districts = districts || [];
     aggregateByGu();

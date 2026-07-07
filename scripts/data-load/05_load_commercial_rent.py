@@ -83,7 +83,9 @@ def main():
             print(f"  {sid:18} {mcd:12} {ty:8} {nm}")
         return
 
-    con = oracledb.connect(user="SANG", password="1234", dsn="localhost:1521/XEPDB1")
+    con = oracledb.connect(user=os.environ.get("XE_DB_USER", "SANG"),
+                           password=os.environ["XE_DB_PASSWORD"],  # 커밋 금지: set XE_DB_PASSWORD=1234
+                           dsn="localhost:1521/XEPDB1")
     cur = con.cursor()
     quarters = {r[0] for r in cur.execute("SELECT STDR_YYQU_CD FROM DIM_QUARTER")}
 

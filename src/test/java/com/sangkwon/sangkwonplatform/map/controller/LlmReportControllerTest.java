@@ -10,6 +10,8 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -29,7 +31,7 @@ class LlmReportControllerTest {
     void 리포트를_생성해_200으로_반환한다() throws Exception {
         LlmReportResponse r = new LlmReportResponse(
                 "3110001", "20261", "분석 본문", "gemini-2.5-flash", LocalDateTime.now());
-        when(llmReportService.generate("3110001")).thenReturn(r);
+        when(llmReportService.generate(eq("3110001"), any())).thenReturn(r);
 
         mvc.perform(post("/api/llm-reports/3110001"))
                 .andExpect(status().isOk())
@@ -41,7 +43,7 @@ class LlmReportControllerTest {
     void 최근_리포트를_조회한다() throws Exception {
         LlmReportResponse r = new LlmReportResponse(
                 "3110001", "20261", "분석 본문", "gemini-2.5-flash", LocalDateTime.now());
-        when(llmReportService.latest("3110001")).thenReturn(r);
+        when(llmReportService.latest(eq("3110001"), any())).thenReturn(r);
 
         mvc.perform(get("/api/llm-reports/3110001/latest"))
                 .andExpect(status().isOk())

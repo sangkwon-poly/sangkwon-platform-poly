@@ -17,6 +17,7 @@ public interface SalesRepository extends JpaRepository<Sales, SalesId> {
               and (:trdarCd is null or s.trdarCd = :trdarCd)
               and (:indutyCd is null or s.indutyCd = :indutyCd)
             order by s.trdarCd, s.stdrYyquCd
+            fetch first 20000 rows only
             """)
     List<Sales> search(@Param("stdrYyquCd") String stdrYyquCd,
                        @Param("trdarCd") String trdarCd,

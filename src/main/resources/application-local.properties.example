@@ -16,6 +16,9 @@ DB_PASSWORD=여기에_비밀번호
 #spring.datasource.username=여기에_계정명
 #spring.datasource.password=여기에_비밀번호
 
+# 개발 중 실행 SQL을 콘솔에 보려면 켜세요 (base 설정에서 옮겨온 항목)
+#spring.jpa.show-sql=true
+
 # 외부 API 키
 KAKAO_JS_KEY=여기에_카카오_JS_키
 KAKAO_REST_KEY=여기에_카카오_REST_키

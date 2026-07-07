@@ -16,6 +16,7 @@ public interface TrdarChangeRepository extends JpaRepository<TrdarChange, TrdarC
             where (:stdrYyquCd is null or t.stdrYyquCd = :stdrYyquCd)
               and (:trdarCd is null or t.trdarCd = :trdarCd)
             order by t.trdarCd, t.stdrYyquCd
+            fetch first 20000 rows only
             """)
     List<TrdarChange> search(@Param("stdrYyquCd") String stdrYyquCd,
                              @Param("trdarCd") String trdarCd);
