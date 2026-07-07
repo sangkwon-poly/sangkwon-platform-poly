@@ -8,7 +8,6 @@ import com.sangkwon.sangkwonplatform.member.entity.Member;
 import com.sangkwon.sangkwonplatform.member.exception.BusinessException;
 import com.sangkwon.sangkwonplatform.member.exception.ErrorCode;
 import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
-import com.sangkwon.sangkwonplatform.global.security.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,7 +20,6 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtProvider jwtProvider;
 
     @Transactional
     public MemberResponse signup(MemberSignupRequest req) { //loginId,email,nickname,password dto
@@ -38,21 +36,22 @@ public class MemberService {
     }
 
     @Transactional
-    public String login(MemberLoginRequest req) { // loginId,password,remember(기억할지 체크)
+    public MemberResponse login(MemberLoginRequest req) { // loginId,password,remember(기억할지 체크)
         Member m = memberRepository.findByLoginId(req.loginId()) // 로그인 id존재하는지 체크
                 .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_CREDENTIALS));
+
         // 자격 증명(비밀번호) 먼저 확인 → 그다음 계정 상태 (상태를 비번보다 먼저 노출하지 않기)
         if (!passwordEncoder.matches(req.password(), m.getPasswordHash())) {
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
         switch (m.getStatus()) {           // 상태별로 정확히 구분 (탈퇴/정지/휴면)
             case ACTIVE -> { }             // 정상 → 통과
-            case WITHDRAWN -> throw new BusinessException(ErrorCode.WITHDRAWN_MEMBER);
-            case BANNED -> throw new BusinessException(ErrorCode.BANNED_MEMBER);
-            case DORMANT -> throw new BusinessException(ErrorCode.DORMANT_MEMBER);
+            case WITHDRAWN -> throw new BusinessException(ErrorCode.WITHDRAWN_MEMBER); // 탈퇴
+            case BANNED -> throw new BusinessException(ErrorCode.BANNED_MEMBER); // 정지
+            case DORMANT -> throw new BusinessException(ErrorCode.DORMANT_MEMBER); //휴면
         }
-        m.recordLogin();
-        return jwtProvider.createToken(m.getMemberId(), m.getRole().name());
+        m.recordLogin(); // 마지막 로그인 시간 기록.
+        return MemberResponse.from(m);
     }
 
     public MemberResponse getMe(Long memberId) {
@@ -78,7 +77,7 @@ public class MemberService {
     //탈퇴 상태로 업데이트
 
     private Member find(Long memberId) {
-        if (memberId == null) {   // 비인증 요청(토큰 없음)이면 memberId가 null → 500 대신 401
+        if (memberId == null) {   // 비인증 요청이면 memberId가 null → 500 대신 401
             throw new BusinessException(ErrorCode.UNAUTHENTICATED);
         }
         return memberRepository.findById(memberId)

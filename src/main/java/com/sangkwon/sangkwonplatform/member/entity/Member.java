@@ -81,8 +81,8 @@ public class Member extends BaseEntity {
 
 
     public void updateProfile(String nickname, String email) {
-        this.nickname = nickname;
-        this.email = email;
+        if (nickname != null) this.nickname = nickname;
+        if (email != null) this.email = email;
     }
 
     public void changePassword(String newPasswordHash) {

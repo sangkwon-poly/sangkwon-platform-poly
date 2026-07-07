@@ -29,11 +29,9 @@ public class Favorite extends BaseEntity {
     @Column(name = "FAVORITE_ID")
     private Long favoriteId;
 
-    // MEMBER 참조 — 느슨한 매핑(값만 저장, 조인 없음)
     @Column(name = "MEMBER_ID", nullable = false)
     private Long memberId;
 
-    // TRDAR 참조(map 도메인 소유) — 느슨한 매핑(String 값만 저장)
     @Column(name = "TRDAR_CD", nullable = false, length = 20)
     private String trdarCd;
 

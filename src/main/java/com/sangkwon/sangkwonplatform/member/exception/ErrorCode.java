@@ -2,7 +2,6 @@ package com.sangkwon.sangkwonplatform.member.exception;
 
 import org.springframework.http.HttpStatus;
 
-// 회원 도메인 에러코드 (M 접두사). 임시로 member에 두고 후속 global 통합.
 public enum ErrorCode {
 
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "M001", "회원을 찾을 수 없습니다."),

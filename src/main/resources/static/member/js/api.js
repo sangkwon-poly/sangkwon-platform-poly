@@ -22,9 +22,6 @@
     USE_MOCK = true;
   }
 
-  // 로그인 토큰 저장 키(세션/JWT 미확정 대응용).
-  const TOKEN_KEY = 'ACCESS_TOKEN';
-
   /* -------------------------------------------------------------------
    * 1. 공통 에러 타입
    * ----------------------------------------------------------------- */
@@ -46,16 +43,7 @@
       headers['Content-Type'] = 'application/json';
     }
 
-    // 인증 방식은 팀 확정 전 임시 처리:
-    // 기본은 세션 쿠키(credentials:'include'), 추가로 저장된
-    // ACCESS_TOKEN 이 있으면 Bearer 로도 함께 실어 보낸다(세션/JWT 양쪽 대응).
-    // 자동 로그인(remember)=localStorage, 세션 한정=sessionStorage 이므로
-    // 양쪽에서 토큰을 찾는다(localStorage 우선).
-    const token = getToken();
-    if (token) {
-      headers['Authorization'] = 'Bearer ' + token;
-    }
-
+    // 세션 인증 — 브라우저가 JSESSIONID 쿠키를 자동 전송한다(아래 credentials:'include').
     let res;
     try {
       res = await fetch(path, {
@@ -98,48 +86,6 @@
 
     // 래핑되지 않은 응답은 그대로 반환(방어적).
     return payload;
-  }
-
-  function safeLocalGet(key) {
-    try {
-      return window.localStorage.getItem(key);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  function safeSessionGet(key) {
-    try {
-      return window.sessionStorage.getItem(key);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /* -------------------------------------------------------------------
-   * 토큰 저장 정책:
-   *   remember=true  → localStorage(브라우저 재시작 후에도 유지)
-   *   remember=false → sessionStorage(탭/세션 한정)
-   * 저장 시 반대편 저장소의 잔여 토큰은 제거해 중복/모호함을 방지한다.
-   * 조회는 localStorage 우선, 없으면 sessionStorage.
-   * ----------------------------------------------------------------- */
-  function getToken() {
-    return safeLocalGet(TOKEN_KEY) || safeSessionGet(TOKEN_KEY);
-  }
-
-  function storeToken(token, remember) {
-    if (remember) {
-      try { window.localStorage.setItem(TOKEN_KEY, token); } catch (e) { /* 무시 */ }
-      try { window.sessionStorage.removeItem(TOKEN_KEY); } catch (e) { /* 무시 */ }
-    } else {
-      try { window.sessionStorage.setItem(TOKEN_KEY, token); } catch (e) { /* 무시 */ }
-      try { window.localStorage.removeItem(TOKEN_KEY); } catch (e) { /* 무시 */ }
-    }
-  }
-
-  function clearToken() {
-    try { window.localStorage.removeItem(TOKEN_KEY); } catch (e) { /* 무시 */ }
-    try { window.sessionStorage.removeItem(TOKEN_KEY); } catch (e) { /* 무시 */ }
   }
 
   /* -------------------------------------------------------------------
@@ -321,12 +267,7 @@
       }
       member.lastLoginAt = nowIso();
       setMockSession(member.memberId);
-      // 토큰 발급 시늉(remember 시 저장 유지).
-      const fakeToken = 'mock.' + member.memberId + '.' + Date.now();
-      return delay({
-        token: fakeToken,
-        member: toMemberResponse(member),
-      });
+      return delay(toMemberResponse(member));
     },
 
     logout: function () {
@@ -450,36 +391,13 @@
     },
 
     login: function (data) {
-      // remember=true 면 영속(localStorage), 아니면 세션 한정(sessionStorage).
-      const remember = !!(data && data.remember);
-      if (USE_MOCK) {
-        return mockApi.login(data).then(function (result) {
-          if (result && result.token) {
-            storeToken(result.token, remember);
-          }
-          return result;
-        });
-      }
-      return request('POST', '/api/auth/login', data).then(function (result) {
-        // 성공 시 토큰이 오면 저장(JWT 대응). 세션이면 result 에 토큰 없음.
-        if (result && result.token) {
-          storeToken(result.token, remember);
-        }
-        return result;
-      });
+      if (USE_MOCK) return mockApi.login(data);
+      return request('POST', '/api/auth/login', data);
     },
 
     logout: function () {
-      const finish = function () {
-        // 어떤 경우든 저장된 토큰은 양쪽 저장소에서 제거.
-        clearToken();
-      };
-      if (USE_MOCK) {
-        return mockApi.logout().then(function (r) { finish(); return r; });
-      }
-      return request('POST', '/api/auth/logout')
-        .then(function (r) { finish(); return r; })
-        .catch(function (err) { finish(); throw err; });
+      if (USE_MOCK) return mockApi.logout();
+      return request('POST', '/api/auth/logout');
     },
 
     me: function () {
@@ -493,12 +411,8 @@
     },
 
     withdraw: function () {
-      const finish = function () { clearToken(); };
-      if (USE_MOCK) {
-        return mockApi.withdraw().then(function (r) { finish(); return r; });
-      }
-      return request('DELETE', '/api/members/me')
-        .then(function (r) { finish(); return r; });
+      if (USE_MOCK) return mockApi.withdraw();
+      return request('DELETE', '/api/members/me');
     },
 
     favorites: function () {

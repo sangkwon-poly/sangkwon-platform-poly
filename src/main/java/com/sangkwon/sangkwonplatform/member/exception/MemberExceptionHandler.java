@@ -6,7 +6,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-// member 도메인 전용 예외 처리 (basePackages로 스코프 한정 → 다른 도메인 미영향). 후속 global 통합.
 @RestControllerAdvice(basePackages = "com.sangkwon.sangkwonplatform.member")
 public class MemberExceptionHandler {
 
