@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>관리자 대시보드 · 서울공화국</title>
+    <title>내 계정 · 보안 · 서울공화국</title>
     <link rel="stylesheet" href="/admin/css/login.css"/>
     <link rel="stylesheet" href="/admin/css/dashboard.css"/>
 </head>
@@ -20,6 +20,7 @@
     </div>
     <div class="topbar-right">
         <span class="pill" id="who">…</span>
+        <a class="link" href="/admin/">← 콘솔</a>
         <button type="button" class="link" id="logout">로그아웃</button>
     </div>
 </header>
@@ -31,7 +32,7 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5l-8-3Zm-1 14-4-4 1.4-1.4L11 13.2l4.6-4.6L17 10l-6 6Z"/></svg>
             </div>
             <div>
-                <h1>관리자 대시보드</h1>
+                <h1>내 계정 · 보안</h1>
                 <p class="mono head-sub" id="who-sub">SEOUL TRDAR · CONSOLE</p>
             </div>
         </div>
@@ -78,11 +79,11 @@
         <div class="sec" id="admins-sec" hidden>
             <div class="sec-head">
                 <div>
-                    <div class="sec-title">관리자 목록</div>
-                    <div class="sec-desc">SUPER_ADMIN만 볼 수 있습니다.</div>
+                    <div class="sec-title">관리자 계정</div>
+                    <div class="sec-desc">관리자 추가·권한 변경·잠금은 콘솔에서 관리합니다.</div>
                 </div>
+                <a class="link" href="/admin/user-admin.html">관리자 계정 관리 →</a>
             </div>
-            <div class="admin-list" id="admin-list"></div>
         </div>
     </section>
 </main>

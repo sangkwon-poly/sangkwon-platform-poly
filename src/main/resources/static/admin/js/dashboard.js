@@ -19,12 +19,6 @@
 
     function toLogin() { window.location.href = "/admin/login.html"; }
 
-    function esc(s) {
-        var d = document.createElement("div");
-        d.textContent = (s == null) ? "" : String(s);
-        return d.innerHTML;
-    }
-
     // 초기 로드: 세션 확인 → 계정/권한 → OTP 상태 → (SUPER_ADMIN) 관리자 목록
     api("/api/admin/auth/me").then(function (me) {
         if (me.status === 401) { toLogin(); return null; }
@@ -36,29 +30,13 @@
         document.getElementById("acc-loginid").textContent = d.loginId;
         document.getElementById("acc-role").textContent = d.role;
 
-        if (d.role === "SUPER_ADMIN") { loadAdmins(); }
+        // 관리자 목록·관리는 콘솔의 '관리자 계정' 화면으로 일원화. 여기서는 진입 링크만 노출한다.
+        if (d.role === "SUPER_ADMIN") { document.getElementById("admins-sec").hidden = false; }
 
         return api("/api/admin/auth/otp/status").then(function (r) {
             renderStatus(r.ok && r.body && r.body.data ? r.body.data.enabled : false);
         });
     });
-
-    function loadAdmins() {
-        api("/api/admin/admin-users").then(function (r) {
-            if (!r.ok || !r.body || !r.body.data) { return; }
-            var rows = r.body.data.map(function (a) {
-                var st = a.status === "ACTIVE" ? "on" : "off";
-                return '<div class="admin-row">'
-                    + '<span class="a-name">' + esc(a.adminName) + '</span>'
-                    + '<span class="a-login mono">' + esc(a.loginId) + '</span>'
-                    + '<span class="a-role">' + esc(a.role) + '</span>'
-                    + '<span class="a-status ' + st + '">' + esc(a.status) + '</span>'
-                    + '</div>';
-            }).join("");
-            document.getElementById("admin-list").innerHTML = rows;
-            document.getElementById("admins-sec").hidden = false;
-        });
-    }
 
     function renderStatus(enabled) {
         setupBox.hidden = true;
