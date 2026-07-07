@@ -16,9 +16,13 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class AdminIpInterceptor implements HandlerInterceptor {
 
     private final IpAllowlist allowlist;
+    private final boolean trustForwardedFor;
 
-    public AdminIpInterceptor(@Value("${admin.security.ip-allowlist:}") String raw) {
-        this.allowlist = IpAllowlist.parse(raw);
+    public AdminIpInterceptor(
+            @Value("${admin.security.ip-allowlist:}") String allowlistRaw,
+            @Value("${admin.security.trust-forwarded-for:false}") boolean trustForwardedFor) {
+        this.allowlist = IpAllowlist.parse(allowlistRaw);
+        this.trustForwardedFor = trustForwardedFor;
     }
 
     @Override
@@ -32,11 +36,13 @@ public class AdminIpInterceptor implements HandlerInterceptor {
         return true;
     }
 
-    // 프록시 뒤라면 X-Forwarded-For의 첫 IP, 아니면 원격 주소
-    private static String clientIp(HttpServletRequest request) {
-        String xff = request.getHeader("X-Forwarded-For");
-        if (xff != null && !xff.isBlank()) {
-            return xff.split(",")[0].trim();
+    private String clientIp(HttpServletRequest request) {
+        // X-Forwarded-For는 클라이언트가 임의로 넣을 수 있어, 신뢰 프록시 뒤일 때만 사용한다
+        if (trustForwardedFor) {
+            String forwarded = request.getHeader("X-Forwarded-For");
+            if (forwarded != null && !forwarded.isBlank()) {
+                return forwarded.split(",")[0].trim();
+            }
         }
         return request.getRemoteAddr();
     }
