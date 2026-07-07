@@ -2,7 +2,7 @@ package com.sangkwon.sangkwonplatform.admin.adminUser.service;
 
 import com.sangkwon.sangkwonplatform.admin.adminUser.dto.request.*;
 import com.sangkwon.sangkwonplatform.admin.adminUser.dto.response.AdminListResponse;
-import com.sangkwon.sangkwonplatform.admin.adminUser.dto.response.AdminLoginResponse;
+import com.sangkwon.sangkwonplatform.admin.adminUser.dto.session.AdminSession;
 import com.sangkwon.sangkwonplatform.admin.adminUser.entity.AdminUser;
 import com.sangkwon.sangkwonplatform.admin.adminUser.entity.enums.AdminStatus;
 import com.sangkwon.sangkwonplatform.admin.adminUser.repository.AdminUserRepository;
@@ -48,12 +48,15 @@ public class AdminUserService {
                 .toList();
     }
 
-    public AdminLoginResponse login(AdminLoginRequest request) {
+    // 관리자용 로그인
+    public AdminSession login(AdminLoginRequest request) {
         AdminUser adminUser = adminUserRepository.findByLoginId(request.loginId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 관리자입니다."));
+
         if (adminUser.getStatus() != AdminStatus.ACTIVE) {
             throw new IllegalArgumentException("활동 상태의 관리자 계정이 아닙니다!");
         }
+
         boolean matches = passwordEncoder.matches(
                 request.password(),
                 adminUser.getPasswordHash()
@@ -66,8 +69,7 @@ public class AdminUserService {
 
         adminUser.loginSuccess();
 
-        return AdminLoginResponse.from(adminUser);
-
+        return AdminSession.from(adminUser);
     }
 
 

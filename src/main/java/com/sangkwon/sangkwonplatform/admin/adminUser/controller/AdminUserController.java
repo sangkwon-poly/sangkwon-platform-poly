@@ -2,8 +2,6 @@ package com.sangkwon.sangkwonplatform.admin.adminUser.controller;
 
 import com.sangkwon.sangkwonplatform.admin.adminUser.dto.request.*;
 import com.sangkwon.sangkwonplatform.admin.adminUser.dto.response.AdminListResponse;
-import com.sangkwon.sangkwonplatform.admin.adminUser.dto.response.AdminLoginResponse;
-import com.sangkwon.sangkwonplatform.admin.adminUser.entity.enums.AdminRole;
 import com.sangkwon.sangkwonplatform.admin.adminUser.service.AdminUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,11 +26,6 @@ public class AdminUserController {
         return adminUserService.getAdminList();
     }
 
-    @PostMapping("/login")
-    public AdminLoginResponse login(@Valid @RequestBody AdminLoginRequest request){
-        return adminUserService.login(request);
-
-    }
 
     @PatchMapping("/{adminId}/name")
     public void updateName(
