@@ -13,6 +13,8 @@ public enum ErrorCode {
     DUPLICATE_FAVORITE(HttpStatus.CONFLICT, "M006", "이미 찜한 상권입니다."),
     WITHDRAWN_MEMBER(HttpStatus.FORBIDDEN, "M007", "탈퇴한 회원입니다."),
     FAVORITE_NOT_FOUND(HttpStatus.NOT_FOUND, "M008", "찜한 상권을 찾을 수 없습니다."),
+    BANNED_MEMBER(HttpStatus.FORBIDDEN, "M009", "이용이 정지된 계정입니다."),
+    DORMANT_MEMBER(HttpStatus.FORBIDDEN, "M010", "휴면 계정입니다. 재활성화가 필요합니다."),
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "M400", "입력값이 올바르지 않습니다.");
 
     private final HttpStatus status;

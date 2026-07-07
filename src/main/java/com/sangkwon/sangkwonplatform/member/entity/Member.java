@@ -96,8 +96,8 @@ public class Member extends BaseEntity {
     }
 
     public void withdraw() {
-        this.status = MemberStatus.WITHDRAWN;
-        this.withdrawnAt = LocalDateTime.now();  // 스키마 CHECK: WITHDRAWN이면 WITHDRAWN_AT 필수
+        this.status = MemberStatus.WITHDRAWN; // 탈퇴 처리
+        this.withdrawnAt = LocalDateTime.now();  // 스키마 CHECK: WITHDRAWN이면 WITHDRAWN_AT 필수 => 탈퇴 시각 필수
     }
 
     public boolean isActive() {

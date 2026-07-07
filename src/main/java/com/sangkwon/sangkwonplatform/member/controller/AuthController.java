@@ -26,7 +26,6 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ApiResponse<Void> logout() {
-        // JWT: 클라이언트가 토큰 폐기
         return ApiResponse.<Void>ok(null);
     }
 }

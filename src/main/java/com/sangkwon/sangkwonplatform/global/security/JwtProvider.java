@@ -1,4 +1,4 @@
-package com.sangkwon.sangkwonplatform.member.security;
+package com.sangkwon.sangkwonplatform.global.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;

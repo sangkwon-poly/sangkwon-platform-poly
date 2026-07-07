@@ -21,14 +21,18 @@ public class FavoriteService {
 
     private final FavoriteRepository favoriteRepository;
 
+    //favorite 테이블에서 _ member_id로 검색해서 리스트화 해서 건네줌.
     public List<FavoriteResponse> list(Long memberId) {
+        requireAuth(memberId);
         return favoriteRepository.findByMemberIdOrderByCreatedAtDesc(memberId).stream()
                 .map(FavoriteResponse::from)
                 .toList();
     }
 
+
     @Transactional
     public FavoriteResponse add(Long memberId, FavoriteCreateRequest req) {
+        requireAuth(memberId);
         if (favoriteRepository.existsByMemberIdAndTrdarCd(memberId, req.trdarCd())) {
             throw new BusinessException(ErrorCode.DUPLICATE_FAVORITE);
         }
@@ -39,8 +43,16 @@ public class FavoriteService {
 
     @Transactional
     public void remove(Long memberId, String trdarCd) {
+        requireAuth(memberId);
         Favorite f = favoriteRepository.findByMemberIdAndTrdarCd(memberId, trdarCd)
                 .orElseThrow(() -> new BusinessException(ErrorCode.FAVORITE_NOT_FOUND));
         favoriteRepository.delete(f);
+    }
+
+    // 비인증 요청(토큰 없음)이면 memberId가 null → 500 대신 401 (개인 API 보호)
+    private void requireAuth(Long memberId) {
+        if (memberId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHENTICATED);
+        }
     }
 }
