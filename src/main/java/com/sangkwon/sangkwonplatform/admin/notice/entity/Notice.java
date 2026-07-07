@@ -1,6 +1,6 @@
 package com.sangkwon.sangkwonplatform.admin.notice.entity;
 
-import com.sangkwon.sangkwonplatform.admin.adminUser.entity.AdminUser;
+import com.sangkwon.sangkwonplatform.admin.account.entity.AdminUser;
 import com.sangkwon.sangkwonplatform.admin.notice.entity.enums.IsPinned;
 import com.sangkwon.sangkwonplatform.admin.notice.entity.enums.NoticeStatus;
 import jakarta.persistence.*;
