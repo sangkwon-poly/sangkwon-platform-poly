@@ -88,17 +88,25 @@ function searchBox() {
         'border:1px solid #e2d6cf;border-radius:10px;margin-top:4px;box-shadow:0 6px 18px rgba(94,30,17,.12);display:none"></div></div>';
 }
 
+// render()가 input을 갈아끼워도 이전 타이머를 끊을 수 있게 모듈 스코프에 둔다
+let searchTimer = null;
+
 function bindSearch() {
+    clearTimeout(searchTimer);
     const input = document.getElementById("cmp-search");
-    const box = document.getElementById("cmp-suggest");
     if (!input || input.disabled) {
         return;
     }
-    let timer = null;
     input.addEventListener("input", () => {
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            cmp.query = input.value.trim();
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+            // 타이머 대기 중 DOM이 교체됐을 수 있어 현재 노드를 다시 찾는다
+            const cur = document.getElementById("cmp-search");
+            const box = document.getElementById("cmp-suggest");
+            if (!cur || !cur.isConnected || !box) {
+                return;
+            }
+            cmp.query = cur.value.trim();
             if (!cmp.query) {
                 box.style.display = "none";
                 return;
@@ -131,7 +139,12 @@ async function addDistrict(trdarCd) {
     cmp.query = "";
     render();
     try {
-        cmp.sales.set(trdarCd, digestSales(await apiData("/api/sales?trdarCd=" + trdarCd)));
+        const s = digestSales(await apiData("/api/sales?trdarCd=" + trdarCd));
+        // 로딩 중 칩이 제거됐으면 버린다
+        if (!cmp.ids.includes(trdarCd)) {
+            return;
+        }
+        cmp.sales.set(trdarCd, s);
         render();
     } catch (e) { /* 연령·업종만 비면 데이터 없음으로 남는다 */ }
 }
@@ -214,11 +227,13 @@ async function load() {
     render(); // 매출·유동 먼저 그린다
 
     // 연령·성별·업종은 상권별 매출을 받아 채운다
+    // 로딩 중 칩 제거로 cmp.picked가 바뀌어도 인덱스가 어긋나지 않게 스냅샷 고정
+    const launched = cmp.picked.slice();
     const results = await Promise.allSettled(
-        cmp.picked.map((d) => apiData("/api/sales?trdarCd=" + d.trdarCd)));
+        launched.map((d) => apiData("/api/sales?trdarCd=" + d.trdarCd)));
     results.forEach((r, i) => {
-        if (r.status === "fulfilled") {
-            cmp.sales.set(cmp.picked[i].trdarCd, digestSales(r.value));
+        if (r.status === "fulfilled" && cmp.ids.includes(launched[i].trdarCd)) {
+            cmp.sales.set(launched[i].trdarCd, digestSales(r.value));
         }
     });
     render();

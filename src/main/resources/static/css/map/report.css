@@ -20,6 +20,9 @@
 }
 .sec-name { font-size: 12.5px; font-weight: 600; color: #3a322e; }
 .sec-name.is-off { color: #a99c94; }
+.sec-tog { font-size: 12px; font-weight: 700; color: var(--brand); }
+.sec-row.is-off .sec-name { color: #a99c94; }
+.sec-row.is-off .sec-tog { visibility: hidden; }
 
 /* 중앙 미리보기 */
 .report-preview {
