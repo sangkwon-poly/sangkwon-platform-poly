@@ -1,0 +1,265 @@
+/* MAP-01 메인 지도 대시보드 전용
+   공통 chrome 은 shell.css, 여기선 지도 무대·범례·우측 패널만 담는다. */
+
+.map-body { position: relative; }
+
+/* 지도 무대 */
+.map-stage {
+  flex: 1 1 0;
+  position: relative;
+  min-width: 0;
+}
+.map-canvas {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #eee9e5;
+}
+.map-choro { width: 100%; height: 100%; display: block; }
+
+/* 지도 위 요약 배지 */
+.map-summary {
+  position: absolute;
+  left: 18px;
+  top: 16px;
+  z-index: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  height: 36px;
+  padding: 0 14px;
+  background: #fff;
+  border-radius: 9px;
+  box-shadow: 0 4px 16px rgba(80, 40, 25, .13);
+  font-size: 12.5px;
+  color: var(--text-soft);
+}
+.map-summary b { color: var(--text); }
+.map-summary b.hl { color: var(--brand); }
+.map-summary-sep { width: 1px; height: 14px; background: #e7ded8; }
+
+/* 지도 레이어 · 범례 */
+.map-legend {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  z-index: 500;
+  width: 224px;
+  border: none;
+  border-radius: 13px;
+  box-shadow: 0 10px 34px rgba(80, 40, 25, .16);
+  padding: 14px;
+}
+.map-legend .panel-label { margin-bottom: 9px; }
+.layer-list { display: flex; flex-direction: column; gap: 1px; }
+.layer-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 9px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.layer-item.is-active { background: #fbf0eb; }
+.layer-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid #d9cec7;
+  background: #fff;
+  flex: 0 0 auto;
+}
+.layer-item.is-active .layer-dot { border-color: var(--brand); background: var(--brand); }
+.layer-name { font-size: 12.5px; font-weight: 500; color: #8c8078; flex: 1 1 0; }
+.layer-item.is-active .layer-name { font-weight: 700; color: var(--text); }
+
+.map-legend-divider { height: 1px; border: none; background: #efe7e2; margin: 11px 2px 10px; }
+.legend-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.legend-title { font-size: 11.5px; font-weight: 700; color: #3a322e; }
+.legend-unit { font-size: 9.5px; color: #a99c94; }
+.legend-scale { display: flex; height: 11px; border-radius: 5px; overflow: hidden; }
+.legend-scale span { flex: 1 1 0; }
+.legend-ends {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 9.5px;
+  color: #a99c94;
+}
+
+/* 출처 */
+.map-attr {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 14px;
+  z-index: 400;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: #9a9a94;
+  background: rgba(255, 255, 255, .7);
+  border-radius: 5px;
+  padding: 3px 9px;
+}
+
+/* 우측 패널 */
+.map-panel {
+  flex: 0 0 auto;
+  width: 312px;
+  margin: 16px 18px 18px 0;
+  background: #fff;
+  border-radius: 13px;
+  box-shadow: 0 12px 40px rgba(80, 40, 25, .18);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 선택 상권 카드 */
+.sel-card {
+  flex: 0 0 auto;
+  background: linear-gradient(#fbf1ec, #fff);
+  border-bottom: 1px solid #f0e8e3;
+  padding: 15px 17px 14px;
+}
+.sel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.sel-eyebrow {
+  font-size: 10px;
+  font-family: var(--mono);
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: #b08578;
+}
+.sel-name { font-size: 20px; font-weight: 800; color: var(--text); margin-top: 3px; letter-spacing: -.01em; }
+.sel-close {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  border: none;
+  border-radius: 50%;
+  background: #f1e7e2;
+  color: #9a6656;
+  font-size: 13px;
+}
+.sel-hero { display: flex; align-items: baseline; gap: 8px; margin-top: 9px; }
+.sel-hero-num { font-size: 26px; font-weight: 800; color: var(--brand); letter-spacing: -.02em; }
+.sel-hero-unit { font-size: 12px; color: #8c8078; }
+.sel-hero-delta { margin-left: auto; font-size: 11.5px; font-weight: 700; color: #b0503a; }
+
+.sel-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.sel-metric {
+  background: #fff;
+  border: 1px solid #efe7e2;
+  border-radius: 8px;
+  padding: 9px 11px;
+}
+.sel-metric dt { font-size: 10px; color: #8c8078; }
+.sel-metric dd { font-size: 14px; font-weight: 800; color: var(--text); margin-top: 2px; }
+.sel-metric dd span { font-size: 9.5px; font-weight: 600; color: #a99c94; margin-left: 3px; }
+
+.sel-actions { display: flex; gap: 8px; margin-top: 12px; }
+.sel-report {
+  flex: 1 1 0;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 8px;
+}
+.sel-add {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2d6cf;
+  border-radius: 8px;
+  color: #9a6656;
+}
+
+/* 랭킹 헤더 */
+.rank-head {
+  padding: 15px 17px 13px;
+  border-bottom: 1px solid #f0e8e3;
+  flex: 0 0 auto;
+}
+.rank-head-top { display: flex; align-items: center; justify-content: space-between; }
+.rank-title { font-size: 15px; font-weight: 800; color: var(--text); }
+.rank-top-tag { font-family: var(--mono); font-size: 10px; color: #a99c94; }
+.rank-sub { margin-top: 3px; font-size: 11px; color: #a09488; }
+
+/* 랭킹 목록 */
+.rank-list { flex: 1 1 0; padding: 7px; }
+.rank-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 10px;
+  border-radius: 9px;
+  cursor: pointer;
+}
+.rank-row.is-selected { background: #fbf0eb; }
+.rank-list .rank-num { width: 22px; height: 22px; border-radius: 6px; font-size: 11px; }
+.rank-num.is-sel { background: #f1e0d9; color: #7a5147; border-color: #eadfd9; }
+.rank-main { flex: 1 1 0; min-width: 0; }
+.rank-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #3a322e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rank-name.is-lead { font-weight: 800; }
+.rank-name.is-sel-name { font-weight: 800; color: var(--brand); }
+.rank-main .minibar { margin-top: 5px; }
+.rank-val { text-align: right; flex: 0 0 auto; }
+.rank-val b { font-size: 12.5px; color: var(--text); }
+.rank-val span { display: block; font-size: 9px; color: #a99c94; margin-top: 1px; }
+
+/* 랭킹 푸터 */
+.rank-foot {
+  padding: 11px 16px;
+  border-top: 1px solid #f0e8e3;
+  font-size: 11.5px;
+  color: #8c8078;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.rank-more { color: var(--brand); font-weight: 700; }
+
+/* 반응형 · 태블릿: 우측 패널 폭 축소 */
+@media (max-width: 900px) {
+  .map-panel { width: 280px; }
+}
+
+/* 반응형 · 모바일: 지도 위, 패널 아래로 세로 적층 */
+@media (max-width: 640px) {
+  .map-body { flex-direction: column; }
+  .map-stage { flex: 0 0 auto; height: 340px; }
+  .map-panel {
+    width: auto;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    border-top: 1px solid var(--line);
+  }
+  .rank-list { max-height: 420px; }
+}

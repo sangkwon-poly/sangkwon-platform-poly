@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>역삼동 상권 상세 · 서울공화국</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/map/shell.css">
+  <link rel="stylesheet" href="/css/map/trdar-detail.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- 앱 헤더 -->
+  <header class="app-header">
+    <a class="app-brand" href="/">
+      <span class="app-brand-mark" aria-hidden="true">서</span>
+      <span class="app-brand-text"><span class="app-brand-name">서울공화국</span></span>
+    </a>
+    <div class="app-search-wrap">
+      <form class="app-search" role="search" action="/map/search.html">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B0857A" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.5" y2="16.5"></line></svg>
+        <span class="app-search-text">상권 검색</span>
+      </form>
+    </div>
+    <div class="app-tools">
+      <button type="button" class="app-quarter">2026 1분기</button>
+      <a class="app-user" href="/login"><span class="app-avatar" aria-hidden="true">이</span></a>
+    </div>
+  </header>
+
+  <!-- 상세 본문 -->
+  <main class="detail scroll" aria-label="상권 상세">
+
+    <!-- 제목 바 -->
+    <div class="detail-titlebar">
+      <div class="detail-heading">
+        <p class="detail-crumb" id="detail-crumb">지도 › 상권 상세</p>
+        <h1 class="detail-title" id="detail-title">-</h1>
+      </div>
+      <select id="detail-induty" aria-label="업종 필터"
+              style="padding:8px 12px;border:1px solid #e2d6cf;border-radius:9px;font:inherit;background:#fff;color:#5c5049;max-width:180px">
+        <option value="">전체 업종</option>
+      </select>
+      <a class="detail-btn" href="/map/compare.html">＋ 비교 담기</a>
+      <a class="detail-btn detail-btn-primary" href="/map/report.html">리포트 →</a>
+    </div>
+
+    <!-- 지표 카드 4종 -->
+    <section class="detail-kpis" aria-label="주요 지표">
+      <article class="kpi card" data-kpi="sales">
+        <p class="kpi-label">추정 매출</p>
+        <p class="kpi-value"><span class="kpi-num">-</span><span class="kpi-unit">억/분기</span><span class="kpi-delta"></span></p>
+      </article>
+      <article class="kpi card" data-kpi="pop">
+        <p class="kpi-label">유동인구</p>
+        <p class="kpi-value"><span class="kpi-num">-</span><span class="kpi-unit">만 명</span><span class="kpi-delta"></span></p>
+      </article>
+      <article class="kpi card" data-kpi="store">
+        <p class="kpi-label">점포 수</p>
+        <p class="kpi-value"><span class="kpi-num">-</span><span class="kpi-unit">개</span><span class="kpi-delta"></span></p>
+      </article>
+      <article class="kpi card" data-kpi="rent">
+        <p class="kpi-label">임대료(서울 소규모)</p>
+        <p class="kpi-value"><span class="kpi-num">-</span><span class="kpi-unit">천원/㎡</span><span class="kpi-delta"></span></p>
+      </article>
+    </section>
+
+    <!-- 차트 그리드 -->
+    <div class="detail-grid">
+
+      <!-- 분기 매출 추이 -->
+      <section class="card detail-panel panel-trend">
+        <div class="panel-head"><h2 class="panel-title">분기 매출 추이</h2><span class="panel-cap">최근 12분기 · 억원</span></div>
+        <svg class="trend-svg" viewBox="0 0 680 150" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="trend-axis"></div>
+      </section>
+
+      <!-- 업종 구성 (최근 분기 매출 비중) -->
+      <section class="card detail-panel">
+        <h2 class="panel-title panel-title-mb">업종 구성</h2>
+        <ul class="mix-list"></ul>
+      </section>
+
+      <!-- 요일 x 시간대 매출. 원천은 요일합·시간대합이라 두 분포로 추정한 값 -->
+      <section class="card detail-panel">
+        <div class="panel-head"><h2 class="panel-title">요일·시간대 매출 히트맵</h2><span class="panel-cap">최근 분기 · 분포 추정</span></div>
+        <div id="sales-heat"></div>
+      </section>
+
+      <!-- 인접 경쟁 상권 (같은 자치구 매출 상위) -->
+      <section class="card detail-panel">
+        <h2 class="panel-title panel-title-mb">인접 경쟁 상권</h2>
+        <ul class="comp-list"></ul>
+      </section>
+
+      <!-- 상권 환경: 집객시설·인구·주거·창업 -->
+      <section class="card detail-panel">
+        <div class="panel-head"><h2 class="panel-title">상권 환경</h2><span class="panel-cap">최근 분기</span></div>
+        <div id="env-grid"></div>
+      </section>
+    </div>
+  </main>
+</div>
+<script src="/js/map/common.js?v=20260706f"></script>
+<script src="/js/map/induty-map.js?v=20260706f"></script>
+<script src="/js/map/trdar-detail.js?v=20260706f" defer></script>
+</body>
+</html>

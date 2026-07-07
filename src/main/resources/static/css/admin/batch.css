@@ -1,0 +1,20 @@
+/* BATCH-01 데이터 적재 현황 고유 스타일
+   공통 chrome·표는 shell.css. 여기서는 배치 화면 차이만. */
+
+/* 배치 지표 카드 사이 간격 */
+.batch-stats { margin-bottom: 18px; }
+.bt-ok { color: #4e7a3e; }
+.bt-warn { color: var(--warn); }
+.bt-danger { color: var(--brand); }
+
+/* 테이블 컬럼 미세 조정 */
+.batch-table thead th { padding: 12px 20px; }
+.bt-name { font-size: 12.5px; font-weight: 700; color: #3a322e; }
+.bt-muted { color: var(--faint); }
+.batch-table tbody td { font-size: 12px; }
+
+/* 상태 배지 안 점 포함 */
+.batch-table .badge {
+  gap: 6px; font-size: 11px; padding: 4px 11px;
+}
+.batch-table .dot { width: 6px; height: 6px; }

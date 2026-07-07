@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>메인 지도 대시보드 · 서울공화국</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/map/shell.css">
+  <link rel="stylesheet" href="/css/map/map.css">
+  <style>
+    /* 우측 패널을 열고 닫는 드로어로 전환. overflow를 잘라 가로 스크롤이 생기지 않게 한다 */
+    .map-body { position: relative; overflow: hidden; }
+    .map-panel {
+      position: absolute; top: 0; right: 0; bottom: 0; z-index: 30;
+      transform: translateX(105%); transition: transform .25s ease, visibility .25s;
+      visibility: hidden;
+      background: #fff; box-shadow: -10px 0 28px rgba(94, 30, 17, .14);
+    }
+    .map-panel.is-open { transform: none; visibility: visible; }
+    .map-back {
+      position: absolute; top: 64px; left: 16px; z-index: 20; display: none;
+      padding: 8px 14px; border-radius: 20px; border: 1px solid #e2d6cf;
+      background: #fff; color: #7e2a1b; font: inherit; font-weight: 600; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(94, 30, 17, .12);
+    }
+    .rank-fab {
+      position: absolute; top: 16px; right: 16px; z-index: 20;
+      padding: 8px 14px; border-radius: 20px; border: 1px solid #e2d6cf;
+      background: #fff; color: #7e2a1b; font: inherit; font-weight: 600; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(94, 30, 17, .12);
+    }
+    .sel-hero-delta.up { color: #4e7a3e; }
+    .sel-hero-delta.down { color: #b0503a; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 앱 헤더 -->
+  <header class="app-header">
+    <a class="app-brand" href="/">
+      <span class="app-brand-mark" aria-hidden="true">서</span>
+      <span class="app-brand-text">
+        <span class="app-brand-name">서울공화국</span>
+        <span class="app-brand-sub">상권분석 플랫폼</span>
+      </span>
+    </a>
+
+    <div class="app-search-wrap">
+      <form class="app-search" role="search" action="/map/search.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B0857A" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.5" y2="16.5"></line></svg>
+        <input type="search" name="q" placeholder="상권 · 자치구 검색" aria-label="상권 검색">
+      </form>
+    </div>
+
+    <div class="app-tools">
+      <select class="app-quarter" id="quarter-select" aria-label="기준 분기"
+              style="appearance:auto;border:0;font:inherit;cursor:pointer">
+        <option value="">최신 분기</option>
+      </select>
+      <span class="app-status"><span class="app-status-dot" aria-hidden="true"></span><span id="app-status">연동 확인 중</span></span>
+      <a class="app-user" href="/login"><span class="app-avatar" aria-hidden="true">이</span>이상혁</a>
+    </div>
+  </header>
+
+  <!-- 지도 + 좌우 패널 -->
+  <div class="app-body map-body">
+
+    <!-- 지도 영역 -->
+    <main class="map-stage" aria-label="상권 지도">
+      <h1 class="sr-only">메인 지도 대시보드</h1>
+      <div id="map" class="map-canvas"></div>
+      <button type="button" class="map-back" id="map-back">← 서울 전체</button>
+      <button type="button" class="rank-fab" id="rank-fab">자치구 랭킹</button>
+
+      <!-- 지도 위 요약 배지 -->
+      <div class="map-summary">
+        서울시 자치구 <b id="sum-gu">-</b><span class="map-summary-sep" aria-hidden="true"></span>분석 상권 <b class="hl" id="sum-trdar">-</b>
+      </div>
+
+      <!-- 지도 레이어 · 범례 -->
+      <aside class="map-legend card" aria-label="지도 레이어">
+        <p class="panel-label">업종</p>
+        <select id="induty-select" aria-label="업종 필터"
+                style="width:100%;margin:4px 0 10px;padding:7px 9px;border:1px solid #e2d6cf;border-radius:8px;font:inherit;background:#fff">
+          <option value="">전체 업종</option>
+        </select>
+        <p style="font-size:11px;color:#9a8c84;margin:-6px 0 10px">매출·점포 수 레이어에 적용</p>
+        <p class="panel-label">지도 레이어</p>
+        <ul class="layer-list">
+          <li class="layer-item is-active" data-layer="sales"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">추정 매출</span></li>
+          <li class="layer-item" data-layer="flpop"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">유동인구</span></li>
+          <li class="layer-item" data-layer="store"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">점포 수</span></li>
+          <li class="layer-item" data-layer="change"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">성장·쇠퇴</span></li>
+        </ul>
+        <hr class="map-legend-divider">
+        <div class="legend-head"><span class="legend-title">추정 매출</span><span class="legend-unit">억/분기</span></div>
+        <div class="legend-scale" aria-hidden="true">
+          <span style="background:#F9DFD3"></span><span style="background:#F0BCA6"></span><span style="background:#E29679"></span><span style="background:#CE7052"></span><span style="background:#A8412C"></span><span style="background:#7A2A1B"></span>
+        </div>
+        <div class="legend-ends"><span>낮음</span><span>높음</span></div>
+      </aside>
+
+      <!-- 출처 -->
+      <p class="map-attr">지도 © Kakao · 데이터: 서울시 상권분석서비스 · 한국부동산원</p>
+    </main>
+
+    <!-- 우측 드로어: 선택 구역 + 랭킹. 지도 빈 곳을 누르면 닫힌다 -->
+    <aside class="map-panel" aria-label="선택 구역과 자치구 랭킹">
+
+      <!-- 선택 상권 카드 -->
+      <section class="sel-card" style="display:none">
+        <div class="sel-head">
+          <div>
+            <p class="sel-eyebrow">선택 · SELECTED</p>
+            <h2 class="sel-name">-</h2>
+          </div>
+          <button type="button" class="sel-close" aria-label="선택 해제">✕</button>
+        </div>
+        <p class="sel-hero"><span class="sel-hero-num">-</span><span class="sel-hero-unit">억/분기</span><span class="sel-hero-delta"></span></p>
+        <dl class="sel-metrics">
+          <div class="sel-metric"><dt>유동인구</dt><dd>-<span>만 명</span></dd></div>
+          <div class="sel-metric"><dt>점포 수</dt><dd>-<span>개</span></dd></div>
+          <div class="sel-metric"><dt>변화지표</dt><dd>-<span></span></dd></div>
+          <div class="sel-metric"><dt>임대료(서울 소규모)</dt><dd>-<span>천원/㎡</span></dd></div>
+        </dl>
+        <div class="sel-actions">
+          <a class="sel-report" href="/map/trdar-detail.html">상세 리포트 →</a>
+          <a class="sel-add" href="/map/compare.html" aria-label="비교 담기">＋</a>
+        </div>
+      </section>
+
+      <!-- 랭킹 헤더 -->
+      <div class="rank-head">
+        <div class="rank-head-top"><h3 class="rank-title">자치구 랭킹</h3><span class="rank-top-tag">TOP 12</span></div>
+        <p class="rank-sub">추정 매출 기준 · 클릭하면 지도가 이동합니다</p>
+      </div>
+
+      <!-- 랭킹 목록 -->
+      <ol class="rank-list scroll"></ol>
+
+      <!-- 랭킹 푸터 -->
+      <div class="rank-foot">전체 -개 상권<a class="rank-more" href="/map/search.html">목록 →</a></div>
+    </aside>
+  </div>
+</div>
+<script src="/js/map/common.js?v=20260706f"></script>
+<script src="/js/map/induty-map.js?v=20260706f"></script>
+<script src="/js/map/index.js?v=20260706f" defer></script>
+</body>
+</html>

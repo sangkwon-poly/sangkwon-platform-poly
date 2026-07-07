@@ -1,0 +1,190 @@
+/* 랜딩(LANDING-01) 전용 스타일
+   공통 토큰·프리미티브(.container/.btn/.brand)는 common.css 에서 로드됨 */
+
+/* 1. 헤더 */
+.site-header {
+  position: sticky; top: 0; z-index: 20;
+  background: #fff;
+  border-bottom: 1px solid var(--line-soft);
+}
+.header-inner {
+  height: 66px;
+  display: flex; align-items: center; gap: 14px;
+}
+.site-nav {
+  flex: 1;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 30px;
+}
+.nav-menu {
+  flex: 1;
+  display: flex; justify-content: center; gap: 30px;
+  font-size: 13.5px; font-weight: 600; color: var(--text-soft);
+}
+.nav-menu a:hover { color: var(--brand); }
+.nav-actions { display: flex; align-items: center; gap: 14px; }
+.link-login { font-size: 13.5px; font-weight: 600; color: var(--text-soft); }
+.link-login:hover { color: var(--brand); }
+.btn-ghost { padding: 0 24px; }
+
+/* 햄버거 (기본 숨김, 모바일에서만 노출) */
+.nav-toggle-btn { display: none; }
+
+/* 2. 히어로 */
+.hero { background: linear-gradient(var(--surface-2), #fff); }
+.hero-inner {
+  display: grid;
+  grid-template-columns: 1.02fr .98fr;
+  gap: 40px;
+  align-items: center;
+  padding: 60px 24px 54px;
+}
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 700; color: var(--brand);
+  background: var(--brand-tint);
+  border-radius: 20px; padding: 5px 13px;
+  margin-bottom: 20px;
+}
+.eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); }
+.hero-title {
+  font-size: 46px; line-height: 1.12; font-weight: 800;
+  letter-spacing: -.035em; color: var(--ink);
+  text-wrap: balance;
+}
+.hero-lead {
+  margin-top: 20px;
+  font-size: 15.5px; line-height: 1.7; color: var(--muted);
+  max-width: 440px;
+}
+.hero-cta { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+.hero-trust {
+  display: flex; align-items: center; gap: 14px;
+  margin-top: 22px;
+  font-size: 12.5px; color: var(--faint);
+}
+.trust-sep { width: 1px; height: 12px; background: #e0d5ce; }
+
+/* 4. 지도 프리뷰 카드 */
+.map-preview {
+  background: #fff;
+  border: 1px solid #eadfd9;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.map-preview-bar {
+  height: 40px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 14px;
+  background: var(--brand);
+  color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .02em;
+}
+.map-preview-dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255, 255, 255, .5); }
+.choropleth {
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px;
+  padding: 14px;
+}
+.choropleth span { aspect-ratio: 1; border-radius: 5px; background: var(--c); }
+
+.rank-list { padding: 2px 14px 16px; }
+.rank-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 0;
+  border-top: 1px solid #f2ebe6;
+}
+.rank-badge {
+  width: 19px; height: 19px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 5px;
+  background: #f1e0d9; color: #8a5748;
+  font-family: var(--mono); font-size: 10px; font-weight: 800;
+}
+.rank-badge.rank-1 { background: var(--brand); color: #fff; }
+.rank-name { flex: 1; font-size: 12.5px; font-weight: 700; color: #3a322e; }
+.rank-value { font-family: var(--mono); font-size: 11.5px; font-weight: 700; color: var(--brand); }
+
+/* 지표 바 */
+.stats { background: var(--dark); color: #fff; }
+.stats-inner { display: grid; grid-template-columns: repeat(4, 1fr); }
+.stat { padding: 26px 30px; border-left: 1px solid rgba(255, 255, 255, .08); }
+.stat:first-child { border-left: 0; }
+.stat-num {
+  display: block;
+  font-size: 30px; font-weight: 800; letter-spacing: -.02em;
+  color: var(--dark-accent);
+}
+.stat-label { display: block; margin-top: 4px; font-size: 12.5px; color: rgba(255, 255, 255, .66); }
+
+/* 5. 기능 3종 */
+.features-inner {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px;
+  padding: 46px 24px 54px;
+}
+.feature-card {
+  background: var(--surface);
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+.feature-icon {
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 11px;
+  background: var(--brand-icon-bg); color: var(--brand);
+  font-size: 20px; font-weight: 800;
+}
+.feature-title { font-size: 16px; font-weight: 800; color: var(--text); margin-top: 15px; }
+.feature-desc { font-size: 13px; line-height: 1.6; color: var(--muted-2); margin-top: 7px; }
+
+/* 6. 푸터 */
+.site-footer { border-top: 1px solid var(--line); background: #fff; }
+.footer-inner {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 16px 28px;
+  padding: 34px 24px;
+}
+.footer-brand { display: inline-flex; align-items: center; gap: 10px; }
+.footer-nav { display: flex; gap: 22px; font-size: 13px; font-weight: 600; color: var(--text-soft); }
+.footer-nav a:hover { color: var(--brand); }
+.footer-copy { margin-left: auto; font-size: 12.5px; color: var(--faint); }
+
+/* 반응형 · 태블릿 */
+@media (max-width: 900px) {
+  .hero-inner { grid-template-columns: 1fr; gap: 32px; padding: 48px 24px; }
+  .hero-title { font-size: 38px; }
+  .stats-inner { grid-template-columns: repeat(2, 1fr); }
+  .stat:nth-child(-n + 2) { border-top: 0; }
+  .stat:nth-child(odd) { border-left: 0; }
+  .features-inner { grid-template-columns: 1fr; }
+}
+
+/* 반응형 · 모바일 (명세: 1열 · 햄버거) */
+@media (max-width: 640px) {
+  .nav-toggle-btn {
+    display: flex; flex-direction: column; justify-content: center; gap: 5px;
+    width: 40px; height: 40px; margin-left: auto;
+  }
+  .nav-toggle-btn span {
+    display: block; width: 20px; height: 2px; margin: 0 auto;
+    background: var(--ink); border-radius: 2px;
+  }
+  .site-nav {
+    position: absolute; left: 0; right: 0; top: 66px;
+    flex-direction: column; align-items: stretch; gap: 0;
+    background: #fff;
+    border-bottom: 1px solid var(--line-soft);
+    box-shadow: 0 16px 30px rgba(90, 45, 28, .08);
+    padding: 8px 24px 20px;
+    display: none;
+  }
+  .nav-toggle:checked ~ .site-nav { display: flex; }  /* 체크박스 켜지면 메뉴 표시 */
+  .nav-menu { flex-direction: column; gap: 0; font-size: 15px; }
+  .nav-menu li { border-bottom: 1px solid var(--line-soft); }
+  .nav-menu a { display: block; padding: 13px 0; }
+  .nav-actions { margin-top: 16px; justify-content: space-between; }
+  .hero-title { font-size: 32px; }
+  .hero-cta .btn { flex: 1; }
+  .stats-inner { grid-template-columns: 1fr 1fr; }
+  .footer-inner { flex-direction: column; align-items: flex-start; }
+  .footer-copy { margin-left: 0; }
+}

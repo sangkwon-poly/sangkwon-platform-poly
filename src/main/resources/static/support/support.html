@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>지원사업 매칭 · 서울공화국</title>
+  <meta name="description" content="업종·지역·창업 단계에 맞는 정부·지자체 창업 지원사업을 자동으로 매칭받으세요.">
+
+  <!-- 폰트 → 공통 → 화면 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/support/support.css">
+</head>
+<body>
+
+  <!-- 헤더 내비 -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">서</span>
+        <span class="brand-name">서울공화국</span>
+      </a>
+
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
+      <label for="nav-toggle" class="nav-toggle-btn" aria-label="메뉴 열기">
+        <span></span><span></span><span></span>
+      </label>
+
+      <nav class="site-nav" aria-label="주요 메뉴">
+        <ul class="nav-menu">
+          <li><a href="/map/">상권분석</a></li>
+          <li><a href="/support/support.html" aria-current="page">지원사업</a></li>
+        </ul>
+        <div class="nav-actions">
+          <a class="link-login" href="/login">로그인</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="support-main" aria-label="지원사업 매칭">
+    <div class="container support-inner">
+
+      <!-- 페이지 헤더: 매칭 건수 + 조건 칩 + 정렬 -->
+      <section class="support-head" aria-label="매칭 요약">
+        <div class="support-head-left">
+          <h1 class="support-count">내 조건에 맞는 지원사업 <span class="support-count-num">24</span>건</h1>
+          <ul class="cond-chips">
+            <li class="cond-chip">업종 · 카페</li>
+            <li class="cond-chip">지역 · 강남구</li>
+            <li class="cond-chip">창업 3년차</li>
+          </ul>
+        </div>
+        <button type="button" class="sort-select">매칭순 ▾</button>
+      </section>
+
+      <!-- 유형 필터 탭 -->
+      <nav class="type-tabs" aria-label="지원 유형 필터">
+        <button type="button" class="type-tab is-active" aria-pressed="true">전체</button>
+        <button type="button" class="type-tab" aria-pressed="false">융자</button>
+        <button type="button" class="type-tab" aria-pressed="false">보조금</button>
+        <button type="button" class="type-tab" aria-pressed="false">컨설팅</button>
+      </nav>
+
+      <!-- 지원사업 목록 -->
+      <section aria-label="지원사업 목록">
+        <ul class="support-list">
+
+          <li class="support-card">
+            <div class="match-ring" role="img" aria-label="매칭 92점">
+              <svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true">
+                <circle cx="20" cy="20" r="17" fill="none" stroke="#F0E8E3" stroke-width="5"></circle>
+                <circle cx="20" cy="20" r="17" fill="none" stroke="#A8412C" stroke-width="5" stroke-linecap="round" stroke-dasharray="98.3 106.8" transform="rotate(-90 20 20)"></circle>
+              </svg>
+              <div class="match-ring-text">
+                <span class="match-score">92</span>
+                <span class="match-label">매칭</span>
+              </div>
+            </div>
+            <div class="support-body">
+              <div class="support-title-row">
+                <h2 class="support-title">소상공인 성장지원 자금</h2>
+                <span class="type-tag">융자</span>
+              </div>
+              <p class="support-agency">소상공인시장진흥공단</p>
+            </div>
+            <div class="support-scale">
+              <span class="support-meta-label">지원 규모</span>
+              <span class="support-scale-value">최대 7,000만원</span>
+            </div>
+            <div class="support-deadline">
+              <span class="support-meta-label">마감</span>
+              <span class="support-deadline-value">D-12</span>
+            </div>
+            <span class="status-badge status-open">신청 가능</span>
+            <a class="btn btn-primary apply-btn" href="#">신청</a>
+          </li>
+
+          <li class="support-card">
+            <div class="match-ring" role="img" aria-label="매칭 88점">
+              <svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true">
+                <circle cx="20" cy="20" r="17" fill="none" stroke="#F0E8E3" stroke-width="5"></circle>
+                <circle cx="20" cy="20" r="17" fill="none" stroke="#A8412C" stroke-width="5" stroke-linecap="round" stroke-dasharray="94.0 106.8" transform="rotate(-90 20 20)"></circle>
+              </svg>
+              <div class="match-ring-text">
+                <span class="match-score">88</span>
+                <span class="match-label">매칭</span>
+              </div>
+            </div>
+            <div class="support-body">
+              <div class="support-title-row">
+                <h2 class="support-title">청년창업 사관학교</h2>
+                <span class="type-tag">보조금</span>
+              </div>
+              <p class="support-agency">중소벤처기업부</p>
+            </div>
+            <div class="support-scale">
+              <span class="support-meta-label">지원 규모</span>
+              <span class="support-scale-value">최대 1억원</span>
+            </div>
+            <div class="support-deadline">
+              <span class="support-meta-label">마감</span>
+              <span class="support-deadline-value">D-5</span>
+            </div>
+            <span class="status-badge status-soon">마감 임박</span>
+            <a class="btn btn-primary apply-btn" href="#">신청</a>
+          </li>
+
+          <li class="support-card">
+            <div class="match-ring" role="img" aria-label="매칭 81점">
+              <svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true">
+                <circle cx="20" cy="20" r="17" fill="none" stroke="#F0E8E3" stroke-width="5"></circle>
+                <circle cx="20" cy="20" r="17" fill="none" stroke="#A8412C" stroke-width="5" stroke-linecap="round" stroke-dasharray="86.5 106.8" transform="rotate(-90 20 20)"></circle>
+              </svg>
+              <div class="match-ring-text">
+                <span class="match-score">81</span>
+                <span class="match-label">매칭</span>
+              </div>
+            </div>
+            <div class="support-body">
+              <div class="support-title-row">
+                <h2 class="support-title">서울 골목상권 활력사업</h2>
+                <span class="type-tag">컨설팅</span>
+              </div>
+              <p class="support-agency">서울신용보증재단</p>
+            </div>
+            <div class="support-scale">
+              <span class="support-meta-label">지원 규모</span>
+              <span class="support-scale-value">최대 3,000만원</span>
+            </div>
+            <div class="support-deadline">
+              <span class="support-meta-label">마감</span>
+              <span class="support-deadline-value">D-24</span>
+            </div>
+            <span class="status-badge status-open">신청 가능</span>
+            <a class="btn btn-primary apply-btn" href="#">신청</a>
+          </li>
+
+          <li class="support-card">
+            <div class="match-ring" role="img" aria-label="매칭 74점">
+              <svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true">
+                <circle cx="20" cy="20" r="17" fill="none" stroke="#F0E8E3" stroke-width="5"></circle>
+                <circle cx="20" cy="20" r="17" fill="none" stroke="#A8412C" stroke-width="5" stroke-linecap="round" stroke-dasharray="79.0 106.8" transform="rotate(-90 20 20)"></circle>
+              </svg>
+              <div class="match-ring-text">
+                <span class="match-score">74</span>
+                <span class="match-label">매칭</span>
+              </div>
+            </div>
+            <div class="support-body">
+              <div class="support-title-row">
+                <h2 class="support-title">로컬크리에이터 육성</h2>
+                <span class="type-tag">보조금</span>
+              </div>
+              <p class="support-agency">창업진흥원</p>
+            </div>
+            <div class="support-scale">
+              <span class="support-meta-label">지원 규모</span>
+              <span class="support-scale-value">최대 5,000만원</span>
+            </div>
+            <div class="support-deadline">
+              <span class="support-meta-label">마감</span>
+              <span class="support-deadline-value">마감</span>
+            </div>
+            <span class="status-badge status-closed">마감</span>
+            <a class="btn btn-primary apply-btn" href="#">신청</a>
+          </li>
+
+          <li class="support-card">
+            <div class="match-ring" role="img" aria-label="매칭 69점">
+              <svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true">
+                <circle cx="20" cy="20" r="17" fill="none" stroke="#F0E8E3" stroke-width="5"></circle>
+                <circle cx="20" cy="20" r="17" fill="none" stroke="#A8412C" stroke-width="5" stroke-linecap="round" stroke-dasharray="73.7 106.8" transform="rotate(-90 20 20)"></circle>
+              </svg>
+              <div class="match-ring-text">
+                <span class="match-score">69</span>
+                <span class="match-label">매칭</span>
+              </div>
+            </div>
+            <div class="support-body">
+              <div class="support-title-row">
+                <h2 class="support-title">전통시장 시설현대화</h2>
+                <span class="type-tag">융자</span>
+              </div>
+              <p class="support-agency">소상공인시장진흥공단</p>
+            </div>
+            <div class="support-scale">
+              <span class="support-meta-label">지원 규모</span>
+              <span class="support-scale-value">최대 2억원</span>
+            </div>
+            <div class="support-deadline">
+              <span class="support-meta-label">마감</span>
+              <span class="support-deadline-value">D-40</span>
+            </div>
+            <span class="status-badge status-planned">예정</span>
+            <a class="btn btn-primary apply-btn" href="#">신청</a>
+          </li>
+
+        </ul>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- 푸터 -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark" aria-hidden="true">서</span>
+        <span class="brand-name">서울공화국</span>
+      </div>
+      <nav class="footer-nav" aria-label="푸터 메뉴">
+        <a href="/about">회사소개</a>
+        <a href="/terms">이용약관</a>
+        <a href="/privacy">개인정보처리방침</a>
+      </nav>
+      <p class="footer-copy">© 2026 서울공화국. 서울시 공식 상권 데이터 기반.</p>
+    </div>
+  </footer>
+
+</body>
+</html>

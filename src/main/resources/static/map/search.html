@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>검색 결과 · 서울공화국</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/map/shell.css">
+  <link rel="stylesheet" href="/css/map/search.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- 앱 헤더 -->
+  <header class="app-header">
+    <a class="app-brand" href="/">
+      <span class="app-brand-mark" aria-hidden="true">서</span>
+      <span class="app-brand-text"><span class="app-brand-name">서울공화국</span></span>
+    </a>
+
+    <div class="app-search-wrap">
+      <form class="app-search" role="search" action="/map/search.html">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B0857A" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.5" y2="16.5"></line></svg>
+        <input type="search" name="q" placeholder="상권명 검색" aria-label="상권 검색"
+               style="border:0;background:transparent;outline:none;font:inherit;color:inherit;width:100%">
+      </form>
+    </div>
+
+    <div class="app-tools">
+      <button type="button" class="app-quarter">2026 1분기</button>
+      <a class="app-user" href="/login"><span class="app-avatar" aria-hidden="true">이</span></a>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <!-- 필터 사이드바 -->
+    <aside class="filter-side scroll" aria-label="검색 필터">
+      <p class="panel-label">필터</p>
+
+      <h2 class="filter-title">자치구</h2>
+      <ul class="filter-checks scroll" id="filter-gu" style="max-height:320px;overflow-y:auto"></ul>
+
+      <h2 class="filter-title">분기 추정 매출</h2>
+      <select id="filter-minsales" aria-label="최소 매출"
+              style="width:100%;padding:8px 10px;border:1px solid #e2d6cf;border-radius:8px;font:inherit;color:inherit;background:#fff">
+        <option value="0">전체</option>
+        <option value="10000000000">100억 이상</option>
+        <option value="50000000000">500억 이상</option>
+        <option value="100000000000">1,000억 이상</option>
+      </select>
+    </aside>
+
+    <!-- 결과 목록 -->
+    <main class="result" aria-label="검색 결과 목록">
+      <h1 class="sr-only">검색 결과</h1>
+      <div class="result-toolbar">
+        <span class="result-count"><b>-</b>개 상권</span>
+        <span class="result-sep" aria-hidden="true"></span>
+        <span class="result-compare">비교함 <b>-</b></span>
+        <button type="button" class="result-sort">추정 매출 높은순 ▾</button>
+      </div>
+
+      <div class="result-table scroll">
+        <table class="rt">
+          <thead>
+            <tr>
+              <th class="rt-rank">순위</th>
+              <th class="rt-name">상권</th>
+              <th class="rt-num">추정매출</th>
+              <th class="rt-num">유동인구</th>
+              <th class="rt-num">점포수</th>
+              <th class="rt-num">변화</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+<script src="/js/map/common.js?v=20260706f"></script>
+<script src="/js/map/search.js?v=20260706f" defer></script>
+</body>
+</html>

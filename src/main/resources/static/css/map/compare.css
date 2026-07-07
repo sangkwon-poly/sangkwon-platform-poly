@@ -1,0 +1,111 @@
+/* COMPARE-01 상권 비교 전용
+   공통 chrome 은 shell.css, 여기선 비교 표만 담는다. */
+
+.compare {
+  flex: 1 1 0;
+  background: #fff;
+  padding: 22px 24px 26px;
+}
+
+.cmp {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.cmp col { }
+
+/* 지표 열 폭 고정 */
+.cmp-metric-h,
+.cmp-metric { width: 150px; }
+
+/* 헤더 · 상권 컬럼 (탭 카드형) */
+.cmp-metric-h {
+  font-size: 12px;
+  color: #a99c94;
+  font-weight: 400;
+  text-align: left;
+  vertical-align: bottom;
+  padding: 0 4px 8px;
+}
+.cmp-col {
+  position: relative;
+  vertical-align: bottom;
+  background: #fbf7f4;
+  border: 1px solid #efe7e2;
+  border-bottom: none;
+  border-radius: 11px 11px 0 0;
+  padding: 14px 15px;
+  text-align: left;
+  font-weight: 400;
+}
+.cmp-remove {
+  position: absolute;
+  top: 10px;
+  right: 11px;
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  color: #c4b8b0;
+}
+.cmp-color {
+  display: block;
+  width: 22px;
+  height: 6px;
+  border-radius: 3px;
+  margin-bottom: 9px;
+}
+.cmp-place { display: block; font-size: 15px; font-weight: 800; color: var(--ink); }
+.cmp-place-sub { display: block; font-size: 11px; color: #a99c94; margin-top: 1px; }
+
+/* 지표 행 */
+.cmp tbody tr { border-top: 1px solid #f2ebe6; }
+.cmp-metric {
+  text-align: left;
+  font-weight: 400;
+  padding: 15px 4px;
+  vertical-align: middle;
+}
+.cmp-metric-name { display: block; font-size: 13px; font-weight: 700; color: #3a322e; }
+.cmp-metric-unit { display: block; font-size: 10.5px; color: #a99c94; font-family: var(--mono); }
+
+/* 값 셀 */
+.cmp-cell {
+  padding: 12px 15px;
+  border-left: 1px solid #f4eeea;
+  vertical-align: middle;
+}
+.cmp-cell.is-best { background: #fcf4f1; }
+.cmp-val { font-size: 15px; font-weight: 800; color: var(--ink); }
+.cmp-tag {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  color: var(--brand);
+  background: #f7e9e3;
+  border-radius: 10px;
+  padding: 2px 6px;
+  margin-left: 7px;
+}
+.cmp-bar {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: #f2ebe6;
+  margin-top: 7px;
+  overflow: hidden;
+}
+.cmp-bar span { display: block; height: 100%; border-radius: 3px; }
+
+/* 반응형 · 태블릿 */
+@media (max-width: 900px) {
+  .cmp-metric-h,
+  .cmp-metric { width: 110px; }
+  .cmp-col { padding: 12px; }
+  .cmp-cell { padding: 10px 12px; }
+}
+
+/* 반응형 · 모바일: 표 가로 스크롤 */
+@media (max-width: 640px) {
+  .compare { padding: 16px 0 20px; overflow-x: auto; }
+  .cmp { min-width: 640px; margin: 0 16px; }
+}

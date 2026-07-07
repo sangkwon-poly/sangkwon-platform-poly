@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>데이터 내보내기 · 서울공화국</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/map/modals.css">
+</head>
+<body>
+
+  <!-- 지도 배경 (실제 Kakao 연동은 이후) -->
+  <div class="map-bg" id="map" aria-hidden="true">
+    <div class="map-bg-top"></div>
+    <div class="map-bg-grid"></div>
+  </div>
+
+  <!-- 어두운 배경 + 모달 -->
+  <div class="scrim">
+    <section class="modal export-modal" role="dialog" aria-modal="true" aria-labelledby="export-title">
+      <header class="modal-head">
+        <h2 class="modal-title" id="export-title">데이터 내보내기</h2>
+        <button type="button" class="modal-close" aria-label="닫기">✕</button>
+      </header>
+
+      <div class="modal-body">
+        <div class="field-label" style="color:var(--muted)">형식</div>
+        <div class="format-row">
+          <button type="button" class="format-card is-selected" aria-pressed="true">
+            <div class="format-icon" aria-hidden="true">▤</div>
+            <div class="format-name">CSV</div>
+            <div class="format-desc">원본 데이터</div>
+          </button>
+          <button type="button" class="format-card" aria-pressed="false">
+            <div class="format-icon is-dim" aria-hidden="true">▦</div>
+            <div class="format-name">PDF</div>
+            <div class="format-desc">서식 리포트</div>
+          </button>
+        </div>
+
+        <div class="field-label" style="color:var(--muted)">범위</div>
+        <div class="scope-row">
+          <span class="scope-check" aria-hidden="true">✓</span>
+          현재 필터 결과 128건
+        </div>
+
+        <div class="progress-head">
+          <span>생성 중…</span>
+          <span class="progress-pct">72%</span>
+        </div>
+        <div class="progress" role="progressbar" aria-valuenow="72" aria-valuemin="0" aria-valuemax="100">
+          <div class="progress-fill" style="width:72%"></div>
+        </div>
+      </div>
+
+      <div class="modal-foot">
+        <button type="button" class="btn btn-ghost">취소</button>
+        <button type="button" class="btn btn-primary">CSV 다운로드</button>
+      </div>
+    </section>
+  </div>
+
+</body>
+</html>
