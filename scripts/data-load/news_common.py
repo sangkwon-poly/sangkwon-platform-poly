@@ -1,7 +1,19 @@
 """
 업종 뉴스 적재 - 공통 모듈
 - DB 연결, 업종코드 매핑, 필터링, 유틸 함수 등
-- load_news_daily.py, load_news_monthly.py 둘 다 이 모듈을 import해서 사용
+- load_news_daily.py, load_news_monthly.py, backfill_news.py 전부 이 모듈을 import해서 사용
+
+DB 아이디/비번/API키는 여기서 직접 값을 쓰지 않고,
+properties.env 파일에서 load_dotenv()로 읽어온다.
+(properties.env는 SUPPORT_PROGRAM 적재 때 쓰던 파일과 동일한 파일을 그대로 재사용)
+
+properties.env에 아래 항목들이 있어야 함:
+    DB_USERNAME=...
+    DB_PASSWORD=...
+    DB_TNS_ALIAS=...
+    DB_WALLET_DIR=...
+    NAVER_CLIENT_ID=...
+    NAVER_CLIENT_SECRET=...
 """
 
 import os
@@ -36,6 +48,7 @@ def now_kst():
 
 
 def get_connection():
+    """properties.env에서 읽은 DB_USERNAME/DB_PASSWORD/DB_TNS_ALIAS/DB_WALLET_DIR로 접속"""
     return oracledb.connect(
         user=DB_USERNAME,
         password=DB_PASSWORD,
@@ -111,9 +124,15 @@ EXCLUDE_KEYWORDS = ["화재", "불이 나", "구조", "진화", "소방"]
 
 
 def is_relevant(title, description, keyword):
-    if keyword not in title:
-        return False
+    """
+    완화된 필터:
+    - 이전에는 '제목에 업종명 필수'였는데, 이게 너무 세서
+      93개 업종 실측 결과 대다수가 0건으로 나옴
+    - 제목 또는 본문(description) 어디든 업종명이 있으면 인정하는 것으로 완화
+    """
     text = title + description
+    if keyword not in text:
+        return False
     if any(kw in text for kw in EXCLUDE_KEYWORDS):
         return False
     return any(kw in text for kw in INCLUDE_KEYWORDS)
