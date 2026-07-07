@@ -862,22 +862,3 @@ COMMENT ON COLUMN INDUSTRY_NEWS.PUB_DATE        IS '기사 발행일';
 COMMENT ON COLUMN INDUSTRY_NEWS.CACHED_AT       IS '우리 시스템에 이 기사를 저장한 시각';
 COMMENT ON COLUMN INDUSTRY_NEWS.IS_VISIBLE      IS '노출 여부 (Y=노출, N=숨김). 30일 지나면 배치가 N으로 전환';
 
-
--- ============================================
--- 2. INDUSTRY_NEWS_MONTHLY_STAT (업종 뉴스 월별 통계 - 6개월용)
--- ============================================
-CREATE TABLE INDUSTRY_NEWS_MONTHLY_STAT (
-                                            INDUTY_CD    VARCHAR2(20) NOT NULL,
-                                            INDUTY_NM    VARCHAR2(50) NOT NULL,
-                                            YEAR_MONTH   VARCHAR2(7)  NOT NULL,
-                                            NEWS_COUNT   NUMBER       NOT NULL,
-                                            CREATED_AT   TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
-                                            CONSTRAINT PK_NEWS_MONTHLY_STAT PRIMARY KEY (INDUTY_CD, YEAR_MONTH)
-);
-
-COMMENT ON TABLE  INDUSTRY_NEWS_MONTHLY_STAT              IS '업종별 월간 뉴스 건수 집계 (6개월 트렌드 그래프용)';
-COMMENT ON COLUMN INDUSTRY_NEWS_MONTHLY_STAT.INDUTY_CD     IS '업종 코드';
-COMMENT ON COLUMN INDUSTRY_NEWS_MONTHLY_STAT.INDUTY_NM     IS '업종명 (한글)';
-COMMENT ON COLUMN INDUSTRY_NEWS_MONTHLY_STAT.YEAR_MONTH    IS '집계 대상 연월 (예: 2026-07)';
-COMMENT ON COLUMN INDUSTRY_NEWS_MONTHLY_STAT.NEWS_COUNT    IS '그 달 필터 통과한 뉴스 건수';
-COMMENT ON COLUMN INDUSTRY_NEWS_MONTHLY_STAT.CREATED_AT    IS '이 집계행이 생성된 시각';
