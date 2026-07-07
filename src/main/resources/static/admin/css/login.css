@@ -263,6 +263,7 @@ body {
 .msg { margin: 0 0 16px; font-size: 13.5px; padding: 11px 14px; border-radius: 10px; }
 .msg.error { color: #f3b8ab; background: rgba(192, 57, 43, 0.12); border: 1px solid rgba(192, 57, 43, 0.32); }
 .msg.ok { color: #bce6cd; background: rgba(47, 125, 91, 0.14); border: 1px solid rgba(47, 125, 91, 0.34); }
+.msg.info { color: #f0cbbd; background: var(--accent-soft); border: 1px solid rgba(168, 65, 44, 0.30); }
 
 /* ---- notice ---- */
 .notice {

@@ -53,17 +53,20 @@
                 <button type="button" class="field-action" id="pw-toggle" aria-label="비밀번호 표시">표시</button>
             </div>
 
-            <div class="otp-head">
-                <label class="field-label" for="otp-0">OTP 인증코드</label>
-                <span class="tag">2FA</span>
-            </div>
-            <div class="otp" id="otp" role="group" aria-label="OTP 6자리">
-                <input id="otp-0" class="otp-box" inputmode="numeric" maxlength="1" aria-label="1번째 자리"/>
-                <input id="otp-1" class="otp-box" inputmode="numeric" maxlength="1" aria-label="2번째 자리"/>
-                <input id="otp-2" class="otp-box" inputmode="numeric" maxlength="1" aria-label="3번째 자리"/>
-                <input id="otp-3" class="otp-box" inputmode="numeric" maxlength="1" aria-label="4번째 자리"/>
-                <input id="otp-4" class="otp-box" inputmode="numeric" maxlength="1" aria-label="5번째 자리"/>
-                <input id="otp-5" class="otp-box" inputmode="numeric" maxlength="1" aria-label="6번째 자리"/>
+            <!-- OTP는 2단계 인증을 켠 계정이 로그인 시도할 때만 나타난다 -->
+            <div id="otp-step" hidden>
+                <div class="otp-head">
+                    <label class="field-label" for="otp-0">OTP 인증코드</label>
+                    <span class="tag">2FA</span>
+                </div>
+                <div class="otp" id="otp" role="group" aria-label="OTP 6자리">
+                    <input id="otp-0" class="otp-box" inputmode="numeric" maxlength="1" aria-label="1번째 자리"/>
+                    <input id="otp-1" class="otp-box" inputmode="numeric" maxlength="1" aria-label="2번째 자리"/>
+                    <input id="otp-2" class="otp-box" inputmode="numeric" maxlength="1" aria-label="3번째 자리"/>
+                    <input id="otp-3" class="otp-box" inputmode="numeric" maxlength="1" aria-label="4번째 자리"/>
+                    <input id="otp-4" class="otp-box" inputmode="numeric" maxlength="1" aria-label="5번째 자리"/>
+                    <input id="otp-5" class="otp-box" inputmode="numeric" maxlength="1" aria-label="6번째 자리"/>
+                </div>
             </div>
 
             <div class="row-between">

@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.admin.account.controller;
 
 import com.sangkwon.sangkwonplatform.admin.account.dto.request.AdminLoginRequest;
 import com.sangkwon.sangkwonplatform.admin.account.dto.session.AdminSession;
+import com.sangkwon.sangkwonplatform.admin.account.otp.OtpRequiredException;
 import com.sangkwon.sangkwonplatform.admin.account.service.AdminUserService;
 import com.sangkwon.sangkwonplatform.admin.account.session.LoginAdmin;
 import com.sangkwon.sangkwonplatform.admin.account.session.SessionConst;
@@ -10,6 +11,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -41,5 +44,12 @@ public class AdminAuthController {
     @GetMapping("/me")
     public ApiResponse<AdminSession> me(@LoginAdmin AdminSession admin) {
         return ApiResponse.ok(admin);
+    }
+
+    // 비번은 맞았고 2단계 인증 코드만 필요한 경우: 401 + code=OTP_REQUIRED 로 프론트에 OTP 단계 전환을 알린다
+    @ExceptionHandler(OtpRequiredException.class)
+    public ResponseEntity<ApiResponse<Void>> handleOtpRequired(OtpRequiredException e) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error("OTP_REQUIRED", "OTP 인증코드를 입력하세요."));
     }
 }

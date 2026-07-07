@@ -67,6 +67,35 @@
 }
 .code-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px var(--focus); }
 
+/* 내 계정 */
+.info-grid { display: flex; flex-direction: column; }
+.info-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 2px; border-bottom: 1px solid var(--line);
+    font-size: 14px;
+}
+.info-row:last-child { border-bottom: none; }
+.info-row span { color: var(--muted); }
+.info-row b { color: var(--text); font-weight: 600; }
+
+/* 관리자 목록 */
+.admin-list { display: flex; flex-direction: column; gap: 8px; }
+.admin-row {
+    display: grid; grid-template-columns: 1.3fr 1.3fr 0.9fr 0.7fr; gap: 10px; align-items: center;
+    padding: 11px 14px;
+    background: var(--field); border: 1px solid var(--line); border-radius: 10px;
+    font-size: 13.5px; min-width: 0;
+}
+.admin-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.a-name { color: var(--text); font-weight: 600; }
+.a-login { color: var(--muted); }
+.a-role { color: var(--brand-lift); font-weight: 700; font-size: 12px; }
+.a-status { font-weight: 700; font-size: 11.5px; text-align: right; }
+.a-status.on { color: var(--green); }
+.a-status.off { color: var(--muted-2); }
+
 @media (max-width: 560px) {
     .qr-row { flex-direction: column; align-items: flex-start; }
+    .admin-row { grid-template-columns: 1fr 1fr; }
+    .a-status { text-align: left; }
 }

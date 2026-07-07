@@ -6,17 +6,12 @@
     var msg = document.getElementById("msg");
     var pw = document.getElementById("password");
     var pwToggle = document.getElementById("pw-toggle");
+    var otpStep = document.getElementById("otp-step");
     var otpInputs = Array.prototype.slice.call(document.querySelectorAll(".otp-box"));
 
-    function showMsg(text, type) {
-        msg.textContent = text;
-        msg.className = "msg " + type;
-        msg.hidden = false;
-    }
-    function clearMsg() {
-        msg.hidden = true;
-        msg.textContent = "";
-    }
+    function showMsg(text, type) { msg.textContent = text; msg.className = "msg " + type; msg.hidden = false; }
+    function clearMsg() { msg.hidden = true; msg.textContent = ""; }
+    function baseLabel() { return otpStep.hidden ? "관리자 로그인" : "인증 후 로그인"; }
 
     // 비밀번호 표시 토글
     pwToggle.addEventListener("click", function () {
@@ -26,19 +21,15 @@
         pw.focus();
     });
 
-    // OTP: 입력 시 다음 칸, 백스페이스로 이전 칸, 붙여넣기 분배
+    // OTP 6칸: 입력 시 다음 칸, 백스페이스로 이전 칸, 붙여넣기 분배
     otpInputs.forEach(function (box, i) {
         box.addEventListener("input", function () {
             box.value = box.value.replace(/\D/g, "").slice(0, 1);
             box.classList.toggle("filled", box.value !== "");
-            if (box.value && i < otpInputs.length - 1) {
-                otpInputs[i + 1].focus();
-            }
+            if (box.value && i < otpInputs.length - 1) { otpInputs[i + 1].focus(); }
         });
         box.addEventListener("keydown", function (e) {
-            if (e.key === "Backspace" && !box.value && i > 0) {
-                otpInputs[i - 1].focus();
-            }
+            if (e.key === "Backspace" && !box.value && i > 0) { otpInputs[i - 1].focus(); }
         });
         box.addEventListener("paste", function (e) {
             e.preventDefault();
@@ -47,57 +38,57 @@
                 otpInputs[j].value = digits[j] || "";
                 otpInputs[j].classList.toggle("filled", !!digits[j]);
             }
-            var next = Math.min(digits.length, otpInputs.length - 1);
-            otpInputs[next].focus();
+            otpInputs[Math.min(digits.length, otpInputs.length - 1)].focus();
         });
     });
 
-    function otpCode() {
-        return otpInputs.map(function (b) { return b.value; }).join("");
+    function otpCode() { return otpInputs.map(function (b) { return b.value; }).join(""); }
+
+    function revealOtpStep() {
+        otpStep.hidden = false;
+        loginBtn.textContent = "인증 후 로그인";
+        otpInputs[0].focus();
     }
 
-    // 로그인 (백엔드는 loginId + password만 사용. OTP/기기신뢰는 화면용)
     form.addEventListener("submit", function (e) {
         e.preventDefault();
         clearMsg();
 
         var loginId = document.getElementById("loginId").value.trim();
         var password = pw.value;
+        if (!loginId || !password) { showMsg("사번·이메일과 비밀번호를 입력하세요.", "error"); return; }
 
-        if (!loginId || !password) {
-            showMsg("사번·이메일과 비밀번호를 입력하세요.", "error");
-            return;
-        }
+        var otp = otpStep.hidden ? "" : otpCode();
+        if (!otpStep.hidden && otp.length !== 6) { showMsg("6자리 OTP 코드를 입력하세요.", "error"); return; }
 
         loginBtn.disabled = true;
-        var label = loginBtn.textContent;
         loginBtn.textContent = "확인 중...";
 
         fetch("/api/admin/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ loginId: loginId, password: password, otp: otpCode() })
+            body: JSON.stringify({ loginId: loginId, password: password, otp: otp })
         })
             .then(function (res) {
-                return res.json().then(function (body) { return { ok: res.ok, body: body }; })
+                return res.json().then(function (b) { return { ok: res.ok, body: b }; })
                     .catch(function () { return { ok: res.ok, body: null }; });
             })
             .then(function (r) {
                 if (r.ok) {
                     var name = r.body && r.body.data ? r.body.data.adminName : "";
-                    showMsg((name ? name + "님, " : "") + "로그인 성공. 관리자 콘솔로 이동합니다.", "ok");
-                    setTimeout(function () { window.location.href = "/admin/console.html"; }, 700);
+                    showMsg((name ? name + "님, " : "") + "로그인 성공. 대시보드로 이동합니다.", "ok");
+                    setTimeout(function () { window.location.href = "/admin/dashboard.html"; }, 700);
+                } else if (r.body && r.body.code === "OTP_REQUIRED") {
+                    revealOtpStep();
+                    showMsg("인증 앱에 표시된 6자리 코드를 입력하세요.", "info");
                 } else {
-                    var reason = r.body && r.body.message ? r.body.message : "로그인에 실패했습니다.";
-                    showMsg(reason, "error");
+                    showMsg((r.body && r.body.message) || "로그인에 실패했습니다.", "error");
                 }
             })
-            .catch(function () {
-                showMsg("서버에 연결할 수 없습니다.", "error");
-            })
+            .catch(function () { showMsg("서버에 연결할 수 없습니다.", "error"); })
             .finally(function () {
                 loginBtn.disabled = false;
-                loginBtn.textContent = label;
+                if (loginBtn.textContent === "확인 중...") { loginBtn.textContent = baseLabel(); }
             });
     });
 
@@ -105,5 +96,4 @@
     document.getElementById("reset-btn").addEventListener("click", function () {
         showMsg("비밀번호 재설정은 정보보안팀에 문의해 주세요. (셀프 재설정 준비 중)", "error");
     });
-
 })();

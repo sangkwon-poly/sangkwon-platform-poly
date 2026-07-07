@@ -9,7 +9,6 @@
     function showMsg(text, type) { msg.textContent = text; msg.className = "msg " + type; msg.hidden = false; }
     function clearMsg() { msg.hidden = true; }
 
-    // fetch → {ok, status, body}
     function api(path, opts) {
         return fetch(path, opts).then(function (res) {
             return res.json().catch(function () { return null; }).then(function (b) {
@@ -20,18 +19,46 @@
 
     function toLogin() { window.location.href = "/admin/login.html"; }
 
-    // 초기 로드: 세션 확인 + 관리자 정보 + OTP 상태
+    function esc(s) {
+        var d = document.createElement("div");
+        d.textContent = (s == null) ? "" : String(s);
+        return d.innerHTML;
+    }
+
+    // 초기 로드: 세션 확인 → 계정/권한 → OTP 상태 → (SUPER_ADMIN) 관리자 목록
     api("/api/admin/auth/me").then(function (me) {
         if (me.status === 401) { toLogin(); return null; }
-        if (me.ok && me.body && me.body.data) {
-            var d = me.body.data;
-            document.getElementById("who").textContent = d.adminName + " · " + d.role;
-            document.getElementById("who-sub").textContent = d.loginId + " · " + d.role;
-        }
+        if (!(me.ok && me.body && me.body.data)) { toLogin(); return null; }
+        var d = me.body.data;
+        document.getElementById("who").textContent = d.adminName + " · " + d.role;
+        document.getElementById("who-sub").textContent = d.loginId + " · " + d.role;
+        document.getElementById("acc-name").textContent = d.adminName;
+        document.getElementById("acc-loginid").textContent = d.loginId;
+        document.getElementById("acc-role").textContent = d.role;
+
+        if (d.role === "SUPER_ADMIN") { loadAdmins(); }
+
         return api("/api/admin/auth/otp/status").then(function (r) {
             renderStatus(r.ok && r.body && r.body.data ? r.body.data.enabled : false);
         });
     });
+
+    function loadAdmins() {
+        api("/api/admin/admin-users").then(function (r) {
+            if (!r.ok || !r.body || !r.body.data) { return; }
+            var rows = r.body.data.map(function (a) {
+                var st = a.status === "ACTIVE" ? "on" : "off";
+                return '<div class="admin-row">'
+                    + '<span class="a-name">' + esc(a.adminName) + '</span>'
+                    + '<span class="a-login mono">' + esc(a.loginId) + '</span>'
+                    + '<span class="a-role">' + esc(a.role) + '</span>'
+                    + '<span class="a-status ' + st + '">' + esc(a.status) + '</span>'
+                    + '</div>';
+            }).join("");
+            document.getElementById("admin-list").innerHTML = rows;
+            document.getElementById("admins-sec").hidden = false;
+        });
+    }
 
     function renderStatus(enabled) {
         setupBox.hidden = true;

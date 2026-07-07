@@ -6,6 +6,7 @@ import com.sangkwon.sangkwonplatform.admin.account.dto.session.AdminSession;
 import com.sangkwon.sangkwonplatform.admin.account.entity.AdminUser;
 import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminRole;
 import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminStatus;
+import com.sangkwon.sangkwonplatform.admin.account.otp.OtpRequiredException;
 import com.sangkwon.sangkwonplatform.admin.account.repository.AdminUserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -89,7 +90,7 @@ class AdminUserServiceTest {
     }
 
     @Test
-    void OTP를_켠_계정은_비밀번호가_맞아도_코드가_없으면_401() {
+    void OTP를_켠_계정은_비밀번호가_맞아도_코드가_없으면_OTP를_요구한다() {
         AdminUser otpAdmin = activeAdmin();
         otpAdmin.startOtpSetup("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ");
         otpAdmin.confirmOtp();
@@ -97,8 +98,7 @@ class AdminUserServiceTest {
         when(passwordEncoder.matches("pw", "hash")).thenReturn(true);
 
         assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "pw", null)))
-                .isInstanceOf(ResponseStatusException.class)
-                .satisfies(e -> assertThat(status(e)).isEqualTo(401));
+                .isInstanceOf(OtpRequiredException.class);
     }
 
     @Test

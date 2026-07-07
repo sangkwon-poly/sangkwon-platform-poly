@@ -6,6 +6,7 @@ import com.sangkwon.sangkwonplatform.admin.account.dto.response.OtpSetupResponse
 import com.sangkwon.sangkwonplatform.admin.account.dto.session.AdminSession;
 import com.sangkwon.sangkwonplatform.admin.account.entity.AdminUser;
 import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminStatus;
+import com.sangkwon.sangkwonplatform.admin.account.otp.OtpRequiredException;
 import com.sangkwon.sangkwonplatform.admin.account.otp.Totp;
 import com.sangkwon.sangkwonplatform.admin.account.repository.AdminUserRepository;
 import lombok.RequiredArgsConstructor;
@@ -77,7 +78,8 @@ public class AdminUserService {
         if (adminUser.isOtpEnabled()) {
             String otp = request.otp();
             if (otp == null || otp.isBlank()) {
-                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "OTP 인증코드를 입력하세요.");
+                // 비번은 맞았고 OTP만 필요 → 프론트가 OTP 단계로 전환하도록 신호
+                throw new OtpRequiredException();
             }
             if (!Totp.verify(adminUser.getOtpSecret(), otp)) {
                 loginAttemptService.recordFailure(adminUser.getAdminId());
