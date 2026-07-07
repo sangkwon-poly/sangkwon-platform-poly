@@ -9,6 +9,7 @@ import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminStatus;
 import com.sangkwon.sangkwonplatform.admin.account.otp.OtpRequiredException;
 import com.sangkwon.sangkwonplatform.admin.account.otp.Totp;
 import com.sangkwon.sangkwonplatform.admin.account.repository.AdminUserRepository;
+import com.sangkwon.sangkwonplatform.admin.account.security.TrustedDeviceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,6 +29,7 @@ public class AdminUserService {
     private final AdminUserRepository adminUserRepository;
     private final PasswordEncoder passwordEncoder;
     private final AdminLoginAttemptService loginAttemptService;
+    private final TrustedDeviceService trustedDeviceService;
 
     public void join(AdminJoinRequest request) {
         if (adminUserRepository.existsByLoginId(request.loginId())) {
@@ -49,7 +51,7 @@ public class AdminUserService {
                 .toList();
     }
 
-    public AdminSession login(AdminLoginRequest request) {
+    public AdminSession login(AdminLoginRequest request, String trustToken) {
         AdminUser adminUser = adminUserRepository.findByLoginId(request.loginId())
                 .orElseThrow(this::invalidCredentials);
 
@@ -67,7 +69,8 @@ public class AdminUserService {
             throw invalidCredentials();
         }
 
-        if (adminUser.isOtpEnabled()) {
+        // 신뢰된 기기(유효한 신뢰 쿠키)면 OTP 단계를 건너뛴다
+        if (adminUser.isOtpEnabled() && !trustedDeviceService.verify(trustToken, adminUser.getAdminId())) {
             String otp = request.otp();
             if (otp == null || otp.isBlank()) {
                 throw new OtpRequiredException();
@@ -128,6 +131,13 @@ public class AdminUserService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다.");
         }
         adminUser.updatePassword(passwordEncoder.encode(request.newPassword()));
+    }
+
+    // 최고관리자가 다른 관리자의 비밀번호를 재설정한다(현재 비밀번호 확인 없이). 잠금도 함께 해제한다.
+    public void resetPassword(Long adminId, AdminPasswordResetRequest request) {
+        AdminUser adminUser = findAdminUser(adminId);
+        adminUser.updatePassword(passwordEncoder.encode(request.newPassword()));
+        adminUser.updateStatus(AdminStatus.ACTIVE);
     }
 
     public void updateRole(Long adminId, AdminRoleUpdateRequest request) {

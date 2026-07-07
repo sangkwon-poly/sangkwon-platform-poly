@@ -61,6 +61,19 @@ public class AdminUserController {
         return ApiResponse.ok(null);
     }
 
+    @PatchMapping("/{adminId}/reset-password")
+    public ApiResponse<Void> resetPassword(@LoginAdmin AdminSession admin,
+                                           @PathVariable Long adminId,
+                                           @Valid @RequestBody AdminPasswordResetRequest request,
+                                           HttpServletRequest http) {
+        requireSuperAdmin(admin);
+        requireNotSelf(admin, adminId);
+        adminUserService.resetPassword(adminId, request);
+        auditService.record(admin.adminId(), AuditAction.PASSWORD_RESET, "ADMIN",
+                String.valueOf(adminId), null, http);
+        return ApiResponse.ok(null);
+    }
+
     @PatchMapping("/{adminId}/role")
     public ApiResponse<Void> updateRole(@LoginAdmin AdminSession admin,
                                         @PathVariable Long adminId,
