@@ -102,9 +102,6 @@
     });
 
     // 아직 백엔드가 없는 기능은 안내만
-    document.getElementById("sso-btn").addEventListener("click", function () {
-        showMsg("조직 SSO 연동은 준비 중입니다. 사번 로그인을 이용해 주세요.", "error");
-    });
     document.getElementById("reset-btn").addEventListener("click", function () {
         showMsg("비밀번호 재설정은 정보보안팀에 문의해 주세요. (셀프 재설정 준비 중)", "error");
     });
