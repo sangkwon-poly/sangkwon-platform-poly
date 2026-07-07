@@ -18,7 +18,8 @@ public class BatchJobExecutor {
             long processed = task.getAsLong();
             log.succeed(processed);
             return batchJobLogRepository.save(log);
-        } catch (RuntimeException e) {
+        } catch (Throwable e) {
+            // RuntimeException뿐 아니라 Error 등 어떤 실패든 RUNNING으로 남지 않도록 이력을 FAILED로 남기고 되던진다
             log.fail(e.getMessage());
             batchJobLogRepository.save(log);
             throw e;

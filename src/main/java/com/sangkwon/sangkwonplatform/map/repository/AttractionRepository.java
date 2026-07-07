@@ -16,6 +16,7 @@ public interface AttractionRepository extends JpaRepository<Attraction, Attracti
             where (:stdrYyquCd is null or a.stdrYyquCd = :stdrYyquCd)
               and (:trdarCd is null or a.trdarCd = :trdarCd)
             order by a.trdarCd, a.stdrYyquCd
+            fetch first 20000 rows only
             """)
     List<Attraction> search(@Param("stdrYyquCd") String stdrYyquCd,
                             @Param("trdarCd") String trdarCd);
