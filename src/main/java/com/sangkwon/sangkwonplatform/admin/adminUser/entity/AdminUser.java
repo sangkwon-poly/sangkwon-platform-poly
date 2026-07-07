@@ -5,18 +5,16 @@ import com.sangkwon.sangkwonplatform.admin.adminUser.entity.enums.AdminStatus;
 import com.sangkwon.sangkwonplatform.admin.adminUser.entity.enums.HashAlgo;
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "ADMIN_USER")
 @Getter
-@Setter
 public class AdminUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="ADMIN_ID", length = 19)
+    @Column(name="ADMIN_ID")
     private Long adminId;
 
     @Column(name="LOGIN_ID",unique = true, length = 50)
@@ -40,16 +38,16 @@ public class AdminUser {
     @Column(name="status", nullable=false, length = 10)
     private AdminStatus status = AdminStatus.ACTIVE;
 
-    @Column(name="failed_login_cnt", nullable = false, length = 4)
+    @Column(name="failed_login_cnt", nullable = false)
     private int failedLoginCnt = 0;
 
-    @Column(name = "last_login_at", length = 6)
+    @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
-    @Column(name = "created_at", nullable = false, length = 6)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = false, length = 6)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
     public static AdminUser create(
