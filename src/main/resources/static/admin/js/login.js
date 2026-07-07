@@ -56,10 +56,11 @@
 
         var loginId = document.getElementById("loginId").value.trim();
         var password = pw.value;
-        if (!loginId || !password) { showMsg("사번·이메일과 비밀번호를 입력하세요.", "error"); return; }
+        if (!loginId || !password) { showMsg("아이디와 비밀번호를 입력하세요.", "error"); return; }
 
         var otp = otpStep.hidden ? "" : otpCode();
         if (!otpStep.hidden && otp.length !== 6) { showMsg("6자리 OTP 코드를 입력하세요.", "error"); return; }
+        var trustDevice = document.getElementById("trust").checked;
 
         loginBtn.disabled = true;
         loginBtn.textContent = "확인 중...";
@@ -67,7 +68,7 @@
         fetch("/api/admin/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ loginId: loginId, password: password, otp: otp })
+            body: JSON.stringify({ loginId: loginId, password: password, otp: otp, trustDevice: trustDevice })
         })
             .then(function (res) {
                 return res.json().then(function (b) { return { ok: res.ok, body: b }; })
@@ -92,8 +93,8 @@
             });
     });
 
-    // 아직 백엔드가 없는 기능은 안내만
+    // 셀프(이메일) 재설정은 미지원. 최고관리자가 관리자 계정 화면에서 초기화한다.
     document.getElementById("reset-btn").addEventListener("click", function () {
-        showMsg("비밀번호 재설정은 정보보안팀에 문의해 주세요. (셀프 재설정 준비 중)", "error");
+        showMsg("비밀번호 재설정은 최고관리자에게 요청하세요. 관리자 계정 화면에서 초기화·잠금 해제할 수 있습니다.", "info");
     });
 })();

@@ -114,6 +114,26 @@
     </div>
   </div>
 
+  <!-- 비밀번호 재설정 모달 -->
+  <div class="ua-modal" id="ua-reset-modal" hidden>
+    <div class="ua-modal-backdrop" data-reset-close></div>
+    <div class="ua-modal-card" role="dialog" aria-modal="true" aria-labelledby="ua-reset-title">
+      <h2 id="ua-reset-title">비밀번호 재설정</h2>
+      <p class="ua-reset-target" id="ua-reset-target"></p>
+      <form id="ua-reset-form" class="ua-form" autocomplete="off">
+        <label class="ua-field">
+          <span>새 비밀번호</span>
+          <input type="password" name="newPassword" minlength="4" required placeholder="4자 이상">
+        </label>
+        <p class="ua-form-msg" id="ua-reset-msg" hidden></p>
+        <div class="ua-form-actions">
+          <button type="button" class="ua-btn ua-btn-ghost" data-reset-close>취소</button>
+          <button type="submit" class="ua-btn ua-btn-primary" id="ua-reset-submit">재설정</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="/admin/js/admin-shell.js"></script>
   <script src="/admin/js/user-admin.js"></script>
 </body>
