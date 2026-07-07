@@ -1,11 +1,15 @@
 package com.sangkwon.sangkwonplatform.admin.config;
 
-import com.sangkwon.sangkwonplatform.admin.adminUser.interceptor.AdminAuthInterceptor;
+import com.sangkwon.sangkwonplatform.admin.account.interceptor.AdminAuthInterceptor;
+import com.sangkwon.sangkwonplatform.admin.account.session.LoginAdminArgumentResolver;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-// 관리자 API 인증 가드 등록. 로그인/로그아웃만 열어두고 나머지 /api/admin/** 는 세션 필수.
+import java.util.List;
+
+// 관리자 API 인증 인프라: /api/admin/** 세션 가드 + @LoginAdmin 주입
 @Configuration
 public class AdminWebConfig implements WebMvcConfigurer {
 
@@ -14,5 +18,10 @@ public class AdminWebConfig implements WebMvcConfigurer {
         registry.addInterceptor(new AdminAuthInterceptor())
                 .addPathPatterns("/api/admin/**")
                 .excludePathPatterns("/api/admin/auth/login", "/api/admin/auth/logout");
+    }
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(new LoginAdminArgumentResolver());
     }
 }

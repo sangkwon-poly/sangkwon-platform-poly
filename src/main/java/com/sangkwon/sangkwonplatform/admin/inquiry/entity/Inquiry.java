@@ -1,7 +1,7 @@
 package com.sangkwon.sangkwonplatform.admin.inquiry.entity;
 
 
-import com.sangkwon.sangkwonplatform.admin.adminUser.entity.AdminUser;
+import com.sangkwon.sangkwonplatform.admin.account.entity.AdminUser;
 import com.sangkwon.sangkwonplatform.admin.inquiry.entity.enums.InquiryStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
