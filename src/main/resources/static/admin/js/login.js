@@ -76,7 +76,7 @@
         fetch("/api/admin/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ loginId: loginId, password: password })
+            body: JSON.stringify({ loginId: loginId, password: password, otp: otpCode() })
         })
             .then(function (res) {
                 return res.json().then(function (body) { return { ok: res.ok, body: body }; })
@@ -106,6 +106,4 @@
         showMsg("비밀번호 재설정은 정보보안팀에 문의해 주세요. (셀프 재설정 준비 중)", "error");
     });
 
-    // OTP 코드 사용 여부만 참조해 미사용 경고 억제
-    void otpCode;
 })();

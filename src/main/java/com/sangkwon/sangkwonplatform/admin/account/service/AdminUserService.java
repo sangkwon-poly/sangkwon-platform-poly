@@ -2,9 +2,11 @@ package com.sangkwon.sangkwonplatform.admin.account.service;
 
 import com.sangkwon.sangkwonplatform.admin.account.dto.request.*;
 import com.sangkwon.sangkwonplatform.admin.account.dto.response.AdminListResponse;
+import com.sangkwon.sangkwonplatform.admin.account.dto.response.OtpSetupResponse;
 import com.sangkwon.sangkwonplatform.admin.account.dto.session.AdminSession;
 import com.sangkwon.sangkwonplatform.admin.account.entity.AdminUser;
 import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminStatus;
+import com.sangkwon.sangkwonplatform.admin.account.otp.Totp;
 import com.sangkwon.sangkwonplatform.admin.account.repository.AdminUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -71,8 +73,44 @@ public class AdminUserService {
             throw invalidCredentials();
         }
 
+        // 2단계 인증을 켠 계정은 OTP까지 맞아야 통과
+        if (adminUser.isOtpEnabled()) {
+            String otp = request.otp();
+            if (otp == null || otp.isBlank()) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "OTP 인증코드를 입력하세요.");
+            }
+            if (!Totp.verify(adminUser.getOtpSecret(), otp)) {
+                loginAttemptService.recordFailure(adminUser.getAdminId());
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "OTP 인증코드가 올바르지 않습니다.");
+            }
+        }
+
         adminUser.loginSuccess(); // 성공 시 실패 카운트 리셋 (이 트랜잭션에서 커밋)
         return AdminSession.from(adminUser);
+    }
+
+    // OTP(2FA) 설정 시작: 비밀키 발급·저장(아직 미활성). 반환된 URL을 인증 앱에 등록한다.
+    public OtpSetupResponse setupOtp(Long adminId) {
+        AdminUser admin = findAdminUser(adminId);
+        String secret = Totp.generateSecret();
+        admin.startOtpSetup(secret);
+        return new OtpSetupResponse(secret, Totp.otpauthUrl("서울공화국 ADMIN", admin.getLoginId(), secret));
+    }
+
+    // 인증 앱 코드로 확인되면 2FA를 활성화한다.
+    public void enableOtp(Long adminId, String otp) {
+        AdminUser admin = findAdminUser(adminId);
+        if (admin.getOtpSecret() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "먼저 OTP 설정을 시작하세요.");
+        }
+        if (!Totp.verify(admin.getOtpSecret(), otp)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "OTP 코드가 올바르지 않습니다.");
+        }
+        admin.confirmOtp();
+    }
+
+    public void disableOtp(Long adminId) {
+        findAdminUser(adminId).disableOtp();
     }
 
     // 관리자 이름 수정 (본인)

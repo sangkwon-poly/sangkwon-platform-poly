@@ -14,6 +14,7 @@ ojdbc.properties
 # 설계 문서는 저장소에 두지 않고 따로 보관 (docs에는 Git 협업규칙만 유지)
 docs/DB_설계보고서.md
 docs/DB_테이블_명세서.md
+docs/*.xlsx
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
