@@ -100,6 +100,7 @@ public class Member extends BaseEntity {
         this.withdrawnAt = LocalDateTime.now();  // 스키마 CHECK: WITHDRAWN이면 WITHDRAWN_AT 필수 => 탈퇴 시각 필수
     }
 
+    // 휴면 또는 밴처리를 다시 정상으로
     public boolean isActive() {
         return this.status == MemberStatus.ACTIVE;
     }

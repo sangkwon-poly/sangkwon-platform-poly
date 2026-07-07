@@ -225,7 +225,7 @@
     signup: function (payload) {
       const p = payload || {};
       if (!p.loginId || !p.email || !p.nickname || !p.password) {
-        return reject('M000', '필수 항목을 모두 입력해 주세요.');
+        return reject('M400', '필수 항목을 모두 입력해 주세요.');
       }
       if (mockDb.membersByLoginId.has(p.loginId)) {
         return reject('M002', '이미 사용 중인 로그인 아이디입니다.');
@@ -263,7 +263,10 @@
         return reject('M007', '탈퇴한 회원입니다.');
       }
       if (member.status === 'BANNED') {
-        return reject('M008', '이용이 제한된 계정입니다.');
+        return reject('M009', '이용이 정지된 계정입니다.');
+      }
+      if (member.status === 'DORMANT') {
+        return reject('M010', '휴면 계정입니다. 재활성화가 필요합니다.');
       }
       member.lastLoginAt = nowIso();
       setMockSession(member.memberId);
@@ -322,7 +325,7 @@
     addFavorite: function (trdarCd) {
       const m = currentMockMember();
       if (!m) return reject('M005', '로그인이 필요합니다.');
-      if (!trdarCd) return reject('M000', '상권 코드가 필요합니다.');
+      if (!trdarCd) return reject('M400', '상권 코드가 필요합니다.');
       const list = mockDb.favoritesByMember.get(m.memberId) || [];
       if (list.some(function (f) { return f.trdarCd === String(trdarCd); })) {
         return reject('M006', '이미 찜한 상권입니다.');
@@ -362,7 +365,7 @@
 
     logSearch: function (payload) {
       const p = payload || {};
-      if (!p.keyword) return reject('M000', '검색어가 필요합니다.');
+      if (!p.keyword) return reject('M400', '검색어가 필요합니다.');
       const m = currentMockMember();
       // SEARCH_LOG.MEMBER_ID 는 nullable(비로그인 검색 허용).
       const memberId = m ? m.memberId : null;
