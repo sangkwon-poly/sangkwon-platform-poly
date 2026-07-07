@@ -91,6 +91,15 @@
   font-size: 9.5px;
   color: #a99c94;
 }
+.legend-nodata {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  font-size: 9.5px;
+  color: #a99c94;
+}
+.legend-nodata span { width: 11px; height: 11px; border-radius: 3px; background: #e7e0da; }
 
 /* 출처 */
 .map-attr {

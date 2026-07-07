@@ -36,6 +36,10 @@ public class LlmReport extends BaseEntity {
     @Column(name = "STDR_YYQU_CD")
     private String stdrYyquCd;
 
+    // 업종 리포트의 대상 업종. 상권 전체 리포트는 NULL
+    @Column(name = "INDUTY_CD")
+    private String indutyCd;
+
     @Lob
     @Column(name = "PROMPT")
     private String prompt;

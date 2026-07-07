@@ -23,8 +23,11 @@ function currentRows() {
 }
 
 function buildRow(d, rank, maxAmt) {
-    const amt = d.salesAmt || 0;
-    const width = maxAmt ? Math.round((amt / maxAmt) * 100) : 0;
+    const width = maxAmt ? Math.round(((d.salesAmt || 0) / maxAmt) * 100) : 0;
+    // 매출 null은 집계 없음이라 0과 구분해 표기, 점포 null은 실제 0개
+    const amtHtml = d.salesAmt != null
+        ? "<b>" + fmtEok(d.salesAmt) + '</b><span class="rt-unit"> 억</span>'
+        : "<b>-</b>";
     const ix = d.changeIx || "";
     const tr = document.createElement("tr");
     if (rank === 1) {
@@ -34,9 +37,9 @@ function buildRow(d, rank, maxAmt) {
     tr.innerHTML =
         '<td class="rt-rank"><span class="rank-num' + (rank === 1 ? " is-top" : "") + '">' + rank + "</span></td>" +
         '<td class="rt-name"><span class="rt-place">' + d.trdarNm + '</span><span class="rt-desc">' + (d.signguNm || "") + "</span></td>" +
-        '<td class="rt-num"><b>' + fmtEok(amt) + '</b><span class="rt-unit"> 억</span><span class="minibar"><span style="width:' + width + '%;background:#c0664e"></span></span></td>' +
+        '<td class="rt-num">' + amtHtml + '<span class="minibar"><span style="width:' + width + '%;background:#c0664e"></span></span></td>' +
         '<td class="rt-num rt-plain">' + (d.flpop != null ? fmtMan(d.flpop) + " 만" : "-") + "</td>" +
-        '<td class="rt-num rt-plain">' + (d.storeCnt != null ? d.storeCnt.toLocaleString() : "-") + "</td>" +
+        '<td class="rt-num rt-plain">' + (d.storeCnt || 0).toLocaleString() + "</td>" +
         '<td class="rt-num ' + (ix ? (CHANGE_UP.has(ix) ? "rt-up" : "rt-down") : "rt-plain") + '">' + (d.changeIxNm || "-") + "</td>";
     tr.addEventListener("click", () => {
         location.href = "/map/trdar-detail.html?trdarCd=" + d.trdarCd;

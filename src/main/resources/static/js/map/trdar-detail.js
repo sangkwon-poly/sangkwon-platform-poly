@@ -16,6 +16,10 @@ function qoqPct(totals) {
     if (totals.length < 2 || !totals[totals.length - 2].v) {
         return null;
     }
+    // 직전 분기가 결측이면 전분기 대비가 아니므로 배지를 접는다
+    if (nextQuarter(totals[totals.length - 2].q) !== totals[totals.length - 1].q) {
+        return null;
+    }
     const cur = totals[totals.length - 1].v;
     const prev = totals[totals.length - 2].v;
     return ((cur - prev) / prev) * 100;
@@ -211,7 +215,7 @@ function drawCompetitors(d, summaries) {
     }
     const maxAmt = near[0].salesAmt || 0;
     list.innerHTML = near.map((s) => {
-        const km = (d.centerLat != null && s.centerLat != null)
+        const km = (d.centerLat != null && d.centerLot != null && s.centerLat != null && s.centerLot != null)
             ? distanceKm(+d.centerLat, +d.centerLot, +s.centerLat, +s.centerLot).toFixed(1) + "km" : "-";
         const width = maxAmt ? Math.round(((s.salesAmt || 0) / maxAmt) * 100) : 0;
         return '<li class="comp-row"><div class="comp-main"><span class="comp-name">' + s.trdarNm + "</span>" +
@@ -298,19 +302,27 @@ async function load() {
         if (salesTotals.length) {
             setKpi("sales", fmtEok(salesTotals[salesTotals.length - 1].v), "억/분기", qoqPct(salesTotals));
         } else {
-            setKpi("sales", "-", "억/분기", null);
+            // 매출 원천에 행이 없으면 실제 0과 구분해 집계 없음으로
+            setKpi("sales", "집계 없음", "", null);
         }
         const storeTotals = sumByQuarter(myStores, (s) => s.storCo);
         if (storeTotals.length) {
             setKpi("store", storeTotals[storeTotals.length - 1].v.toLocaleString(), "개", qoqPct(storeTotals));
         } else {
-            setKpi("store", "-", "개", null);
+            setKpi("store", "0", "개", null);
         }
         drawTrend(salesTotals);
         drawHeat(mySales);
         return salesTotals;
     };
-    indutySel.addEventListener("change", () => renderSalesParts(indutySel.value));
+    indutySel.addEventListener("change", () => {
+        renderSalesParts(indutySel.value);
+        // 선택 업종을 리포트 링크에 실어 업종 보고서로 연결한다
+        if (reportBtn) {
+            reportBtn.href = "/map/report.html?trdarCd=" + trdarCd +
+                (indutySel.value ? "&indutyCd=" + indutySel.value : "");
+        }
+    });
 
     const salesTotals = renderSalesParts("");
     if (salesTotals.length) {

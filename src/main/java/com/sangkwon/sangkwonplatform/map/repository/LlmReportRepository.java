@@ -10,7 +10,18 @@ import java.util.Optional;
 
 public interface LlmReportRepository extends JpaRepository<LlmReport, Long> {
 
-    Optional<LlmReport> findFirstByTrdarCdOrderByCreatedAtDesc(String trdarCd);
+    // 최근 생성순. 업종 리포트는 업종 코드로, 상권 전체 리포트는 NULL로 구분한다
+    @Query("""
+            select r from LlmReport r
+            where r.trdarCd = :trdarCd
+              and ((:indutyCd is null and r.indutyCd is null) or r.indutyCd = :indutyCd)
+            order by r.createdAt desc
+            """)
+    List<LlmReport> findLatest(@Param("trdarCd") String trdarCd, @Param("indutyCd") String indutyCd);
+
+    // 업종명 조회 (INDUTY 엔티티가 따로 없어 여기서 함께 해결)
+    @Query(value = "select induty_cd_nm from induty where induty_cd = :indutyCd", nativeQuery = true)
+    Optional<String> findIndutyName(@Param("indutyCd") String indutyCd);
 
     // 리포트 프롬프트용: 해당 분기 매출 상위 업종 5개 (이름 포함)
     @Query(value = """
