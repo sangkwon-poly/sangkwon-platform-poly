@@ -104,6 +104,8 @@
   color: #fff;
 }
 .app-quarter svg { flex: 0 0 auto; }
+/* 네이티브 옵션 목록은 흰 바탕이라 흰 글자를 상속하면 안 보인다 */
+.app-quarter option { color: var(--brand); background: #fff; }
 
 /* 연동 상태 */
 .app-status {
