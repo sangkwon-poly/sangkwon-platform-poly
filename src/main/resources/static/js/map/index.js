@@ -31,6 +31,7 @@ const state = {
     selected: null,
     layer: "sales",
     seoulRent: null,
+    appliedInduty: "",      // 현재 요약 데이터에 실제 적용된 업종. 라벨은 셀렉트가 아니라 이 값을 쓴다
     drill: null,            // 드릴다운 요청 취소용 AbortController
     polyClicked: false,     // 폴리곤 클릭이 지도 클릭으로 전파돼 드로어가 닫히는 것 방지
 };
@@ -230,7 +231,9 @@ async function drillDown(gu, bounds) {
     if (state.drill) {
         state.drill.abort();
     }
-    state.drill = new AbortController();
+    // await 재개 후 남의 컨트롤러를 읽지 않게 지역 변수로 잡는다
+    const ctrl = new AbortController();
+    state.drill = ctrl;
 
     state.level = "trdar";
     state.currentGu = gu;
@@ -258,17 +261,21 @@ async function drillDown(gu, bounds) {
     if (state.codesReady) {
         await state.codesReady;
     }
+    // 대기 중 다른 드릴다운이 시작됐으면 여기서 접는다
+    if (ctrl.signal.aborted) {
+        return;
+    }
     const code = GU_CODE_CACHE.get(gu);
     if (!code) {
         return;
     }
     let geos;
     try {
-        geos = await apiData("/api/districts/geo?signguCd=" + code, state.drill.signal);
+        geos = await apiData("/api/districts/geo?signguCd=" + code, ctrl.signal);
     } catch (e) {
         return; // 취소되었거나 실패. 화면은 구 상태 유지
     }
-    if (state.currentGu !== gu) {
+    if (ctrl.signal.aborted || state.currentGu !== gu) {
         return;
     }
     geos.forEach((gjson) => {
@@ -348,9 +355,10 @@ function fillDrawerMetrics(salesAmt, flpop, storeCnt, changeNm) {
     dds[3].innerHTML = (state.seoulRent != null ? Math.round(state.seoulRent).toLocaleString() : "-") + "<span>천원/㎡</span>";
 }
 
-// 업종 필터가 걸려 있으면 카드에 업종명을 함께 표기
+// 업종 필터가 걸려 있으면 카드에 업종명을 함께 표기.
+// 요약 재로딩 중 라이브 셀렉트 값을 읽으면 옛 수치에 새 라벨이 섞이므로 적용 완료된 값만 쓴다
 function indutySuffix() {
-    const cd = document.getElementById("induty-select").value;
+    const cd = state.appliedInduty;
     if (!cd) {
         return "";
     }
@@ -370,6 +378,9 @@ function openDrawerForGu(g) {
     openDrawer();
 }
 
+// 증감 요청 순번. 같은 행 객체를 재선택해도 옛 응답을 구분할 수 있어야 한다
+let deltaSeq = 0;
+
 async function selectTrdar(d) {
     if (state.selected) {
         const prev = state.trdarPolys.get(state.selected.trdarCd) || [];
@@ -388,13 +399,14 @@ async function selectTrdar(d) {
     document.querySelector(".sel-add").style.display = "";
     openDrawer();
 
-    // 전분기 증감. 업종 필터가 있으면 그 업종 매출로, 응답 전에 다른 상권을 고르면 버린다.
+    // 전분기 증감. 카드 수치와 같은 기준이 되게 적용 완료된 업종으로 조회하고, 늦은 응답은 순번으로 버린다
     const delta = document.querySelector(".sel-hero-delta");
     delta.textContent = "";
+    const my = ++deltaSeq;
     try {
-        const induty = document.getElementById("induty-select").value;
+        const induty = state.appliedInduty;
         const rows = await apiData("/api/sales?trdarCd=" + d.trdarCd + (induty ? "&indutyCd=" + induty : ""));
-        if (state.selected !== d) {
+        if (my !== deltaSeq || state.selected !== d) {
             return;
         }
         // 증감 기준 분기를 드로어 수치와 같은 d.quarter로 맞춘다. 직전 분기가 결측이면 접는다
@@ -419,7 +431,8 @@ function drawRanking() {
     list.innerHTML = "";
     top.forEach((g, i) => {
         const li = document.createElement("li");
-        li.className = "rank-row";
+        // 재렌더에도 하이라이트가 남게 노드가 아니라 상태에서 도출한다
+        li.className = "rank-row" + (g.gu === state.currentGu ? " is-selected" : "");
         li.style.cursor = "pointer";
         const width = maxAmt ? Math.round((g.salesAmt / maxAmt) * 100) : 0;
         li.innerHTML =
@@ -431,7 +444,21 @@ function drawRanking() {
         li.addEventListener("click", () => {
             list.querySelectorAll(".rank-row").forEach((r) => r.classList.remove("is-selected"));
             li.classList.add("is-selected");
-            drillDown(g.gu, state.guBounds.get(g.gu) || null);
+            // 다른 구이거나 폴리곤이 없으면(실패·로딩 중) 드릴다운, 같은 구 재클릭은 재요청 없이 복귀만
+            if (g.gu !== state.currentGu || !state.trdarPolys.size) {
+                drillDown(g.gu, state.guBounds.get(g.gu) || null);
+                return;
+            }
+            const b = state.guBounds.get(g.gu);
+            if (b) {
+                state.map.setBounds(b, 24);
+            }
+            if (state.selected) {
+                const prev = state.trdarPolys.get(state.selected.trdarCd) || [];
+                prev.forEach((p) => p.setOptions({ fillOpacity: 0.78, strokeWeight: 1.5 }));
+                state.selected = null;
+            }
+            openDrawerForGu(g);
         });
         list.appendChild(li);
     });
@@ -488,11 +515,17 @@ async function reloadSummary() {
         params.set("indutyCd", induty);
     }
     const qs = params.toString();
-    const rows = (await apiData("/api/districts/summary" + (qs ? "?" + qs : ""))) || [];
+    let rows;
+    try {
+        rows = (await apiData("/api/districts/summary" + (qs ? "?" + qs : ""))) || [];
+    } catch (e) {
+        return; // 실패하면 기존 기준을 그대로 유지한다
+    }
     if (my !== summaryReq) {
         return; // 더 최근 선택이 있으면 버린다
     }
     state.districts = rows;
+    state.appliedInduty = induty;
     aggregateByGu();
     // 배경 구 색도 같은 기준으로 다시 칠한다
     paintGu();
@@ -549,6 +582,11 @@ async function init() {
             if (rent.length) {
                 const q = latestQuarter(rent);
                 state.seoulRent = rent.find((r) => r.stdrYyquCd === q).metricValue;
+                // 응답 전에 이미 연 드로어가 있으면 임대료 칸이 '-'로 남지 않게 마저 채운다
+                const dd = document.querySelectorAll(".sel-metrics .sel-metric dd")[3];
+                if (dd && document.querySelector(".map-panel").classList.contains("is-open")) {
+                    dd.innerHTML = Math.round(state.seoulRent).toLocaleString() + "<span>천원/㎡</span>";
+                }
             }
         }).catch(() => { /* 임대료 없으면 '-' */ });
 
