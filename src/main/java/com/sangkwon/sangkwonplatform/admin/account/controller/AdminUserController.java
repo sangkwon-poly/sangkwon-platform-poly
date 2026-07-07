@@ -67,6 +67,7 @@ public class AdminUserController {
                                         @Valid @RequestBody AdminRoleUpdateRequest request,
                                         HttpServletRequest http) {
         requireSuperAdmin(admin);
+        requireNotSelf(admin, adminId);
         adminUserService.updateRole(adminId, request);
         auditService.record(admin.adminId(), AuditAction.ADMIN_ROLE_UPDATE, "ADMIN",
                 String.valueOf(adminId), "role=" + request.role(), http);
@@ -79,6 +80,7 @@ public class AdminUserController {
                                           @Valid @RequestBody AdminStatusUpdateRequest request,
                                           HttpServletRequest http) {
         requireSuperAdmin(admin);
+        requireNotSelf(admin, adminId);
         adminUserService.updateStatus(adminId, request);
         auditService.record(admin.adminId(), AuditAction.ADMIN_STATUS_UPDATE, "ADMIN",
                 String.valueOf(adminId), "status=" + request.status(), http);
@@ -94,6 +96,13 @@ public class AdminUserController {
     private void requireSelf(AdminSession admin, Long targetAdminId) {
         if (!admin.adminId().equals(targetAdminId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "본인 계정만 수정할 수 있습니다.");
+        }
+    }
+
+    // 본인 계정의 권한·상태를 스스로 바꿔 잠기거나 권한을 잃는 사고를 막는다
+    private void requireNotSelf(AdminSession admin, Long targetAdminId) {
+        if (admin.adminId().equals(targetAdminId)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "본인 계정의 권한·상태는 변경할 수 없습니다.");
         }
     }
 }

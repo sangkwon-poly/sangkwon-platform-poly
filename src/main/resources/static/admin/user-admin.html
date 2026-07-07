@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>사용자 관리 · 서울공화국</title>
+  <title>관리자 계정 · 서울공화국</title>
   <link rel="stylesheet" href="/css/common.css">
   <link rel="stylesheet" href="/css/admin/shell.css">
   <link rel="stylesheet" href="/css/admin/user-admin.css">
@@ -12,7 +12,6 @@
 
   <div class="admin">
 
-    <!-- 좌측 사이드바 -->
     <aside class="admin-side" aria-label="관리자 메뉴">
       <a class="admin-brand" href="/admin/">
         <span class="brand-mark" aria-hidden="true">서</span>
@@ -25,7 +24,7 @@
         <a href="/admin/">개요</a>
         <a href="/admin/batch.html">데이터 적재</a>
         <a href="/admin/trdar-admin.html">상권 데이터</a>
-        <a href="/admin/user-admin.html" aria-current="page">사용자 관리</a>
+        <a href="/admin/user-admin.html" aria-current="page">관리자 계정</a>
         <hr class="admin-nav-sep">
         <span class="admin-nav-out">
           <a href="/map/">지도로 이동</a>
@@ -33,143 +32,45 @@
         </span>
       </nav>
       <div class="admin-user">
-        <span class="admin-user-avatar" aria-hidden="true">이</span>
+        <span class="admin-user-avatar" aria-hidden="true">·</span>
         <span>
-          <span class="admin-user-name">이상혁</span>
-          <span class="admin-user-role">PM</span>
+          <span class="admin-user-name">—</span>
+          <span class="admin-user-role">—</span>
         </span>
       </div>
     </aside>
 
-    <!-- 본문 -->
     <div class="admin-main">
       <header class="admin-topbar">
-        <h1>사용자 관리</h1>
-        <div class="admin-search" role="search">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B0857A" stroke-width="2" aria-hidden="true">
-            <circle cx="11" cy="11" r="7"></circle>
-            <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
-          </svg>
-          <span>이름·이메일 검색</span>
-        </div>
-        <button type="button" class="btn-topbar ua-invite">＋ 초대</button>
+        <h1>관리자 계정</h1>
+        <span class="admin-topbar-meta">콘솔 접근 권한을 가진 관리자 계정</span>
+        <button type="button" class="btn-topbar" id="ua-add">＋ 관리자 추가</button>
       </header>
 
-      <main class="admin-content" aria-label="사용자 목록">
+      <main class="admin-content" aria-label="관리자 계정 목록">
 
-        <!-- 필터 칩 -->
-        <div class="ua-filters" aria-label="상태 필터">
-          <span class="ua-chip ua-chip-active">전체 2,418</span>
-          <span class="ua-chip">활성 2,201</span>
-          <span class="ua-chip">휴면 189</span>
-          <span class="ua-chip">정지 28</span>
+        <div class="ua-filters" id="ua-filters" aria-label="상태 필터">
+          <button type="button" class="ua-chip ua-chip-active" data-filter="ALL">전체 <b>0</b></button>
+          <button type="button" class="ua-chip" data-filter="ACTIVE">활성 <b>0</b></button>
+          <button type="button" class="ua-chip" data-filter="LOCKED">잠김 <b>0</b></button>
         </div>
 
-        <!-- 사용자 테이블 -->
-        <section class="data-table-wrap" aria-label="사용자 목록 표">
+        <section class="data-table-wrap" aria-label="관리자 계정 표">
           <div class="table-scroll">
             <table class="data-table ua-table">
               <thead>
                 <tr>
-                  <th scope="col">사용자</th>
-                  <th scope="col">역할</th>
-                  <th scope="col">플랜</th>
-                  <th scope="col">최근 접속</th>
+                  <th scope="col">관리자</th>
+                  <th scope="col">권한</th>
                   <th scope="col" class="col-center">상태</th>
-                  <th scope="col"><span class="sr-only">더보기</span></th>
+                  <th scope="col" class="col-center">로그인 실패</th>
+                  <th scope="col">최근 로그인</th>
+                  <th scope="col">생성일</th>
+                  <th scope="col" class="col-center">작업</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <div class="ua-user">
-                      <span class="ua-avatar" aria-hidden="true">이</span>
-                      <span class="ua-id">
-                        <span class="ua-name">이상혁</span>
-                        <span class="ua-email">sanghyuk@seoul.kr</span>
-                      </span>
-                    </div>
-                  </td>
-                  <td class="ua-role">PM</td>
-                  <td><span class="ua-plan ua-plan-ent">Enterprise</span></td>
-                  <td class="ua-muted">방금</td>
-                  <td class="col-center">
-                    <span class="badge badge-ok"><span class="dot dot-ok" aria-hidden="true"></span>활성</span>
-                  </td>
-                  <td class="col-center"><button type="button" class="ua-more" aria-label="더보기">⋯</button></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="ua-user">
-                      <span class="ua-avatar" aria-hidden="true">김</span>
-                      <span class="ua-id">
-                        <span class="ua-name">김도연</span>
-                        <span class="ua-email">doyeon.k@bizmap.io</span>
-                      </span>
-                    </div>
-                  </td>
-                  <td class="ua-role">분석가</td>
-                  <td><span class="ua-plan ua-plan-pro">Pro</span></td>
-                  <td class="ua-muted">12분 전</td>
-                  <td class="col-center">
-                    <span class="badge badge-ok"><span class="dot dot-ok" aria-hidden="true"></span>활성</span>
-                  </td>
-                  <td class="col-center"><button type="button" class="ua-more" aria-label="더보기">⋯</button></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="ua-user">
-                      <span class="ua-avatar" aria-hidden="true">박</span>
-                      <span class="ua-id">
-                        <span class="ua-name">박서준</span>
-                        <span class="ua-email">seojun@cafe.co</span>
-                      </span>
-                    </div>
-                  </td>
-                  <td class="ua-role">뷰어</td>
-                  <td><span class="ua-plan ua-plan-free">Free</span></td>
-                  <td class="ua-muted">3시간 전</td>
-                  <td class="col-center">
-                    <span class="badge badge-ok"><span class="dot dot-ok" aria-hidden="true"></span>활성</span>
-                  </td>
-                  <td class="col-center"><button type="button" class="ua-more" aria-label="더보기">⋯</button></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="ua-user">
-                      <span class="ua-avatar" aria-hidden="true">정</span>
-                      <span class="ua-id">
-                        <span class="ua-name">정하윤</span>
-                        <span class="ua-email">hayoon@retail.kr</span>
-                      </span>
-                    </div>
-                  </td>
-                  <td class="ua-role">분석가</td>
-                  <td><span class="ua-plan ua-plan-pro">Pro</span></td>
-                  <td class="ua-muted">2일 전</td>
-                  <td class="col-center">
-                    <span class="badge ua-badge-dormant"><span class="dot ua-dot-dormant" aria-hidden="true"></span>휴면</span>
-                  </td>
-                  <td class="col-center"><button type="button" class="ua-more" aria-label="더보기">⋯</button></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="ua-user">
-                      <span class="ua-avatar" aria-hidden="true">최</span>
-                      <span class="ua-id">
-                        <span class="ua-name">최민준</span>
-                        <span class="ua-email">minjun@fnb.com</span>
-                      </span>
-                    </div>
-                  </td>
-                  <td class="ua-role">관리자</td>
-                  <td><span class="ua-plan ua-plan-ent">Enterprise</span></td>
-                  <td class="ua-muted">1주 전</td>
-                  <td class="col-center">
-                    <span class="badge badge-danger"><span class="dot dot-danger" aria-hidden="true"></span>정지</span>
-                  </td>
-                  <td class="col-center"><button type="button" class="ua-more" aria-label="더보기">⋯</button></td>
-                </tr>
+              <tbody id="ua-tbody">
+                <tr><td colspan="7" class="ua-empty">불러오는 중…</td></tr>
               </tbody>
             </table>
           </div>
@@ -178,6 +79,42 @@
     </div>
   </div>
 
+  <!-- 관리자 추가 모달 -->
+  <div class="ua-modal" id="ua-modal" hidden>
+    <div class="ua-modal-backdrop" data-close></div>
+    <div class="ua-modal-card" role="dialog" aria-modal="true" aria-labelledby="ua-modal-title">
+      <h2 id="ua-modal-title">관리자 추가</h2>
+      <form id="ua-form" class="ua-form" autocomplete="off">
+        <label class="ua-field">
+          <span>로그인 ID</span>
+          <input type="text" name="loginId" maxlength="50" required placeholder="예: operator01">
+        </label>
+        <label class="ua-field">
+          <span>이름</span>
+          <input type="text" name="adminName" maxlength="50" required placeholder="예: 홍길동">
+        </label>
+        <label class="ua-field">
+          <span>권한</span>
+          <select name="role">
+            <option value="VIEWER">뷰어</option>
+            <option value="OPERATOR">운영자</option>
+            <option value="SUPER_ADMIN">최고관리자</option>
+          </select>
+        </label>
+        <label class="ua-field">
+          <span>초기 비밀번호</span>
+          <input type="password" name="password" required placeholder="8자 이상 권장">
+        </label>
+        <p class="ua-form-msg" id="ua-form-msg" hidden></p>
+        <div class="ua-form-actions">
+          <button type="button" class="ua-btn ua-btn-ghost" data-close>취소</button>
+          <button type="submit" class="ua-btn ua-btn-primary" id="ua-submit">추가</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="/admin/js/admin-shell.js"></script>
+  <script src="/admin/js/user-admin.js"></script>
 </body>
 </html>
