@@ -5,6 +5,7 @@ import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminStatus;
 import com.sangkwon.sangkwonplatform.admin.account.entity.enums.HashAlgo;
 import jakarta.persistence.*;
 import lombok.Getter;
+import org.hibernate.type.YesNoConverter;
 
 import java.time.LocalDateTime;
 
@@ -40,6 +41,13 @@ public class AdminUser {
 
     @Column(name="failed_login_cnt", nullable = false)
     private int failedLoginCnt = 0;
+
+    @Convert(converter = YesNoConverter.class)
+    @Column(name = "OTP_ENABLED", nullable = false)
+    private boolean otpEnabled = false;
+
+    @Column(name = "OTP_SECRET", length = 64)
+    private String otpSecret;
 
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
@@ -98,6 +106,22 @@ public class AdminUser {
     public void loginSuccess() {
         this.failedLoginCnt = 0;
         this.lastLoginAt = LocalDateTime.now();
+    }
+
+    // OTP 설정 시작: 비밀키만 저장하고 아직 미활성
+    public void startOtpSetup(String secret) {
+        this.otpSecret = secret;
+        this.otpEnabled = false;
+    }
+
+    // 인증 앱 코드 확인 후 2FA 활성화
+    public void confirmOtp() {
+        this.otpEnabled = true;
+    }
+
+    public void disableOtp() {
+        this.otpEnabled = false;
+        this.otpSecret = null;
     }
 
     @PrePersist

@@ -6,6 +6,7 @@ import com.sangkwon.sangkwonplatform.admin.account.dto.session.AdminSession;
 import com.sangkwon.sangkwonplatform.admin.account.entity.AdminUser;
 import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminRole;
 import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminStatus;
+import com.sangkwon.sangkwonplatform.admin.account.otp.OtpRequiredException;
 import com.sangkwon.sangkwonplatform.admin.account.repository.AdminUserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,7 +51,7 @@ class AdminUserServiceTest {
         when(adminUserRepository.findByLoginId("admin")).thenReturn(Optional.of(activeAdmin()));
         when(passwordEncoder.matches("pw", "hash")).thenReturn(true);
 
-        AdminSession session = adminUserService.login(new AdminLoginRequest("admin", "pw"));
+        AdminSession session = adminUserService.login(new AdminLoginRequest("admin", "pw", null));
 
         assertThat(session.loginId()).isEqualTo("admin");
         verify(loginAttemptService, never()).recordFailure(any());
@@ -61,7 +62,7 @@ class AdminUserServiceTest {
         when(adminUserRepository.findByLoginId("admin")).thenReturn(Optional.of(activeAdmin()));
         when(passwordEncoder.matches("wrong", "hash")).thenReturn(false);
 
-        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "wrong")))
+        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "wrong", null)))
                 .isInstanceOf(ResponseStatusException.class)
                 .satisfies(e -> assertThat(status(e)).isEqualTo(401));
         verify(loginAttemptService).recordFailure(any());
@@ -71,7 +72,7 @@ class AdminUserServiceTest {
     void 존재하지_않는_아이디도_같은_401_메시지로_응답하고_실패기록은_없다() {
         when(adminUserRepository.findByLoginId("nope")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("nope", "pw")))
+        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("nope", "pw", null)))
                 .isInstanceOf(ResponseStatusException.class)
                 .satisfies(e -> assertThat(status(e)).isEqualTo(401));
         verify(loginAttemptService, never()).recordFailure(any());
@@ -83,9 +84,21 @@ class AdminUserServiceTest {
         locked.updateStatus(AdminStatus.LOCKED);
         when(adminUserRepository.findByLoginId("admin")).thenReturn(Optional.of(locked));
 
-        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "pw")))
+        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "pw", null)))
                 .isInstanceOf(ResponseStatusException.class)
                 .satisfies(e -> assertThat(status(e)).isEqualTo(403));
+    }
+
+    @Test
+    void OTP를_켠_계정은_비밀번호가_맞아도_코드가_없으면_OTP를_요구한다() {
+        AdminUser otpAdmin = activeAdmin();
+        otpAdmin.startOtpSetup("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ");
+        otpAdmin.confirmOtp();
+        when(adminUserRepository.findByLoginId("admin")).thenReturn(Optional.of(otpAdmin));
+        when(passwordEncoder.matches("pw", "hash")).thenReturn(true);
+
+        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "pw", null)))
+                .isInstanceOf(OtpRequiredException.class);
     }
 
     @Test

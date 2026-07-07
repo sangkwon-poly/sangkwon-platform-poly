@@ -543,6 +543,8 @@ CREATE TABLE ADMIN_USER (
                             ROLE             VARCHAR2(15 CHAR)  DEFAULT 'VIEWER' NOT NULL,
                             STATUS           VARCHAR2(10 CHAR)  DEFAULT 'ACTIVE' NOT NULL,
                             FAILED_LOGIN_CNT NUMBER(4)          DEFAULT 0 NOT NULL,
+                            OTP_ENABLED      CHAR(1 CHAR)       DEFAULT 'N' NOT NULL,
+                            OTP_SECRET       VARCHAR2(64 CHAR),
                             LAST_LOGIN_AT    TIMESTAMP(6),
                             CREATED_AT       TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
                             UPDATED_AT       TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
@@ -551,7 +553,8 @@ CREATE TABLE ADMIN_USER (
                             CONSTRAINT CK_ADM_ROLE     CHECK (ROLE   IN ('SUPER_ADMIN','OPERATOR','VIEWER')),
                             CONSTRAINT CK_ADM_STATUS   CHECK (STATUS IN ('ACTIVE','LOCKED')),
                             CONSTRAINT CK_ADM_PWALGO   CHECK (PW_ALGO IN ('ARGON2ID','BCRYPT')),
-                            CONSTRAINT CK_ADM_FAILCNT  CHECK (FAILED_LOGIN_CNT >= 0)
+                            CONSTRAINT CK_ADM_FAILCNT  CHECK (FAILED_LOGIN_CNT >= 0),
+                            CONSTRAINT CK_ADM_OTP      CHECK (OTP_ENABLED IN ('Y','N'))
 );
 COMMENT ON TABLE  ADMIN_USER IS '관리자 계정 (백오피스 RBAC)';
 COMMENT ON COLUMN ADMIN_USER.ADMIN_ID         IS '관리자 PK (IDENTITY 대체키)';
@@ -562,6 +565,8 @@ COMMENT ON COLUMN ADMIN_USER.NAME             IS '관리자 이름 [PII]';
 COMMENT ON COLUMN ADMIN_USER.ROLE             IS '권한: SUPER_ADMIN / OPERATOR / VIEWER';
 COMMENT ON COLUMN ADMIN_USER.STATUS           IS '상태: ACTIVE / LOCKED';
 COMMENT ON COLUMN ADMIN_USER.FAILED_LOGIN_CNT IS '연속 로그인 실패 횟수 (LOCKED 잠금 트리거용)';
+COMMENT ON COLUMN ADMIN_USER.OTP_ENABLED      IS '2단계 인증(TOTP) 사용 여부: Y / N';
+COMMENT ON COLUMN ADMIN_USER.OTP_SECRET       IS 'TOTP 비밀키(Base32), 2FA 설정 시 발급 [민감]';
 COMMENT ON COLUMN ADMIN_USER.LAST_LOGIN_AT    IS '최근 로그인 시각';
 COMMENT ON COLUMN ADMIN_USER.CREATED_AT       IS '생성 시각';
 COMMENT ON COLUMN ADMIN_USER.UPDATED_AT       IS '수정 시각';
