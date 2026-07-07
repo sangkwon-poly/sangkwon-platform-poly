@@ -22,6 +22,20 @@
         if (roleEl) { roleEl.textContent = d.role; }
         if (avaEl) { avaEl.textContent = (d.adminName || "?").charAt(0); }
 
+        // 운영 대시보드 메뉴(감사 로그·API 사용)를 공통 주입
+        var nav = document.querySelector(".admin-nav");
+        var sep = nav ? nav.querySelector(".admin-nav-sep") : null;
+        if (nav && sep) {
+            [["/admin/audit-log.html", "감사 로그"], ["/admin/api-usage.html", "API 사용"]].forEach(function (item) {
+                if (nav.querySelector('a[href="' + item[0] + '"]')) { return; }
+                var link = document.createElement("a");
+                link.href = item[0];
+                link.textContent = item[1];
+                if (window.location.pathname === item[0]) { link.setAttribute("aria-current", "page"); }
+                nav.insertBefore(link, sep);
+            });
+        }
+
         // 사이드바 하단에 "내 계정·보안"과 "로그아웃" 추가
         var out = document.querySelector(".admin-nav-out");
         if (out) {

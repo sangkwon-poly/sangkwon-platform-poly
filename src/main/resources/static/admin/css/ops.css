@@ -1,0 +1,68 @@
+/* 운영 대시보드 공통 (감사 로그 / API 사용) — common.css + shell.css 토큰 재사용 */
+
+.ops-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--faint);
+  font-size: 14px;
+}
+
+/* 감사 로그 */
+.audit-table td { vertical-align: middle; }
+.audit-time { color: var(--muted); white-space: nowrap; }
+.audit-admin { color: var(--ink); font-weight: 600; }
+.audit-muted { color: var(--muted-2); }
+
+.audit-act {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.audit-act.act-login  { color: #2f6ea5; background: #e6eef7; }
+.audit-act.act-create { color: #2f7d5b; background: var(--ok-bg); }
+.audit-act.act-update { color: #8a5a1f; background: var(--warn-bg); }
+.audit-act.act-sec    { color: var(--brand); background: var(--brand-tint); }
+
+/* API 사용량 카드 */
+.usage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+.usage-card {
+  background: var(--bg);
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+  box-shadow: 0 1px 2px rgba(90, 45, 28, .05);
+}
+.usage-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.usage-name { font-size: 14px; font-weight: 700; color: var(--ink); }
+.usage-code { font-size: 11px; color: var(--faint); }
+.usage-num { color: var(--muted-2); font-size: 13px; margin-bottom: 10px; }
+.usage-num b { font-size: 22px; color: var(--ink); font-weight: 800; letter-spacing: -.01em; }
+
+.usage-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--line-soft);
+  overflow: hidden;
+}
+.usage-fill { display: block; height: 100%; border-radius: 999px; }
+.usage-fill.usage-ok     { background: var(--ok); }
+.usage-fill.usage-warn   { background: var(--warn); }
+.usage-fill.usage-danger { background: var(--danger); }
+
+.usage-pct { margin-top: 8px; font-size: 12px; font-weight: 700; }
+.usage-pct.usage-ok     { color: var(--ok); }
+.usage-pct.usage-warn   { color: var(--warn); }
+.usage-pct.usage-danger { color: var(--danger); }
