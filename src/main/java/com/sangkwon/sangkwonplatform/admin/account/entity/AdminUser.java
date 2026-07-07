@@ -96,6 +96,10 @@ public class AdminUser {
     public void updateStatus(AdminStatus status) {
         if (status != null) {
             this.status = status;
+            // 잠금 해제(활성 전환) 시 실패 카운트를 초기화해 즉시 재잠금되지 않도록 한다
+            if (status == AdminStatus.ACTIVE) {
+                this.failedLoginCnt = 0;
+            }
         }
     }
 
