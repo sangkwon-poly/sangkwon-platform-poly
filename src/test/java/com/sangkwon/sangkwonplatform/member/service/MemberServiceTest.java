@@ -30,6 +30,7 @@ class MemberServiceTest {
 
     @Mock MemberRepository memberRepository;
     @Mock PasswordEncoder passwordEncoder;
+    @Mock MemberLoginRateLimiter rateLimiter;
 
     @InjectMocks MemberService memberService;
 

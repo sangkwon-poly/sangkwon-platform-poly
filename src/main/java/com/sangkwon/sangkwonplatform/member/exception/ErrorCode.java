@@ -14,7 +14,8 @@ public enum ErrorCode {
     FAVORITE_NOT_FOUND(HttpStatus.NOT_FOUND, "M008", "찜한 상권을 찾을 수 없습니다."),
     BANNED_MEMBER(HttpStatus.FORBIDDEN, "M009", "이용이 정지된 계정입니다."),
     DORMANT_MEMBER(HttpStatus.FORBIDDEN, "M010", "휴면 계정입니다. 재활성화가 필요합니다."),
-    INVALID_INPUT(HttpStatus.BAD_REQUEST, "M400", "입력값이 올바르지 않습니다.");
+    INVALID_INPUT(HttpStatus.BAD_REQUEST, "M400", "입력값이 올바르지 않습니다."),
+    TOO_MANY_LOGIN_ATTEMPTS(HttpStatus.TOO_MANY_REQUESTS, "M429", "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.");
 
     private final HttpStatus status;
     private final String code;

@@ -238,5 +238,28 @@
     </div>
   </footer>
 
+  <script>
+    // 로그인 세션을 헤더 액션 영역에 반영
+    (function () {
+      var actions = document.querySelector('.nav-actions');
+      if (!actions) return;
+      function esc(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
+      fetch('/api/members/me', { credentials: 'include', headers: { Accept: 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (b) {
+          var me = b && b.data;
+          if (!me) return;
+          actions.innerHTML =
+            '<a class="link-login" href="/member/mypage">' + esc(me.nickname || me.loginId) + '님</a>' +
+            '<button type="button" class="btn btn-primary btn-sm" id="nav-logout">로그아웃</button>';
+          var btn = document.getElementById('nav-logout');
+          if (btn) btn.addEventListener('click', function () {
+            fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+              .then(function () { location.reload(); }, function () { location.reload(); });
+          });
+        })
+        .catch(function () {});
+    })();
+  </script>
 </body>
 </html>
