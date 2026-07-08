@@ -572,7 +572,7 @@
           '<div class="app-header__inner">' +
             '<a class="app-header__brand" href="../map/index.html">' +
               '<span class="app-header__logo" aria-hidden="true">서</span>' +
-              '<span>서울상권</span>' +
+              '<span>서울공화국</span>' +
             '</a>' +
             '<nav class="app-header__nav" aria-label="주요 메뉴">' +
               navHtml +
