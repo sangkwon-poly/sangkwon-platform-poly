@@ -5,6 +5,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.ByteArrayOutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 
 /**
@@ -38,24 +39,41 @@ public final class Totp {
     }
 
     public static boolean verify(String secret, String code) {
-        return verify(secret, code, System.currentTimeMillis() / 1000L);
+        return matchedStep(secret, code) != Long.MIN_VALUE;
     }
 
     static boolean verify(String secret, String code, long epochSeconds) {
+        return matchedStep(secret, code, epochSeconds) != Long.MIN_VALUE;
+    }
+
+    // 코드가 맞으면 일치한 시간 스텝을, 아니면 Long.MIN_VALUE를 돌려준다.
+    // 호출부는 이 스텝을 저장해 같은 코드의 재사용(리플레이)을 막는다.
+    public static long matchedStep(String secret, String code) {
+        return matchedStep(secret, code, System.currentTimeMillis() / 1000L);
+    }
+
+    static long matchedStep(String secret, String code, long epochSeconds) {
         if (secret == null || code == null) {
-            return false;
+            return Long.MIN_VALUE;
         }
         String c = code.trim();
         if (c.length() != DIGITS) {
-            return false;
+            return Long.MIN_VALUE;
         }
         long step = epochSeconds / PERIOD;
         for (long w = -WINDOW; w <= WINDOW; w++) {
-            if (c.equals(generate(secret, step + w))) {
-                return true;
+            long candidate = step + w;
+            if (constantTimeEquals(c, generate(secret, candidate))) {
+                return candidate;
             }
         }
-        return false;
+        return Long.MIN_VALUE;
+    }
+
+    // 코드 비교는 상수 시간으로 한다(String.equals는 첫 불일치에서 끊겨 타이밍이 새어 나간다)
+    private static boolean constantTimeEquals(String a, String b) {
+        return MessageDigest.isEqual(
+                a.getBytes(StandardCharsets.UTF_8), b.getBytes(StandardCharsets.UTF_8));
     }
 
     static String generate(String base32Secret, long counter) {

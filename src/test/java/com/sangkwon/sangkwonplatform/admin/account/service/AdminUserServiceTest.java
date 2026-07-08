@@ -23,6 +23,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -143,5 +144,16 @@ class AdminUserServiceTest {
         assertThat(locked.getPasswordHash()).isEqualTo("newhash");
         assertThat(locked.getStatus()).isEqualTo(AdminStatus.ACTIVE);
         assertThat(locked.getFailedLoginCnt()).isZero();
+    }
+
+    @Test
+    void 존재하지_않는_아이디도_더미해시_비교로_응답_시간을_맞춘다() {
+        when(adminUserRepository.findByLoginId("nope")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("nope", "pw", null, false), null))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(status(e)).isEqualTo(401));
+        // 계정이 없어도 비밀번호 비교(더미 해시)를 수행해 타이밍 차이를 없앤다
+        verify(passwordEncoder).matches(eq("pw"), any());
     }
 }

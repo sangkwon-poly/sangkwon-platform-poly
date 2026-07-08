@@ -41,7 +41,10 @@ public class AdminIpInterceptor implements HandlerInterceptor {
         if (trustForwardedFor) {
             String forwarded = request.getHeader("X-Forwarded-For");
             if (forwarded != null && !forwarded.isBlank()) {
-                return forwarded.split(",")[0].trim();
+                // 신뢰 프록시가 실제 접속 IP를 오른쪽 끝에 덧붙이므로, 클라이언트가 조작할 수 있는
+                // 왼쪽이 아니라 가장 오른쪽(프록시가 찍은) 값을 접속 IP로 본다
+                String[] hops = forwarded.split(",");
+                return hops[hops.length - 1].trim();
             }
         }
         return request.getRemoteAddr();

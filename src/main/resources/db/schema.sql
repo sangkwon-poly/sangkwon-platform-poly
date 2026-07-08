@@ -545,6 +545,7 @@ CREATE TABLE ADMIN_USER (
                             FAILED_LOGIN_CNT NUMBER(4)          DEFAULT 0 NOT NULL,
                             OTP_ENABLED      CHAR(1 CHAR)       DEFAULT 'N' NOT NULL,
                             OTP_SECRET       VARCHAR2(64 CHAR),
+                            OTP_LAST_STEP    NUMBER(19),
                             LAST_LOGIN_AT    TIMESTAMP(6),
                             CREATED_AT       TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
                             UPDATED_AT       TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
@@ -567,6 +568,7 @@ COMMENT ON COLUMN ADMIN_USER.STATUS           IS '상태: ACTIVE / LOCKED';
 COMMENT ON COLUMN ADMIN_USER.FAILED_LOGIN_CNT IS '연속 로그인 실패 횟수 (LOCKED 잠금 트리거용)';
 COMMENT ON COLUMN ADMIN_USER.OTP_ENABLED      IS '2단계 인증(TOTP) 사용 여부: Y / N';
 COMMENT ON COLUMN ADMIN_USER.OTP_SECRET       IS 'TOTP 비밀키(Base32), 2FA 설정 시 발급 [민감]';
+COMMENT ON COLUMN ADMIN_USER.OTP_LAST_STEP    IS '마지막으로 소비한 TOTP 시간 스텝(리플레이 방지). 사용 이력 없으면 NULL';
 COMMENT ON COLUMN ADMIN_USER.LAST_LOGIN_AT    IS '최근 로그인 시각';
 COMMENT ON COLUMN ADMIN_USER.CREATED_AT       IS '생성 시각';
 COMMENT ON COLUMN ADMIN_USER.UPDATED_AT       IS '수정 시각';
