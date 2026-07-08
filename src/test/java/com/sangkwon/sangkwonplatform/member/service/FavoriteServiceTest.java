@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 import java.util.Optional;
@@ -75,6 +76,17 @@ class FavoriteServiceTest {
 
         assertThat(res.trdarCd()).isEqualTo("TR001");
         verify(favoriteRepository).save(any(Favorite.class));
+    }
+
+    @Test
+    @DisplayName("추가: 동시 요청으로 UNIQUE 위반(save 예외) → M006으로 변환")
+    void add_concurrentUniqueViolation() {
+        when(favoriteRepository.existsByMemberIdAndTrdarCd(1L, "TR001")).thenReturn(false);
+        when(favoriteRepository.save(any(Favorite.class)))
+                .thenThrow(new DataIntegrityViolationException("unique violation"));
+
+        assertThatThrownBy(() -> favoriteService.add(1L, new FavoriteCreateRequest("TR001")))
+                .satisfies(t -> assertThat(errorCodeOf(t)).isEqualTo(ErrorCode.DUPLICATE_FAVORITE));
     }
 
     @Test
