@@ -8,106 +8,144 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
   <link rel="stylesheet" href="css/member.css" />
 </head>
-<body>
-  <main class="auth-card" aria-label="계정 인증">
+<body class="auth-body">
+  <main class="auth-page">
+    <section class="auth-card" aria-label="계정 인증">
 
-    <!-- 좌: 브랜드 히어로 -->
-    <aside class="auth-card__hero" aria-label="서비스 소개">
-      <span class="auth-card__hero-badge">
-        <span class="app-header__logo" aria-hidden="true">서</span> 서울공화국
-      </span>
-      <h2 class="auth-card__hero-title">데이터로 시작하는<br />창업 의사결정</h2>
-      <p class="auth-card__hero-desc">서울시 공식 상권 데이터를 지도 위에서. 매출·유동인구·경쟁까지 한눈에 파악하세요.</p>
-      <div class="auth-card__hero-points">
-        <div class="auth-card__hero-point">
-          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10.5l4 4 8-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-          매출·유동인구·업종을 지도에서 한눈에
-        </div>
-        <div class="auth-card__hero-point">
-          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10.5l4 4 8-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-          관심 상권을 찜하고 비교
-        </div>
-        <div class="auth-card__hero-point">
-          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10.5l4 4 8-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
-          검색 이력으로 빠르게 재조회
-        </div>
-      </div>
-    </aside>
+      <!-- 좌: 브랜드 히어로 -->
+      <aside class="auth-hero" aria-label="서비스 소개">
+        <svg class="auth-hero__deco" viewBox="0 0 400 400" aria-hidden="true" focusable="false">
+          <g fill="none" stroke="currentColor">
+            <circle cx="320" cy="300" r="60" stroke-width="1.5" opacity=".5" />
+            <circle cx="320" cy="300" r="110" stroke-width="1.5" opacity=".32" />
+            <circle cx="320" cy="300" r="164" stroke-width="1.5" opacity=".2" />
+            <circle cx="320" cy="300" r="222" stroke-width="1.5" opacity=".12" />
+          </g>
+          <circle cx="320" cy="300" r="7" fill="currentColor" opacity=".8" />
+        </svg>
 
-    <!-- 우: 폼 -->
-    <section class="auth-card__form" aria-label="계정 인증 폼">
-      <div class="tabs" role="tablist" aria-label="로그인 또는 회원가입">
-        <button type="button" class="tab is-active" data-tab="login" role="tab" aria-selected="true">로그인</button>
-        <button type="button" class="tab" data-tab="signup" role="tab" aria-selected="false">회원가입</button>
-      </div>
+        <a class="auth-hero__brand" href="/">
+          <span class="auth-hero__logo" aria-hidden="true">서</span>
+          서울공화국
+        </a>
 
-      <!-- 로그인 폼 (동작: auth.js) -->
-      <form id="panel-login" novalidate>
-        <div class="field">
-          <label class="label" for="login-id">아이디</label>
-          <input class="input" type="text" id="login-id" name="loginId" autocomplete="username" placeholder="아이디" />
-          <span class="field__error" id="login-id-error"></span>
+        <div class="auth-hero__lead">
+          <h1 class="auth-hero__title">데이터로 여는<br />창업 의사결정</h1>
+          <p class="auth-hero__desc">서울시 공식 상권 데이터를 지도 한 장에. 매출과 유동인구, 경쟁까지 한눈에 읽습니다.</p>
         </div>
 
-        <div class="field">
-          <label class="label" for="login-pw">비밀번호</label>
-          <div class="input-affix">
-            <input class="input" type="password" id="login-pw" name="password" autocomplete="current-password" placeholder="비밀번호" />
-            <button type="button" class="input-affix__btn" data-toggle-pw="login-pw" aria-label="비밀번호 표시">표시</button>
+        <ul class="auth-hero__list">
+          <li>
+            <span class="auth-hero__ic" aria-hidden="true">
+              <svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9" /></svg>
+            </span>
+            매출·유동인구·업종을 지도에서 한눈에
+          </li>
+          <li>
+            <span class="auth-hero__ic" aria-hidden="true">
+              <svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9" /></svg>
+            </span>
+            관심 상권을 찜하고 나란히 비교
+          </li>
+          <li>
+            <span class="auth-hero__ic" aria-hidden="true">
+              <svg viewBox="0 0 20 20"><path d="M4 10.5l4 4 8-9" /></svg>
+            </span>
+            검색 이력으로 빠르게 재조회
+          </li>
+        </ul>
+
+        <p class="auth-hero__foot">서울시 공식 상권분석 데이터 기반 · 25개 자치구</p>
+      </aside>
+
+      <!-- 우: 폼 -->
+      <div class="auth-form">
+        <div class="auth-form__head">
+          <div class="tabs" role="tablist" aria-label="로그인 또는 회원가입">
+            <button type="button" class="tab is-active" data-tab="login" role="tab" aria-selected="true">로그인</button>
+            <button type="button" class="tab" data-tab="signup" role="tab" aria-selected="false">회원가입</button>
           </div>
-          <span class="field__error" id="login-pw-error"></span>
         </div>
 
-        <div class="row row--between">
-          <label class="toggle-row">
-            <input type="checkbox" class="checkbox" id="login-remember" checked />
-            자동 로그인
-          </label>
-          <a class="link-sm" href="#" data-action="find-pw">비밀번호 찾기</a>
-        </div>
-
-        <button type="submit" class="btn btn--primary btn--block" data-submit="login">로그인</button>
-      </form>
-
-      <!-- 회원가입 폼 (동작: auth.js) -->
-      <form id="panel-signup" novalidate hidden>
-        <div class="field">
-          <label class="label" for="signup-id">아이디</label>
-          <input class="input" type="text" id="signup-id" name="loginId" autocomplete="username" placeholder="4자 이상" />
-          <span class="field__error" id="signup-id-error"></span>
-        </div>
-
-        <div class="field">
-          <label class="label" for="signup-email">이메일</label>
-          <input class="input" type="email" id="signup-email" name="email" autocomplete="email" placeholder="you@example.com" />
-          <span class="field__error" id="signup-email-error"></span>
-        </div>
-
-        <div class="field">
-          <label class="label" for="signup-nick">닉네임</label>
-          <input class="input" type="text" id="signup-nick" name="nickname" autocomplete="nickname" placeholder="닉네임" />
-          <span class="field__error" id="signup-nick-error"></span>
-        </div>
-
-        <div class="field">
-          <label class="label" for="signup-pw">비밀번호</label>
-          <div class="input-affix">
-            <input class="input" type="password" id="signup-pw" name="password" autocomplete="new-password" placeholder="8자 이상" />
-            <button type="button" class="input-affix__btn" data-toggle-pw="signup-pw" aria-label="비밀번호 표시">표시</button>
+        <!-- 로그인 폼 (동작: auth.js) -->
+        <form id="panel-login" class="auth-form__panel" novalidate>
+          <div class="field">
+            <label class="label" for="login-id">아이디</label>
+            <input class="input" type="text" id="login-id" name="loginId" autocomplete="username" placeholder="아이디를 입력하세요" />
+            <span class="field__error" id="login-id-error"></span>
           </div>
-          <span class="field__error" id="signup-pw-error"></span>
-        </div>
 
-        <div class="field">
-          <label class="label" for="signup-pw2">비밀번호 확인</label>
-          <input class="input" type="password" id="signup-pw2" name="passwordConfirm" autocomplete="new-password" placeholder="비밀번호 재입력" />
-          <span class="field__error" id="signup-pw2-error"></span>
-        </div>
+          <div class="field">
+            <label class="label" for="login-pw">비밀번호</label>
+            <div class="input-affix">
+              <input class="input" type="password" id="login-pw" name="password" autocomplete="current-password" placeholder="비밀번호를 입력하세요" />
+              <button type="button" class="input-affix__btn" data-toggle-pw="login-pw" aria-label="비밀번호 표시">표시</button>
+            </div>
+            <span class="field__error" id="login-pw-error"></span>
+          </div>
 
-        <button type="submit" class="btn btn--primary btn--block" data-submit="signup">회원가입</button>
-      </form>
+          <div class="row row--between auth-form__meta">
+            <label class="toggle-row">
+              <input type="checkbox" class="checkbox" id="login-remember" checked />
+              자동 로그인
+            </label>
+            <a class="link-sm" href="#" data-action="find-pw">비밀번호 찾기</a>
+          </div>
+
+          <button type="submit" class="btn btn--primary btn--block" data-submit="login">로그인</button>
+
+          <p class="auth-form__switch">
+            아직 계정이 없으신가요?
+            <button type="button" class="link-sm" data-goto-tab="signup">회원가입</button>
+          </p>
+        </form>
+
+        <!-- 회원가입 폼 (동작: auth.js) -->
+        <form id="panel-signup" class="auth-form__panel" novalidate hidden>
+          <div class="field">
+            <label class="label" for="signup-id">아이디</label>
+            <input class="input" type="text" id="signup-id" name="loginId" autocomplete="username" placeholder="4~50자, 영문·숫자" />
+            <span class="field__error" id="signup-id-error"></span>
+          </div>
+
+          <div class="field">
+            <label class="label" for="signup-email">이메일</label>
+            <input class="input" type="email" id="signup-email" name="email" autocomplete="email" placeholder="you@example.com" />
+            <span class="field__error" id="signup-email-error"></span>
+          </div>
+
+          <div class="field">
+            <label class="label" for="signup-nick">닉네임</label>
+            <input class="input" type="text" id="signup-nick" name="nickname" autocomplete="nickname" placeholder="지도에서 표시될 이름" />
+            <span class="field__error" id="signup-nick-error"></span>
+          </div>
+
+          <div class="auth-form__row2">
+            <div class="field">
+              <label class="label" for="signup-pw">비밀번호</label>
+              <div class="input-affix">
+                <input class="input" type="password" id="signup-pw" name="password" autocomplete="new-password" placeholder="8자 이상" />
+                <button type="button" class="input-affix__btn" data-toggle-pw="signup-pw" aria-label="비밀번호 표시">표시</button>
+              </div>
+              <span class="field__error" id="signup-pw-error"></span>
+            </div>
+
+            <div class="field">
+              <label class="label" for="signup-pw2">비밀번호 확인</label>
+              <input class="input" type="password" id="signup-pw2" name="passwordConfirm" autocomplete="new-password" placeholder="다시 입력" />
+              <span class="field__error" id="signup-pw2-error"></span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn--primary btn--block" data-submit="signup">회원가입</button>
+
+          <p class="auth-form__switch">
+            이미 계정이 있으신가요?
+            <button type="button" class="link-sm" data-goto-tab="login">로그인</button>
+          </p>
+        </form>
+      </div>
     </section>
-
   </main>
 
   <script src="js/api.js"></script>

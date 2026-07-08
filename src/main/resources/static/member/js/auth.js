@@ -57,6 +57,13 @@
       });
     });
 
+    // 폼 하단 "회원가입/로그인" 전환 링크
+    document.querySelectorAll('[data-goto-tab]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        activateTab(b.getAttribute('data-goto-tab'));
+      });
+    });
+
     /* ---------------------------------------------------------------
      * 비밀번호 표시 토글
      * ------------------------------------------------------------- */
@@ -234,11 +241,16 @@
         })
         .catch(function (err) {
           setLoading(btn, false, '회원가입');
-          // 중복 아이디/이메일은 해당 필드에 표시.
+          // 중복 아이디/이메일은 토스트 없이 해당 필드에 인라인으로 안내하고 포커스한다.
           if (err && err.code === 'M002') {
-            setError('signup-id', '이미 사용 중인 로그인 아이디입니다.');
-          } else if (err && err.code === 'M003') {
-            setError('signup-email', '이미 사용 중인 이메일입니다.');
+            setError('signup-id', '이미 사용 중인 아이디입니다. 다른 아이디를 입력해 주세요.');
+            document.getElementById('signup-id').focus();
+            return;
+          }
+          if (err && err.code === 'M003') {
+            setError('signup-email', '이미 가입된 이메일입니다. 다른 이메일을 입력해 주세요.');
+            document.getElementById('signup-email').focus();
+            return;
           }
           MemberUI.handleError(err, '회원가입에 실패했습니다.');
         });
