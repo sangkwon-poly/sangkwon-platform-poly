@@ -60,7 +60,7 @@ class AdminAuthInterceptorTest {
         when(adminUserRepository.findById(1L))
                 .thenReturn(Optional.of(admin(1L, AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE)));
 
-        MockHttpServletRequest req = requestWith(new AdminSession(1L, "admin", "관리자", AdminRole.SUPER_ADMIN));
+        MockHttpServletRequest req = requestWith(new AdminSession(1L, "admin", "관리자", AdminRole.SUPER_ADMIN, 0));
         assertThat(interceptor.preHandle(req, response, new Object())).isTrue();
 
         AdminSession after = (AdminSession) req.getSession(false).getAttribute(SessionConst.LOGIN_ADMIN);
@@ -73,7 +73,7 @@ class AdminAuthInterceptorTest {
         when(adminUserRepository.findById(1L))
                 .thenReturn(Optional.of(admin(1L, AdminRole.VIEWER, AdminStatus.ACTIVE)));
 
-        MockHttpServletRequest req = requestWith(new AdminSession(1L, "admin", "관리자", AdminRole.SUPER_ADMIN));
+        MockHttpServletRequest req = requestWith(new AdminSession(1L, "admin", "관리자", AdminRole.SUPER_ADMIN, 0));
         assertThat(interceptor.preHandle(req, response, new Object())).isTrue();
 
         AdminSession after = (AdminSession) req.getSession(false).getAttribute(SessionConst.LOGIN_ADMIN);
@@ -86,7 +86,7 @@ class AdminAuthInterceptorTest {
         when(adminUserRepository.findById(1L))
                 .thenReturn(Optional.of(admin(1L, AdminRole.SUPER_ADMIN, AdminStatus.LOCKED)));
 
-        MockHttpServletRequest req = requestWith(new AdminSession(1L, "admin", "관리자", AdminRole.SUPER_ADMIN));
+        MockHttpServletRequest req = requestWith(new AdminSession(1L, "admin", "관리자", AdminRole.SUPER_ADMIN, 0));
         assertThatThrownBy(() -> interceptor.preHandle(req, response, new Object()))
                 .isInstanceOf(ResponseStatusException.class);
     }
@@ -96,7 +96,20 @@ class AdminAuthInterceptorTest {
         AdminAuthInterceptor interceptor = new AdminAuthInterceptor(() -> adminUserRepository);
         when(adminUserRepository.findById(1L)).thenReturn(Optional.empty());
 
-        MockHttpServletRequest req = requestWith(new AdminSession(1L, "admin", "관리자", AdminRole.SUPER_ADMIN));
+        MockHttpServletRequest req = requestWith(new AdminSession(1L, "admin", "관리자", AdminRole.SUPER_ADMIN, 0));
+        assertThatThrownBy(() -> interceptor.preHandle(req, response, new Object()))
+                .isInstanceOf(ResponseStatusException.class);
+    }
+
+    @Test
+    void 비밀번호_버전이_다르면_세션을_무효화하고_401() {
+        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(() -> adminUserRepository);
+        AdminUser changed = admin(1L, AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE);
+        changed.updatePassword("newhash"); // pwVersion 0 -> 1
+        when(adminUserRepository.findById(1L)).thenReturn(Optional.of(changed));
+
+        // 세션은 비번 변경 전(버전 0)에 발급된 것 -> 버전 불일치로 무효화
+        MockHttpServletRequest req = requestWith(new AdminSession(1L, "admin", "관리자", AdminRole.SUPER_ADMIN, 0));
         assertThatThrownBy(() -> interceptor.preHandle(req, response, new Object()))
                 .isInstanceOf(ResponseStatusException.class);
     }

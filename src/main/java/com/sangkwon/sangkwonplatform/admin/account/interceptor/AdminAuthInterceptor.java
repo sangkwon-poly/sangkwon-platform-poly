@@ -39,6 +39,11 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
             session.invalidate();
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
         }
+        // 비밀번호가 바뀐 뒤(버전 불일치) 발급된 세션이면 무효화: 비번 변경/재설정 시 다른 세션 강제 로그아웃
+        if (current.getPwVersion() != loginAdmin.pwVersion()) {
+            session.invalidate();
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+        }
         // 권한이 바뀌었으면 세션의 권한 스냅샷을 최신으로 교체(강등·승급 즉시 반영)
         if (current.getRole() != loginAdmin.role()) {
             session.setAttribute(SessionConst.LOGIN_ADMIN, AdminSession.from(current));

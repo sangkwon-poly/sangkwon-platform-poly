@@ -9,14 +9,16 @@ public record AdminSession(
         Long adminId,
         String loginId,
         String adminName,
-        AdminRole role
+        AdminRole role,
+        int pwVersion
 ) implements Serializable {
     public static AdminSession from (AdminUser adminUser) {
         return new AdminSession(
                 adminUser.getAdminId(),
                 adminUser.getLoginId(),
                 adminUser.getAdminName(),
-                adminUser.getRole()
+                adminUser.getRole(),
+                adminUser.getPwVersion()
         );
     }
 }

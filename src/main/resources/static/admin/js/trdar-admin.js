@@ -10,7 +10,7 @@
             });
         });
     }
-    function esc(s) { var d = document.createElement("div"); d.textContent = (s == null) ? "" : String(s); return d.innerHTML; }
+    function esc(s) { var d = document.createElement("div"); d.textContent = (s == null) ? "" : String(s); return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
     function num(n) { return (n == null) ? "—" : Number(n).toLocaleString(); }
 
     function qLabel(q) {

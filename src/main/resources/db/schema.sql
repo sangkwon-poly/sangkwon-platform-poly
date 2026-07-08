@@ -543,6 +543,7 @@ CREATE TABLE ADMIN_USER (
                             ROLE             VARCHAR2(15 CHAR)  DEFAULT 'VIEWER' NOT NULL,
                             STATUS           VARCHAR2(10 CHAR)  DEFAULT 'ACTIVE' NOT NULL,
                             FAILED_LOGIN_CNT NUMBER(4)          DEFAULT 0 NOT NULL,
+                            PW_VERSION       NUMBER(10)         DEFAULT 0 NOT NULL,
                             OTP_ENABLED      CHAR(1 CHAR)       DEFAULT 'N' NOT NULL,
                             OTP_SECRET       VARCHAR2(64 CHAR),
                             OTP_LAST_STEP    NUMBER(19),
@@ -566,6 +567,7 @@ COMMENT ON COLUMN ADMIN_USER.NAME             IS '관리자 이름 [PII]';
 COMMENT ON COLUMN ADMIN_USER.ROLE             IS '권한: SUPER_ADMIN / OPERATOR / VIEWER';
 COMMENT ON COLUMN ADMIN_USER.STATUS           IS '상태: ACTIVE / LOCKED';
 COMMENT ON COLUMN ADMIN_USER.FAILED_LOGIN_CNT IS '연속 로그인 실패 횟수 (LOCKED 잠금 트리거용)';
+COMMENT ON COLUMN ADMIN_USER.PW_VERSION       IS '비밀번호 버전(변경 시 +1). 세션 무효화 비교용';
 COMMENT ON COLUMN ADMIN_USER.OTP_ENABLED      IS '2단계 인증(TOTP) 사용 여부: Y / N';
 COMMENT ON COLUMN ADMIN_USER.OTP_SECRET       IS 'TOTP 비밀키(Base32), 2FA 설정 시 발급 [민감]';
 COMMENT ON COLUMN ADMIN_USER.OTP_LAST_STEP    IS '마지막으로 소비한 TOTP 시간 스텝(리플레이 방지). 사용 이력 없으면 NULL';
