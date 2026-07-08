@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 public record AdminPasswordResetRequest(
 
         @NotBlank(message = "새 비밀번호를 입력해 주세요!")
-        @Size(min = 4, message = "비밀번호는 4자 이상으로 설정해 주세요!")
+        @Size(min = 10, max = 72, message = "비밀번호는 10자 이상 72자 이하로 설정해 주세요!")
         String newPassword
 ) {
 }

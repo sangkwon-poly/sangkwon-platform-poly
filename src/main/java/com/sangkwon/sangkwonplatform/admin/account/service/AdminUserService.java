@@ -31,6 +31,19 @@ public class AdminUserService {
     private final AdminLoginAttemptService loginAttemptService;
     private final TrustedDeviceService trustedDeviceService;
 
+    // 존재하지 않는 아이디의 응답 시간을 실제 계정과 맞추기 위한 더미 해시(아이디 열거 방지).
+    // 실제 인코더로 한 번만 만들어 재사용한다.
+    private volatile String dummyHash;
+
+    private String dummyHash() {
+        String h = dummyHash;
+        if (h == null) {
+            h = passwordEncoder.encode("timing-equalizer");
+            dummyHash = h;
+        }
+        return h;
+    }
+
     public void join(AdminJoinRequest request) {
         if (adminUserRepository.existsByLoginId(request.loginId())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 사용 중인 로그인 ID입니다.");
@@ -53,7 +66,12 @@ public class AdminUserService {
 
     public AdminSession login(AdminLoginRequest request, String trustToken) {
         AdminUser adminUser = adminUserRepository.findByLoginId(request.loginId())
-                .orElseThrow(this::invalidCredentials);
+                .orElse(null);
+        if (adminUser == null) {
+            // 계정이 없어도 실제 계정과 비슷한 시간(더미 해시 비교)을 쓰게 해 아이디 열거를 막는다
+            passwordEncoder.matches(request.password(), dummyHash());
+            throw invalidCredentials();
+        }
 
         if (adminUser.getStatus() == AdminStatus.LOCKED) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
@@ -75,7 +93,9 @@ public class AdminUserService {
             if (otp == null || otp.isBlank()) {
                 throw new OtpRequiredException();
             }
-            if (!Totp.verify(adminUser.getOtpSecret(), otp)) {
+            // 코드가 맞는지 확인하고, 같은 코드의 재사용(리플레이)을 막기 위해 사용한 스텝을 소비한다
+            long step = Totp.matchedStep(adminUser.getOtpSecret(), otp);
+            if (step == Long.MIN_VALUE || !adminUser.consumeOtpStep(step)) {
                 loginAttemptService.recordFailure(adminUser.getAdminId());
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "OTP 인증코드가 올바르지 않습니다.");
             }
@@ -97,7 +117,8 @@ public class AdminUserService {
         if (admin.getOtpSecret() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "먼저 OTP 설정을 시작하세요.");
         }
-        if (!Totp.verify(admin.getOtpSecret(), otp)) {
+        long step = Totp.matchedStep(admin.getOtpSecret(), otp);
+        if (step == Long.MIN_VALUE || !admin.consumeOtpStep(step)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "OTP 코드가 올바르지 않습니다.");
         }
         admin.confirmOtp();

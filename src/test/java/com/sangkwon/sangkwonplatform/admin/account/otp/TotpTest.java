@@ -41,4 +41,13 @@ class TotpTest {
         String code = Totp.generate(secret, 100);
         assertThat(Totp.verify(secret, code, 100 * 30)).isTrue();
     }
+
+    @Test
+    void matchedStep은_코드의_시간스텝을_돌려주고_틀리면_MIN_VALUE() {
+        // 59초 -> 스텝 1. 앞뒤 한 스텝 창 안에서도 매칭된 코드의 스텝(1)을 돌려준다
+        assertThat(Totp.matchedStep(SECRET, "287082", 59)).isEqualTo(1L);
+        assertThat(Totp.matchedStep(SECRET, "287082", 59 + 30)).isEqualTo(1L);
+        assertThat(Totp.matchedStep(SECRET, "000000", 59)).isEqualTo(Long.MIN_VALUE);
+        assertThat(Totp.matchedStep(SECRET, "28708", 59)).isEqualTo(Long.MIN_VALUE);
+    }
 }

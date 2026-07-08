@@ -35,4 +35,13 @@ class IpAllowlistTest {
         IpAllowlist list = IpAllowlist.parse("192.168.0.0/16");
         assertThat(list.isAllowed("not-an-ip")).isFalse();
     }
+
+    @Test
+    void 호스트명은_리터럴이_아니라_거부하고_DNS를_타지_않는다() {
+        IpAllowlist list = IpAllowlist.parse("10.0.0.0/8");
+        assertThat(list.isAllowed("evil.com")).isFalse();
+        assertThat(list.isAllowed("localhost")).isFalse();
+        // 목록에 호스트명을 넣어도 리터럴이 아니라 무시된다
+        assertThat(IpAllowlist.parse("example.com").isEmpty()).isTrue();
+    }
 }

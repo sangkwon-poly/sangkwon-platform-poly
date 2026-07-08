@@ -50,11 +50,52 @@ public final class IpAllowlist {
     }
 
     private static byte[] toBytes(String ip) {
+        // 리터럴 IP만 허용한다. 호스트명을 넘기면 InetAddress가 DNS 조회를 하므로,
+        // 신뢰할 수 없는 입력(X-Forwarded-For 등)으로 외부 조회가 일어나지 않게 형식을 먼저 검사한다.
+        if (!isIpLiteral(ip)) {
+            return null;
+        }
         try {
             return InetAddress.getByName(ip).getAddress();
         } catch (Exception ex) {
             return null;
         }
+    }
+
+    private static boolean isIpLiteral(String s) {
+        if (s == null || s.isEmpty()) {
+            return false;
+        }
+        if (s.indexOf(':') >= 0) {
+            // IPv6: 16진수·콜론, 임베디드 IPv4용 점만 허용
+            for (int i = 0; i < s.length(); i++) {
+                char c = s.charAt(i);
+                boolean ok = (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f')
+                        || (c >= 'A' && c <= 'F') || c == ':' || c == '.';
+                if (!ok) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        String[] octets = s.split("\\.", -1);
+        if (octets.length != 4) {
+            return false;
+        }
+        for (String o : octets) {
+            if (o.isEmpty() || o.length() > 3) {
+                return false;
+            }
+            for (int i = 0; i < o.length(); i++) {
+                if (o.charAt(i) < '0' || o.charAt(i) > '9') {
+                    return false;
+                }
+            }
+            if (Integer.parseInt(o) > 255) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static final class Entry {

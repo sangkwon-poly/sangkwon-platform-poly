@@ -49,6 +49,10 @@ public class AdminUser {
     @Column(name = "OTP_SECRET", length = 64)
     private String otpSecret;
 
+    // 마지막으로 소비한 TOTP 시간 스텝(리플레이 방지용). 아직 사용 이력이 없으면 null.
+    @Column(name = "OTP_LAST_STEP")
+    private Long otpLastStep;
+
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
 
@@ -123,9 +127,19 @@ public class AdminUser {
         this.otpEnabled = true;
     }
 
+    // 이미 사용한 스텝(마지막 스텝 이하)이면 거부한다. 통과하면 그 스텝을 마지막으로 기록해 재사용을 막는다.
+    public boolean consumeOtpStep(long step) {
+        if (otpLastStep != null && step <= otpLastStep) {
+            return false;
+        }
+        this.otpLastStep = step;
+        return true;
+    }
+
     public void disableOtp() {
         this.otpEnabled = false;
         this.otpSecret = null;
+        this.otpLastStep = null;
     }
 
     @PrePersist

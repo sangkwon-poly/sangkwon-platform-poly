@@ -36,4 +36,13 @@ class AdminUserTest {
         assertThat(admin.getStatus()).isEqualTo(AdminStatus.LOCKED);
         assertThat(admin.getFailedLoginCnt()).isEqualTo(2);
     }
+
+    @Test
+    void 같은_또는_이전_OTP_스텝은_다시_소비할_수_없다() {
+        AdminUser admin = admin();
+        assertThat(admin.consumeOtpStep(100)).isTrue();   // 처음 사용
+        assertThat(admin.consumeOtpStep(100)).isFalse();  // 같은 스텝 재사용 불가
+        assertThat(admin.consumeOtpStep(99)).isFalse();   // 이전 스텝도 불가
+        assertThat(admin.consumeOtpStep(101)).isTrue();   // 다음 스텝은 가능
+    }
 }
