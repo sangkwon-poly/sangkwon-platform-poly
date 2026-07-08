@@ -1,0 +1,126 @@
+### 상권분석 플랫폼 · 회원/인증 API 수동 테스트 (김민혁 · member 도메인)
+# IntelliJ HTTP Client 로 실행한다. 각 요청 왼쪽의 실행(▶) 버튼을 눌러 호출.
+# 응답 포맷(공통): ApiResponse<T> = { success, code, message, data }
+#
+# [인증 방식 안내 — 세션 vs JWT 팀 확정 전 임시]
+#  - 세션 쿠키 방식: 로그인 성공 시 서버가 Set-Cookie 로 세션을 내려주고,
+#    IntelliJ HTTP Client 는 쿠키를 자동 저장/전송하므로 별도 헤더가 필요 없다.
+#  - JWT 방식: 로그인 응답 data.token(또는 accessToken)을 아래 로그인 요청의
+#    응답 스크립트에서 client.global.set("accessToken", ...) 로 저장하고,
+#    이후 요청에 Authorization: Bearer {{accessToken}} 헤더를 추가한다.
+#    (JWT 미사용이면 Authorization 라인은 주석 처리한 채 두면 된다.)
+
+@baseUrl = http://localhost:8080
+@loginId = minhyuk
+@password = Pa55word!
+@trdarCd = 3110001
+
+
+### 1) 회원가입  POST /api/members
+# 신규 회원 등록. 성공 시 data 로 생성된 회원 정보 반환.
+POST {{baseUrl}}/api/members
+Content-Type: application/json
+
+{
+  "loginId": "{{loginId}}",
+  "email": "minhyuk@seoul.kr",
+  "nickname": "김민혁",
+  "password": "{{password}}"
+}
+
+
+### 2) 로그인  POST /api/auth/login
+# 로그인 성공 시 JWT 방식이면 토큰을 전역변수에 저장한다.
+# (세션 방식이면 쿠키가 자동 저장되므로 아래 스크립트는 무해하게 통과)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "loginId": "{{loginId}}",
+  "password": "{{password}}",
+  "remember": true
+}
+
+> {%
+    // JWT 방식 대응: 응답 data 에 token/accessToken 이 있으면 전역변수로 저장
+    if (response.body && response.body.data) {
+        var d = response.body.data;
+        var token = d.token || d.accessToken || null;
+        if (token) {
+            client.global.set("accessToken", token);
+            client.log("accessToken 저장됨");
+        }
+    }
+    client.test("로그인 성공", function () {
+        client.assert(response.status === 200, "HTTP 200 아님: " + response.status);
+    });
+%}
+
+
+### 3) 내 정보  GET /api/members/me
+# 로그인 상태에서 내 회원 정보 조회.
+GET {{baseUrl}}/api/members/me
+Accept: application/json
+# JWT 방식이면 아래 주석을 해제:
+# Authorization: Bearer {{accessToken}}
+
+
+### 4) 정보 수정  PATCH /api/members/me
+# 닉네임/이메일 수정.
+PATCH {{baseUrl}}/api/members/me
+Content-Type: application/json
+# Authorization: Bearer {{accessToken}}
+
+{
+  "nickname": "민혁",
+  "email": "minhyuk.new@seoul.kr"
+}
+
+
+### 5) 찜 목록  GET /api/favorites
+# 내가 찜한 상권 목록.
+GET {{baseUrl}}/api/favorites
+Accept: application/json
+# Authorization: Bearer {{accessToken}}
+
+
+### 6) 찜 추가  POST /api/favorites
+# 상권코드로 찜 추가. (회원당 상권 중복 찜 불가)
+POST {{baseUrl}}/api/favorites
+Content-Type: application/json
+# Authorization: Bearer {{accessToken}}
+
+{
+  "trdarCd": "{{trdarCd}}"
+}
+
+
+### 7) 찜 삭제  DELETE /api/favorites/{{trdarCd}}
+# 상권코드로 찜 해제.
+DELETE {{baseUrl}}/api/favorites/{{trdarCd}}
+# Authorization: Bearer {{accessToken}}
+
+
+### 8) 검색 로그 조회  GET /api/search-logs
+# 내 최근 검색 기록.
+GET {{baseUrl}}/api/search-logs
+Accept: application/json
+# Authorization: Bearer {{accessToken}}
+
+
+### 9) 검색 로그 기록  POST /api/search-logs
+# 검색 키워드(+매칭 상권코드) 적재. trdarCd 는 매칭 없으면 생략 가능.
+POST {{baseUrl}}/api/search-logs
+Content-Type: application/json
+# Authorization: Bearer {{accessToken}}
+
+{
+  "keyword": "성수 카페거리",
+  "trdarCd": "{{trdarCd}}"
+}
+
+
+### 10) 로그아웃  POST /api/auth/logout
+# 세션/토큰 무효화. (JWT 방식이면 클라이언트 토큰도 폐기)
+POST {{baseUrl}}/api/auth/logout
+# Authorization: Bearer {{accessToken}}
