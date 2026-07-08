@@ -54,13 +54,9 @@
     tabs.forEach(function (t) {
       t.addEventListener('click', function () { activateTab(t.getAttribute('data-tab')); });
     });
-    // 폼 하단 "회원가입/로그인" 전환 링크
-    document.querySelectorAll('[data-goto-tab]').forEach(function (b) {
-      b.addEventListener('click', function () { activateTab(b.getAttribute('data-goto-tab')); });
-    });
 
     /* ---------------------------------------------------------------
-     * 비밀번호 표시 토글
+     * 비밀번호 표시 토글 (아이콘은 aria-pressed 상태로 CSS가 전환)
      * ------------------------------------------------------------- */
     document.querySelectorAll('[data-toggle-pw]').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -68,7 +64,6 @@
         if (!input) return;
         var show = input.type === 'password';
         input.type = show ? 'text' : 'password';
-        btn.textContent = show ? '숨김' : '표시';
         btn.setAttribute('aria-pressed', show ? 'true' : 'false');
         btn.setAttribute('aria-label', show ? '비밀번호 숨김' : '비밀번호 표시');
       });
@@ -89,6 +84,7 @@
       if (errEl) {
         errEl.textContent = message || '';
         errEl.classList.toggle('is-ok', state === 'ok');
+        errEl.classList.remove('is-warn');
       }
     }
     function setError(inputId, message) { setField(inputId, message, 'error'); }
@@ -105,11 +101,21 @@
     /* ---------------------------------------------------------------
      * 회원가입 실시간 검증 (디바운스 + 서버 중복확인)
      * ------------------------------------------------------------- */
+    // 같은 값은 다시 조회하지 않도록 결과를 캐시(오류 결과 null은 캐시하지 않음)
+    var availCache = { 'check-login-id': {}, 'check-email': {} };
     function availability(path, param, value) {
+      var cache = availCache[path];
+      if (cache && Object.prototype.hasOwnProperty.call(cache, value)) {
+        return Promise.resolve(cache[value]);
+      }
       return fetch('/api/members/' + path + '?' + param + '=' + encodeURIComponent(value),
           { headers: { Accept: 'application/json' } })
         .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (b) { return (b && b.data) ? b.data.available : null; })
+        .then(function (b) {
+          var a = (b && b.data) ? b.data.available : null;
+          if (cache && a !== null) cache[value] = a;
+          return a;
+        })
         .catch(function () { return null; });
     }
     var sPw = document.getElementById('signup-pw');
@@ -159,6 +165,28 @@
       setField('signup-nick', '사용 가능한 닉네임입니다.', 'ok'); set('nick', true);
     });
 
+    // 비밀번호 강도 미터: 길이 + 문자 종류로 약함/보통/강함
+    var pwMeter = document.getElementById('signup-pw-meter');
+    var pwMeterLabel = pwMeter.querySelector('.pw-meter__label');
+    var STRENGTH_LABEL = ['비밀번호 안전도', '약함', '보통', '강함'];
+    function pwStrength(v) {
+      if (v.length < 8) return 0;
+      var score = 0;
+      if (/[a-z]/.test(v)) score++;
+      if (/[A-Z]/.test(v)) score++;
+      if (/\d/.test(v)) score++;
+      if (/[^A-Za-z0-9]/.test(v)) score++;
+      if (v.length >= 12) score++;
+      if (score <= 2) return 1;
+      if (score <= 3) return 2;
+      return 3;
+    }
+    function renderStrength(v) {
+      var lvl = pwStrength(v);
+      pwMeter.setAttribute('data-level', String(lvl));
+      pwMeterLabel.textContent = STRENGTH_LABEL[lvl];
+    }
+
     function checkPw2() {
       var v = sPw2.value;
       if (!v) { clearError('signup-pw2'); set('pw2', false); return; }
@@ -171,9 +199,37 @@
       else if (v.length < 8) { setError('signup-pw', '비밀번호는 8자 이상이어야 합니다.'); set('pw', false); }
       else if (v.length > 72) { setError('signup-pw', '비밀번호는 72자 이하여야 합니다.'); set('pw', false); }
       else { clearError('signup-pw'); set('pw', true); }
+      renderStrength(v);
       checkPw2();
     });
     sPw2.addEventListener('input', checkPw2);
+
+    /* ---------------------------------------------------------------
+     * CapsLock 경고 (비밀번호 입력칸, 포커스 중 + 빨간 에러가 없을 때만)
+     * ------------------------------------------------------------- */
+    function watchCaps(inputId) {
+      var input = document.getElementById(inputId);
+      var errEl = document.getElementById(inputId + '-error');
+      if (!input || !errEl) return;
+      function clearWarn() {
+        if (errEl.classList.contains('is-warn')) { errEl.textContent = ''; errEl.className = 'field__error'; }
+      }
+      function update(e) {
+        if (input.classList.contains('input--invalid')) return;
+        var on = e.getModifierState && e.getModifierState('CapsLock');
+        if (on && document.activeElement === input) {
+          errEl.textContent = 'Caps Lock이 켜져 있습니다.';
+          errEl.className = 'field__error is-warn';
+        } else {
+          clearWarn();
+        }
+      }
+      input.addEventListener('keydown', update);
+      input.addEventListener('keyup', update);
+      input.addEventListener('blur', clearWarn);
+    }
+    watchCaps('login-pw');
+    watchCaps('signup-pw');
 
     /* ---------------------------------------------------------------
      * 제출 중 버튼 로딩 상태

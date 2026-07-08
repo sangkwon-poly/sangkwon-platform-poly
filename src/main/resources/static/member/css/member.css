@@ -36,6 +36,7 @@
 
   /* 상태색 */
   --ok: #4E7A3E;
+  --warn: #B8761F;
   --danger: #C0392B;
 
   /* 라운드 */
@@ -447,6 +448,16 @@ p {
   cursor: not-allowed;
 }
 
+/* 브라우저 자동완성이 강제하는 노란 배경을 표면색으로 덮는다 */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--ink);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+  caret-color: var(--ink);
+  transition: background-color 9999s ease-out 0s;
+}
+
 .input--invalid,
 .input[aria-invalid="true"] {
   border-color: var(--danger);
@@ -494,6 +505,11 @@ textarea.input {
   color: var(--ok);
 }
 
+/* CapsLock 등 주의 안내는 앰버로 */
+.field__error.is-warn {
+  color: var(--warn);
+}
+
 /* 접미 요소가 있는 인풋(비밀번호 표시 토글 등) */
 .input-affix {
   position: relative;
@@ -502,7 +518,7 @@ textarea.input {
 }
 
 .input-affix .input {
-  padding-right: 66px;
+  padding-right: 48px;
 }
 
 .input-affix__btn {
@@ -524,6 +540,81 @@ textarea.input {
 .input-affix__btn:hover {
   background: var(--surface-2);
 }
+
+/* 비밀번호 표시 토글: 눈 아이콘 */
+.input-affix__btn--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  padding: 0;
+  color: var(--muted-2);
+  transition: color .15s ease, background .15s ease;
+}
+
+.input-affix__btn--icon:hover {
+  color: var(--brand);
+}
+
+.input-affix__btn--icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.input-affix__btn--icon .ic-eye-off {
+  display: none;
+}
+
+.input-affix__btn--icon[aria-pressed="true"] .ic-eye {
+  display: none;
+}
+
+.input-affix__btn--icon[aria-pressed="true"] .ic-eye-off {
+  display: block;
+}
+
+/* 비밀번호 강도 미터 */
+.pw-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: -2px;
+}
+
+.pw-meter__bars {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+
+.pw-meter__bars span {
+  height: 4px;
+  border-radius: 3px;
+  background: var(--line);
+  transition: background .2s ease;
+}
+
+.pw-meter__label {
+  min-width: 3em;
+  text-align: right;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted-2);
+}
+
+.pw-meter[data-level="1"] .pw-meter__bars span:nth-child(-n+1) { background: var(--danger); }
+.pw-meter[data-level="2"] .pw-meter__bars span:nth-child(-n+2) { background: var(--warn); }
+.pw-meter[data-level="3"] .pw-meter__bars span { background: var(--ok); }
+
+.pw-meter[data-level="1"] .pw-meter__label { color: var(--danger); }
+.pw-meter[data-level="2"] .pw-meter__label { color: var(--warn); }
+.pw-meter[data-level="3"] .pw-meter__label { color: var(--ok); }
 
 /* --------------------------------------------------------------------
  * 7. 탭 (pill)
@@ -616,7 +707,7 @@ textarea.input {
   grid-template-columns: 1.05fr 1fr;
   width: 100%;
   max-width: 940px;
-  min-height: 680px;
+  min-height: 704px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 22px;
@@ -648,6 +739,31 @@ textarea.input {
   color: #fff;
   z-index: -1;
   pointer-events: none;
+}
+
+/* 상권 반경을 은유한 레이더 펄스: 안쪽에서 바깥으로 번지는 밝기 */
+.auth-hero__deco .ring {
+  opacity: .1;
+  animation: radar 3.8s ease-in-out infinite;
+}
+
+.auth-hero__deco .ring:nth-of-type(2) { animation-delay: .4s; }
+.auth-hero__deco .ring:nth-of-type(3) { animation-delay: .8s; }
+.auth-hero__deco .ring:nth-of-type(4) { animation-delay: 1.2s; }
+
+.auth-hero__deco .ping-core {
+  opacity: .55;
+  animation: corepulse 3.8s ease-in-out infinite;
+}
+
+@keyframes radar {
+  0%, 55%, 100% { opacity: .1; }
+  28% { opacity: .48; }
+}
+
+@keyframes corepulse {
+  0%, 100% { opacity: .5; }
+  50% { opacity: 1; }
 }
 
 .auth-hero__brand {
