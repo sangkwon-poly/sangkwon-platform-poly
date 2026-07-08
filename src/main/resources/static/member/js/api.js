@@ -513,7 +513,7 @@
         const back = encodeURIComponent(
           location.pathname.split('/').pop() + location.search
         );
-        location.replace('login.html?redirect=' + back);
+        location.replace('login?redirect=' + back);
         return false;
       }
     },
@@ -530,9 +530,9 @@
       if (!host) return;
 
       const links = [
-        { key: 'map', label: '지도', href: '../map/index.html' },
-        { key: 'favorites', label: '찜', href: 'favorites.html' },
-        { key: 'mypage', label: '마이페이지', href: 'mypage.html' },
+        { key: 'map', label: '지도', href: '/map' },
+        { key: 'favorites', label: '찜', href: 'favorites' },
+        { key: 'mypage', label: '마이페이지', href: 'mypage' },
       ];
 
       let me = null;
@@ -563,14 +563,14 @@
       } else {
         userHtml =
           '<div class="app-header__user">' +
-            '<a class="btn btn--ghost btn--sm" href="login.html">로그인</a>' +
+            '<a class="btn btn--ghost btn--sm" href="login">로그인</a>' +
           '</div>';
       }
 
       host.innerHTML =
         '<header class="app-header">' +
           '<div class="app-header__inner">' +
-            '<a class="app-header__brand" href="../map/index.html">' +
+            '<a class="app-header__brand" href="/">' +
               '<span class="app-header__logo" aria-hidden="true">서</span>' +
               '<span>서울공화국</span>' +
             '</a>' +
@@ -591,7 +591,7 @@
           } catch (e) {
             console.error('[MemberUI] 로그아웃 실패:', e);
           } finally {
-            location.href = 'login.html';
+            location.href = 'login';
           }
         });
       }

@@ -22,14 +22,14 @@
       var back = params.get('redirect');
       if (back) {
         // 오픈 리다이렉트 방지: 화이트리스트 방식.
-        // 선행 슬래시를 제거한 뒤, 같은 디렉터리의 영문/숫자/하이픈 .html
-        // 파일명(+선택적 ?query/#hash)만 허용한다. 콜론(:)이 있으면 거부.
+        // 선행 슬래시를 제거한 뒤, 같은 디렉터리의 영문/숫자/하이픈 페이지명
+        // (구형 .html 포함, 선택적 ?query/#hash)만 허용한다. 콜론(:)이 있으면 거부.
         var safe = back.replace(/^\/+/, '');
-        if (safe.indexOf(':') === -1 && /^[\w-]+\.html([?#].*)?$/.test(safe)) {
+        if (safe.indexOf(':') === -1 && /^[\w-]+(\.html)?([?#].*)?$/.test(safe)) {
           return safe;
         }
       }
-      return 'favorites.html';
+      return 'favorites';
     }
 
     /* ---------------------------------------------------------------

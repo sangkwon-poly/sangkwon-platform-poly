@@ -21,7 +21,7 @@
     // 헤더 렌더(찜 탭 활성).
     MemberUI.renderHeader('favorites');
 
-    // 비로그인 시 login.html 로 유도하고 중단.
+    // 비로그인 시 로그인으로 유도하고 중단.
     var me = await MemberUI.requireAuth();
     if (!me) return;
 
