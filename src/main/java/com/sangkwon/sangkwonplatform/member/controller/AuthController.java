@@ -42,7 +42,10 @@ public class AuthController {
 
         SecurityContextHolder.setContext(context);
 
-        request.getSession(true).setAttribute(
+        // 세션 고정 방지: 로그인 성공 시 세션 ID를 회전시킨 뒤 인증 정보를 담는다
+        request.getSession(true);
+        request.changeSessionId();
+        request.getSession().setAttribute(
                 HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
 
         return ApiResponse.ok(me);
