@@ -1,5 +1,6 @@
 package com.sangkwon.sangkwonplatform.admin.ops.service;
 
+import com.sangkwon.sangkwonplatform.admin.account.security.ClientIpResolver;
 import com.sangkwon.sangkwonplatform.admin.ops.AuditAction;
 import com.sangkwon.sangkwonplatform.admin.ops.entity.AdminAuditLog;
 import com.sangkwon.sangkwonplatform.admin.ops.repository.AdminAuditLogRepository;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminAuditService {
 
     private final AdminAuditLogRepository adminAuditLogRepository;
+    private final ClientIpResolver clientIpResolver;
 
     @Transactional
     public void record(Long adminId, AuditAction action, String targetType,
@@ -21,10 +23,6 @@ public class AdminAuditService {
             return;
         }
         adminAuditLogRepository.save(AdminAuditLog.of(
-                adminId, action.name(), targetType, targetId, detail, clientIp(request)));
-    }
-
-    private static String clientIp(HttpServletRequest request) {
-        return request == null ? null : request.getRemoteAddr();
+                adminId, action.name(), targetType, targetId, detail, clientIpResolver.resolve(request)));
     }
 }

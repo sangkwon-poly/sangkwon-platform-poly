@@ -4,15 +4,18 @@ import com.sangkwon.sangkwonplatform.admin.account.dto.session.AdminSession;
 import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminRole;
 import com.sangkwon.sangkwonplatform.admin.account.session.LoginAdmin;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.ApiUsageResponse;
-import com.sangkwon.sangkwonplatform.admin.ops.dto.AuditLogResponse;
+import com.sangkwon.sangkwonplatform.admin.ops.dto.AuditPageResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.BatchLogResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.OverviewResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.service.OpsService;
 import com.sangkwon.sangkwonplatform.global.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -45,9 +48,15 @@ public class OpsController {
     }
 
     @GetMapping("/audit")
-    public ApiResponse<List<AuditLogResponse>> audit(@LoginAdmin AdminSession admin) {
+    public ApiResponse<AuditPageResponse> audit(@LoginAdmin AdminSession admin,
+                                                @RequestParam(required = false) String action,
+                                                @RequestParam(defaultValue = "0") int page,
+                                                @RequestParam(defaultValue = "30") int size) {
         requireSuperAdmin(admin);
-        return ApiResponse.ok(opsService.recentAudits(100));
+        int safeSize = Math.min(Math.max(size, 1), 100);
+        PageRequest pageable = PageRequest.of(Math.max(page, 0), safeSize,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+        return ApiResponse.ok(opsService.searchAudits(action, pageable));
     }
 
     private void requireSuperAdmin(AdminSession admin) {
