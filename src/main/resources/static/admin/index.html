@@ -50,6 +50,16 @@
 
         <section class="stat-grid" aria-label="핵심 지표">
           <article class="stat-card">
+            <div class="stat-card-label">회원</div>
+            <div class="stat-card-value ov-value" id="ov-stat-member">—</div>
+            <div class="stat-delta ov-flat" id="ov-sub-member">가입 회원</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">리포트</div>
+            <div class="stat-card-value ov-value" id="ov-stat-report">—</div>
+            <div class="stat-delta ov-flat" id="ov-sub-report">AI 생성</div>
+          </article>
+          <article class="stat-card">
             <div class="stat-card-label">분석 상권</div>
             <div class="stat-card-value ov-value" id="ov-stat-trdar">—</div>
             <div class="stat-delta ov-flat" id="ov-sub-trdar">서울시 전체</div>
@@ -70,6 +80,30 @@
             <div class="stat-delta ov-flat" id="ov-sub-batch">적재 상태</div>
           </article>
         </section>
+
+        <div class="ov-charts">
+
+          <section class="card" aria-label="오늘 외부 API 사용량">
+            <div class="card-head">
+              <h2 class="card-title">오늘 API 사용량</h2>
+              <a class="card-link" href="/admin/api-usage.html">전체 보기 →</a>
+            </div>
+            <ul class="bar-list" id="ov-api-bars">
+              <li class="ov-note">불러오는 중…</li>
+            </ul>
+          </section>
+
+          <section class="card" aria-label="최근 배치 결과">
+            <div class="card-head">
+              <h2 class="card-title">최근 배치 결과</h2>
+              <a class="card-link" href="/admin/batch.html">전체 보기 →</a>
+            </div>
+            <div class="donut-wrap" id="ov-batch-donut">
+              <p class="ov-note">불러오는 중…</p>
+            </div>
+          </section>
+
+        </div>
 
         <div class="ov-cols">
 

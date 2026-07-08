@@ -5,10 +5,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 public interface LlmReportRepository extends JpaRepository<LlmReport, Long> {
+
+    long countByCreatedAtGreaterThanEqual(LocalDateTime from);
 
     // 최근 생성순. 업종 리포트는 업종 코드로, 상권 전체 리포트는 NULL로 구분한다
     @Query("""
