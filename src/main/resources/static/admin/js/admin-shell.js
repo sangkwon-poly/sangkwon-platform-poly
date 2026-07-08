@@ -26,7 +26,7 @@
         var nav = document.querySelector(".admin-nav");
         var sep = nav ? nav.querySelector(".admin-nav-sep") : null;
         if (nav && sep) {
-            [["/admin/member-admin.html", "회원 관리"], ["/admin/audit-log.html", "감사 로그"], ["/admin/api-usage.html", "API 사용"]].forEach(function (item) {
+            [["/admin/member-admin.html", "회원 관리"], ["/admin/notice-admin.html", "공지사항"], ["/admin/audit-log.html", "감사 로그"], ["/admin/api-usage.html", "API 사용"]].forEach(function (item) {
                 if (nav.querySelector('a[href="' + item[0] + '"]')) { return; }
                 var link = document.createElement("a");
                 link.href = item[0];

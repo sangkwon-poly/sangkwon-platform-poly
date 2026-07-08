@@ -10,6 +10,9 @@
         ADMIN_ROLE_UPDATE:    { label: "역할 변경", cls: "act-update" },
         ADMIN_STATUS_UPDATE:  { label: "관리자 상태 변경", cls: "act-update" },
         MEMBER_STATUS_UPDATE: { label: "회원 상태 변경", cls: "act-update" },
+        NOTICE_CREATE:        { label: "공지 작성", cls: "act-create" },
+        NOTICE_UPDATE:        { label: "공지 수정", cls: "act-update" },
+        NOTICE_DELETE:        { label: "공지 삭제", cls: "act-danger" },
         PASSWORD_RESET:       { label: "비밀번호 재설정", cls: "act-sec" },
         OTP_ENABLE:           { label: "2단계 인증 켬", cls: "act-sec" },
         OTP_DISABLE:          { label: "2단계 인증 끔", cls: "act-sec" }
