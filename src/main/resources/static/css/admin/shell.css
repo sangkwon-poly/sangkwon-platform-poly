@@ -196,6 +196,18 @@
 }
 .row-action:hover { text-decoration: underline; }
 
+/* 키보드 포커스 표시 (콘솔 전 페이지 공통). 라이트 본문은 브랜드색, 다크 사이드바는 흰색 링으로 대비 확보 */
+.admin a:focus-visible,
+.admin button:focus-visible,
+.admin input:focus-visible,
+.admin select:focus-visible,
+.admin [tabindex]:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.admin-side a:focus-visible { outline-color: #fff; outline-offset: 3px; }
+
 /* 반응형: 태블릿 */
 @media (max-width: 900px) {
   .stat-grid { grid-template-columns: repeat(2, 1fr); }

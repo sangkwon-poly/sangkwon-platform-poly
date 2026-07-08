@@ -100,7 +100,15 @@ public class Member extends BaseEntity {
         this.withdrawnAt = LocalDateTime.now();  // 스키마 CHECK: WITHDRAWN이면 WITHDRAWN_AT 필수 => 탈퇴 시각 필수
     }
 
-    // 휴면 또는 밴처리를 다시 정상으로
+    // 관리자 회원 상태 변경(정지/휴면/해제/강제탈퇴). WITHDRAWN이면 탈퇴 시각을 채워 CK_MBR_WITHDRAWN을 만족시킨다.
+    public void changeStatus(MemberStatus newStatus) {
+        if (newStatus == MemberStatus.WITHDRAWN) {
+            withdraw();
+            return;
+        }
+        this.status = newStatus;
+    }
+
     public boolean isActive() {
         return this.status == MemberStatus.ACTIVE;
     }
