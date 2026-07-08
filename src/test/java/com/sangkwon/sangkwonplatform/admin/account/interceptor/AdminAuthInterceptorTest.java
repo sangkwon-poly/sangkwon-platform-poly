@@ -49,14 +49,14 @@ class AdminAuthInterceptorTest {
 
     @Test
     void 세션이_없으면_401() {
-        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(adminUserRepository);
+        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(() -> adminUserRepository);
         assertThatThrownBy(() -> interceptor.preHandle(requestWith(null), response, new Object()))
                 .isInstanceOf(ResponseStatusException.class);
     }
 
     @Test
     void 활성_계정이고_권한이_같으면_통과하고_세션을_그대로_둔다() {
-        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(adminUserRepository);
+        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(() -> adminUserRepository);
         when(adminUserRepository.findById(1L))
                 .thenReturn(Optional.of(admin(1L, AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE)));
 
@@ -69,7 +69,7 @@ class AdminAuthInterceptorTest {
 
     @Test
     void 권한이_바뀌면_세션_권한을_최신으로_교체한다() {
-        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(adminUserRepository);
+        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(() -> adminUserRepository);
         when(adminUserRepository.findById(1L))
                 .thenReturn(Optional.of(admin(1L, AdminRole.VIEWER, AdminStatus.ACTIVE)));
 
@@ -82,7 +82,7 @@ class AdminAuthInterceptorTest {
 
     @Test
     void 잠긴_계정이면_401() {
-        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(adminUserRepository);
+        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(() -> adminUserRepository);
         when(adminUserRepository.findById(1L))
                 .thenReturn(Optional.of(admin(1L, AdminRole.SUPER_ADMIN, AdminStatus.LOCKED)));
 
@@ -93,7 +93,7 @@ class AdminAuthInterceptorTest {
 
     @Test
     void 삭제된_계정이면_401() {
-        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(adminUserRepository);
+        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(() -> adminUserRepository);
         when(adminUserRepository.findById(1L)).thenReturn(Optional.empty());
 
         MockHttpServletRequest req = requestWith(new AdminSession(1L, "admin", "관리자", AdminRole.SUPER_ADMIN));

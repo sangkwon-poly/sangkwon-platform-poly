@@ -12,13 +12,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import java.util.function.Supplier;
+
 // /api/admin/** 는 로그인 세션(LOGIN_ADMIN)이 있어야 통과. 없으면 401.
 // 매 요청마다 DB에서 계정 상태·권한을 다시 확인해 잠금·권한 변경이 즉시 반영되게 한다.
+// 리포지토리는 요청 시점에만 꺼내 쓴다(JPA가 없는 웹 슬라이스 테스트에서도 설정이 로드되도록).
 public class AdminAuthInterceptor implements HandlerInterceptor {
 
-    private final AdminUserRepository adminUserRepository;
+    private final Supplier<AdminUserRepository> adminUserRepository;
 
-    public AdminAuthInterceptor(AdminUserRepository adminUserRepository) {
+    public AdminAuthInterceptor(Supplier<AdminUserRepository> adminUserRepository) {
         this.adminUserRepository = adminUserRepository;
     }
 
@@ -31,7 +34,7 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
         }
 
         // 로그인 시점 스냅샷이 아니라 현재 DB 상태로 인가한다: 잠기거나 삭제된 계정은 기존 세션도 즉시 차단
-        AdminUser current = adminUserRepository.findById(loginAdmin.adminId()).orElse(null);
+        AdminUser current = adminUserRepository.get().findById(loginAdmin.adminId()).orElse(null);
         if (current == null || current.getStatus() != AdminStatus.ACTIVE) {
             session.invalidate();
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
