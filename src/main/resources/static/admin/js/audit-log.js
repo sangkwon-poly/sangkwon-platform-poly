@@ -13,6 +13,8 @@
         NOTICE_CREATE:        { label: "공지 작성", cls: "act-create" },
         NOTICE_UPDATE:        { label: "공지 수정", cls: "act-update" },
         NOTICE_DELETE:        { label: "공지 삭제", cls: "act-danger" },
+        INQUIRY_ANSWER:       { label: "문의 답변", cls: "act-create" },
+        INQUIRY_CLOSE:        { label: "문의 닫기", cls: "act-update" },
         PASSWORD_RESET:       { label: "비밀번호 재설정", cls: "act-sec" },
         OTP_ENABLE:           { label: "2단계 인증 켬", cls: "act-sec" },
         OTP_DISABLE:          { label: "2단계 인증 끔", cls: "act-sec" }

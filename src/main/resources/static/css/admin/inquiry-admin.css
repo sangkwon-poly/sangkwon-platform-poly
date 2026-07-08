@@ -1,0 +1,99 @@
+/* 1:1 문의 관리 고유 스타일
+   공통 chrome·표·배지는 shell.css / common.css. 여기서는 툴바·셀·답변 모달·페이지네이션만. */
+
+.iq-flash {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px; font-weight: 600;
+  background: var(--ok-bg); color: var(--ok);
+}
+.iq-flash.is-error { background: var(--danger-bg); color: var(--danger); }
+.iq-flash[hidden] { display: none; }
+
+/* 상태 필터 칩 */
+.iq-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+.iq-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.iq-chip {
+  font-size: 12px; font-weight: 600;
+  color: var(--muted-2); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 20px;
+  padding: 6px 14px; cursor: pointer;
+}
+.iq-chip:hover { border-color: var(--brand); color: var(--brand); }
+.iq-chip.is-active, .iq-chip.is-active:hover {
+  font-weight: 700; color: #fff; background: var(--brand); border-color: var(--brand);
+}
+
+/* 셀 */
+.iq-table th, .iq-table td { white-space: nowrap; }
+.iq-title-text { font-size: 13px; font-weight: 700; color: var(--text); }
+.iq-member { font-size: 12.5px; color: var(--text-soft); }
+.iq-muted { font-size: 12px; color: var(--faint); }
+.iq-table .badge { gap: 6px; font-size: 11px; padding: 4px 10px; }
+.iq-table .dot { width: 6px; height: 6px; }
+.dot-muted { background: var(--faint); }
+
+/* 작업 버튼 */
+.iq-actions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.iq-act {
+  font-size: 12px; font-weight: 700;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--bg); color: var(--text-soft);
+  padding: 6px 12px; cursor: pointer; white-space: nowrap;
+}
+.iq-act:hover { border-color: var(--brand); color: var(--brand); }
+.iq-act.iq-act-primary { border-color: var(--brand); color: var(--brand); }
+.iq-act.iq-act-close:hover { border-color: var(--danger); color: var(--danger); }
+
+.iq-empty { padding: 32px 16px; text-align: center; color: var(--faint); font-size: 14px; }
+
+/* 페이지네이션 */
+.iq-pager { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 16px; }
+.iq-pager[hidden] { display: none; }
+.iq-page-btn {
+  font-size: 12.5px; font-weight: 700; color: var(--text-soft);
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 7px 16px; cursor: pointer;
+}
+.iq-page-btn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
+.iq-page-btn:disabled { opacity: .5; cursor: default; }
+.iq-page-info { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* 답변 모달 */
+.iq-modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; }
+.iq-modal[hidden] { display: none; }
+.iq-modal-backdrop { position: absolute; inset: 0; background: rgba(35, 29, 26, .5); }
+.iq-modal-card {
+  position: relative; width: min(600px, calc(100vw - 40px));
+  max-height: calc(100vh - 60px); overflow-y: auto;
+  background: var(--bg); border-radius: var(--radius);
+  box-shadow: var(--shadow-card); padding: 26px 26px 22px;
+}
+.iq-modal-card h2 { font-size: 17px; font-weight: 800; color: var(--ink); margin: 0 0 16px; }
+
+/* 문의 원문 표시 */
+.iq-q { background: var(--surface); border: 1px solid var(--card-line); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 16px; }
+.iq-q-title { font-size: 14px; font-weight: 700; color: var(--ink); }
+.iq-q-meta { font-size: 12px; color: var(--faint); margin-top: 4px; }
+.iq-q-content { font-size: 13px; color: var(--text); margin-top: 10px; line-height: 1.55; white-space: pre-wrap; }
+
+.iq-form { display: flex; flex-direction: column; gap: 13px; }
+.iq-field { display: flex; flex-direction: column; gap: 6px; }
+.iq-field span { font-size: 12px; font-weight: 700; color: var(--text-soft); }
+.iq-field textarea {
+  font-size: 13px; color: var(--text); font-family: inherit;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 9px 11px; background: var(--bg); width: 100%;
+  resize: vertical; min-height: 110px; line-height: 1.5;
+}
+.iq-field textarea:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-tint); }
+.iq-form-msg { font-size: 12px; font-weight: 600; color: var(--danger); margin: 0; }
+.iq-form-msg[hidden] { display: none; }
+.iq-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+.iq-btn { font-size: 13px; font-weight: 700; border-radius: var(--radius-sm); padding: 9px 16px; cursor: pointer; border: 1px solid transparent; }
+.iq-btn-ghost { background: var(--bg); border-color: var(--line); color: var(--text-soft); }
+.iq-btn-ghost:hover { border-color: var(--brand); color: var(--brand); }
+.iq-btn-primary { background: var(--brand); color: #fff; }
+.iq-btn-primary:hover { background: var(--brand-dark); }
+.iq-btn-primary:disabled { opacity: .6; cursor: default; }

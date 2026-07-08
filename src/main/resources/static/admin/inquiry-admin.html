@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>1:1 문의 · 서울공화국</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/admin/shell.css">
+  <link rel="stylesheet" href="/css/admin/inquiry-admin.css">
+</head>
+<body>
+
+  <div class="admin">
+
+    <aside class="admin-side" aria-label="관리자 메뉴">
+      <a class="admin-brand" href="/admin/">
+        <span class="brand-mark" aria-hidden="true">서</span>
+        <span class="admin-brand-text">
+          <span class="admin-brand-name">서울공화국</span>
+          <span class="admin-brand-sub">관리자 콘솔</span>
+        </span>
+      </a>
+      <nav class="admin-nav" aria-label="관리자 내비게이션">
+        <a href="/admin/">개요</a>
+        <a href="/admin/batch.html">데이터 적재</a>
+        <a href="/admin/trdar-admin.html">상권 데이터</a>
+        <a href="/admin/user-admin.html">관리자 계정</a>
+        <hr class="admin-nav-sep">
+        <span class="admin-nav-out">
+          <a href="/map/">지도로 이동</a>
+          <a href="/">랜딩으로</a>
+        </span>
+      </nav>
+      <div class="admin-user">
+        <span class="admin-user-avatar" aria-hidden="true">·</span>
+        <span>
+          <span class="admin-user-name">—</span>
+          <span class="admin-user-role">—</span>
+        </span>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <header class="admin-topbar">
+        <h1>1:1 문의</h1>
+        <span class="admin-topbar-meta" id="iq-meta">회원 문의 확인 및 답변</span>
+      </header>
+
+      <main class="admin-content" aria-label="문의 목록">
+
+        <p class="iq-flash" id="iq-flash" role="status" hidden></p>
+
+        <div class="iq-toolbar">
+          <div class="iq-chips" id="iq-chips" aria-label="상태 필터"></div>
+        </div>
+
+        <section class="data-table-wrap" aria-label="문의 표">
+          <div class="table-scroll">
+            <table class="data-table iq-table">
+              <thead>
+                <tr>
+                  <th scope="col">제목</th>
+                  <th scope="col">회원</th>
+                  <th scope="col" class="col-center">상태</th>
+                  <th scope="col">답변일</th>
+                  <th scope="col">작성일</th>
+                  <th scope="col" class="col-center">작업</th>
+                </tr>
+              </thead>
+              <tbody id="iq-tbody">
+                <tr><td colspan="6" class="iq-empty">불러오는 중…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="iq-pager" id="iq-pager" hidden>
+          <button type="button" class="iq-page-btn" id="iq-prev">이전</button>
+          <span class="iq-page-info" id="iq-page-info"></span>
+          <button type="button" class="iq-page-btn" id="iq-next">다음</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- 답변 모달 -->
+  <div class="iq-modal" id="iq-modal" hidden>
+    <div class="iq-modal-backdrop" data-close></div>
+    <div class="iq-modal-card" role="dialog" aria-modal="true" aria-labelledby="iq-modal-title">
+      <h2 id="iq-modal-title">문의 답변</h2>
+      <div class="iq-q">
+        <div class="iq-q-title" id="iq-q-title"></div>
+        <div class="iq-q-meta" id="iq-q-meta"></div>
+        <div class="iq-q-content" id="iq-q-content"></div>
+      </div>
+      <form id="iq-form" class="iq-form" autocomplete="off">
+        <label class="iq-field">
+          <span>답변</span>
+          <textarea name="answer" rows="6" required placeholder="답변 내용을 입력하세요"></textarea>
+        </label>
+        <p class="iq-form-msg" id="iq-form-msg" hidden></p>
+        <div class="iq-form-actions">
+          <button type="button" class="iq-btn iq-btn-ghost" data-close>취소</button>
+          <button type="submit" class="iq-btn iq-btn-primary" id="iq-submit">답변 등록</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/admin/js/admin-shell.js"></script>
+  <script src="/admin/js/inquiry-admin.js"></script>
+</body>
+</html>
