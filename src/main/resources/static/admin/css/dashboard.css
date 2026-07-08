@@ -1,4 +1,4 @@
-/* 관리자 콘솔 — login.css 토큰/프리미티브(.topbar/.card/.btn/.field/.msg)를 재사용하고 차이만 정의 */
+/* 관리자 콘솔: login.css 토큰/프리미티브(.topbar/.card/.btn/.field/.msg) 재사용, 차이만 정의 */
 
 .card { max-width: 560px; }
 
