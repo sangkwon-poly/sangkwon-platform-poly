@@ -387,10 +387,7 @@ CREATE TABLE FRANCHISE_DISCLOSURE (
 COMMENT ON TABLE FRANCHISE_DISCLOSURE IS '정보공개서 목록 (공정위). 본문은 저장 안 함(실시간 API 조회)';
 CREATE INDEX IX_FDISC_BRAND ON FRANCHISE_DISCLOSURE (BRAND_NM);
 
--- 창업지원 사업
--- ============================================
--- 1. SUPPORT_PROGRAM (지원 사업 - 공통 마스터)
--- ============================================
+-- 창업지원 사업: SUPPORT_PROGRAM (공통 마스터)
 CREATE TABLE SUPPORT_PROGRAM (
                                  PROGRAM_ID       VARCHAR2(50 CHAR)   NOT NULL,
                                  SOURCE_CD        VARCHAR2(20 CHAR)   NOT NULL,
@@ -442,9 +439,7 @@ CREATE INDEX IX_SPRG_RECRUIT ON SUPPORT_PROGRAM (RECRUIT_YN);
 CREATE INDEX IX_SPRG_VISIBLE ON SUPPORT_PROGRAM (IS_VISIBLE);
 
 
--- ============================================
--- 2. SUPPORT_PROGRAM_KSTARTUP_DETAIL (지원 사업 상세 - K-Startup 전용)
--- ============================================
+-- SUPPORT_PROGRAM_KSTARTUP_DETAIL: 지원 사업 상세 (K-Startup 전용)
 CREATE TABLE SUPPORT_PROGRAM_KSTARTUP_DETAIL (
                                                  PROGRAM_ID          VARCHAR2(50 CHAR)  NOT NULL,
                                                  SOURCE_CD           VARCHAR2(20 CHAR)  NOT NULL,

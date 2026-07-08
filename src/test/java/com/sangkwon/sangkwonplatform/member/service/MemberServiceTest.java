@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-// MemberService 단위 테스트 — DB/Spring 없이 mock으로 로직만 검증.
+// MemberService 단위 테스트: mock으로 로직만 검증 (DB/Spring 미기동).
 @ExtendWith(MockitoExtension.class)
 class MemberServiceTest {
 

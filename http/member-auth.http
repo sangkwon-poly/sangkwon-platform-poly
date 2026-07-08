@@ -2,7 +2,7 @@
 # IntelliJ HTTP Client 로 실행한다. 각 요청 왼쪽의 실행(▶) 버튼을 눌러 호출.
 # 응답 포맷(공통): ApiResponse<T> = { success, code, message, data }
 #
-# [인증 방식 안내 — 세션 vs JWT 팀 확정 전 임시]
+# [인증 방식 안내: 세션 vs JWT 팀 확정 전 임시]
 #  - 세션 쿠키 방식: 로그인 성공 시 서버가 Set-Cookie 로 세션을 내려주고,
 #    IntelliJ HTTP Client 는 쿠키를 자동 저장/전송하므로 별도 헤더가 필요 없다.
 #  - JWT 방식: 로그인 응답 data.token(또는 accessToken)을 아래 로그인 요청의

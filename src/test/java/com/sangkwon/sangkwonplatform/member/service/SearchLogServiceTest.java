@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-// SearchLogService 단위 테스트 — DB/Spring 없이 mock으로 로직만 검증.
+// SearchLogService 단위 테스트. DB/Spring 없이 mock으로 로직만 검증.
 @ExtendWith(MockitoExtension.class)
 class SearchLogServiceTest {
 
