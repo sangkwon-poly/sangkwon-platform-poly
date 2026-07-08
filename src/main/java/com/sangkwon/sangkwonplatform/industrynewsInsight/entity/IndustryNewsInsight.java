@@ -1,4 +1,4 @@
-package com.sangkwon.sangkwonplatform.industrynews.entity;
+package com.sangkwon.sangkwonplatform.industrynewsInsight.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+//복합키 테이블
 @Entity
 @Table(name = "INDUSTRY_NEWS_INSIGHT")
 @IdClass(IndustryNewsInsight.PK.class)
