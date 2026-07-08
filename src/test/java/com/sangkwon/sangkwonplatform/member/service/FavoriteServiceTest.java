@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
-// FavoriteService 단위 테스트 — DB/Spring 없이 mock으로 로직만 검증.
+// FavoriteService 단위 테스트. mock 기반, DB/Spring 없이 로직만.
 @ExtendWith(MockitoExtension.class)
 class FavoriteServiceTest {
 

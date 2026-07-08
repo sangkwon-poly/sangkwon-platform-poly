@@ -1,5 +1,5 @@
 /* =====================================================================
- * api.js — member 도메인 프론트 API 래퍼 + 공통 UI 헬퍼
+ * api.js: member 도메인 프론트 API 래퍼 + 공통 UI 헬퍼
  * 서울공화국 상권분석 플랫폼 · 김민혁(member)
  *
  * 노출: window.MemberAPI (엔드포인트 계약), window.MemberUI (UI 헬퍼)
@@ -43,7 +43,7 @@
       headers['Content-Type'] = 'application/json';
     }
 
-    // 세션 인증 — 브라우저가 JSESSIONID 쿠키를 자동 전송한다(아래 credentials:'include').
+    // 세션 인증: 브라우저가 JSESSIONID 쿠키를 자동 전송한다(아래 credentials:'include').
     let res;
     try {
       res = await fetch(path, {
@@ -448,7 +448,7 @@
   };
 
   /* -------------------------------------------------------------------
-   * 6. MemberUI — 공통 UI 헬퍼
+   * 6. MemberUI: 공통 UI 헬퍼
    * ----------------------------------------------------------------- */
 
   // 토스트 컨테이너 확보.
