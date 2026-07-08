@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.member.service;
 
 import java.util.List;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,7 +22,6 @@ public class FavoriteService {
 
     private final FavoriteRepository favoriteRepository;
 
-    //favorite 테이블에서 _ member_id로 검색해서 리스트화 해서 건네줌.
     public List<FavoriteResponse> list(Long memberId) {
         requireAuth(memberId);
         return favoriteRepository.findByMemberIdOrderByCreatedAtDesc(memberId).stream()
@@ -36,9 +36,14 @@ public class FavoriteService {
         if (favoriteRepository.existsByMemberIdAndTrdarCd(memberId, req.trdarCd())) {
             throw new BusinessException(ErrorCode.DUPLICATE_FAVORITE);
         }
-        Favorite f = Favorite.create(memberId, req.trdarCd());
-        favoriteRepository.save(f);
-        return FavoriteResponse.from(f);
+        try {
+            Favorite f = Favorite.create(memberId, req.trdarCd());
+            favoriteRepository.save(f);
+            return FavoriteResponse.from(f);
+        } catch (DataIntegrityViolationException e) {
+            // 동시 요청이 exists를 같이 통과할 경우 unique제약에 걸림.
+            throw new BusinessException(ErrorCode.DUPLICATE_FAVORITE);
+        }
     }
 
     @Transactional
@@ -49,7 +54,6 @@ public class FavoriteService {
         favoriteRepository.delete(f);
     }
 
-    // 비인증 요청(토큰 없음)이면 memberId가 null → 500 대신 401 (개인 API 보호)
     private void requireAuth(Long memberId) {
         if (memberId == null) {
             throw new BusinessException(ErrorCode.UNAUTHENTICATED);

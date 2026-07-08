@@ -6,6 +6,7 @@ import com.sangkwon.sangkwonplatform.admin.account.session.LoginAdmin;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.ApiUsageResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.AuditLogResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.BatchLogResponse;
+import com.sangkwon.sangkwonplatform.admin.ops.dto.OverviewResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.service.OpsService;
 import com.sangkwon.sangkwonplatform.global.common.ApiResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,12 @@ import java.util.List;
 public class OpsController {
 
     private final OpsService opsService;
+
+    @GetMapping("/overview")
+    public ApiResponse<OverviewResponse> overview(@LoginAdmin AdminSession admin) {
+        requireSuperAdmin(admin);
+        return ApiResponse.ok(opsService.overview());
+    }
 
     @GetMapping("/batch")
     public ApiResponse<List<BatchLogResponse>> batch(@LoginAdmin AdminSession admin) {
