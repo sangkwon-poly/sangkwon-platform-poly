@@ -17,6 +17,7 @@ public interface StoreStatRepository extends JpaRepository<StoreStat, StoreStatI
               and (:trdarCd is null or s.trdarCd = :trdarCd)
               and (:indutyCd is null or s.indutyCd = :indutyCd)
             order by s.trdarCd, s.stdrYyquCd, s.indutyCd
+            fetch first 20000 rows only
             """)
     List<StoreStat> search(@Param("stdrYyquCd") String stdrYyquCd,
                            @Param("trdarCd") String trdarCd,

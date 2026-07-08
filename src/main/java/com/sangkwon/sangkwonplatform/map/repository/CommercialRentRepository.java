@@ -17,6 +17,7 @@ public interface CommercialRentRepository extends JpaRepository<CommercialRent, 
               and (:rlstTyCd is null or r.rlstTyCd = :rlstTyCd)
               and (:stdrYyquCd is null or r.stdrYyquCd = :stdrYyquCd)
             order by r.regionNm, r.stdrYyquCd
+            fetch first 20000 rows only
             """)
     List<CommercialRent> search(@Param("regionCd") String regionCd,
                                 @Param("metricCd") String metricCd,

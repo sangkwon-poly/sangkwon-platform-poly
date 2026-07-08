@@ -16,6 +16,7 @@ public interface AptRepository extends JpaRepository<Apt, AptId> {
             where (:stdrYyquCd is null or a.stdrYyquCd = :stdrYyquCd)
               and (:trdarCd is null or a.trdarCd = :trdarCd)
             order by a.trdarCd, a.stdrYyquCd
+            fetch first 20000 rows only
             """)
     List<Apt> search(@Param("stdrYyquCd") String stdrYyquCd,
                      @Param("trdarCd") String trdarCd);

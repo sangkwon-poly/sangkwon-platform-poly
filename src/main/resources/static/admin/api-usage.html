@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>API 사용량 · 서울공화국</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/admin/shell.css">
+  <link rel="stylesheet" href="/admin/css/ops.css">
+</head>
+<body>
+
+  <div class="admin">
+
+    <aside class="admin-side" aria-label="관리자 메뉴">
+      <a class="admin-brand" href="/admin/">
+        <span class="brand-mark" aria-hidden="true">서</span>
+        <span class="admin-brand-text">
+          <span class="admin-brand-name">서울공화국</span>
+          <span class="admin-brand-sub">관리자 콘솔</span>
+        </span>
+      </a>
+      <nav class="admin-nav" aria-label="관리자 내비게이션">
+        <a href="/admin/">개요</a>
+        <a href="/admin/batch.html">데이터 적재</a>
+        <a href="/admin/trdar-admin.html">상권 데이터</a>
+        <a href="/admin/user-admin.html">관리자 계정</a>
+        <hr class="admin-nav-sep">
+        <span class="admin-nav-out">
+          <a href="/map/">지도로 이동</a>
+          <a href="/">랜딩으로</a>
+        </span>
+      </nav>
+      <div class="admin-user">
+        <span class="admin-user-avatar" aria-hidden="true">이</span>
+        <span>
+          <span class="admin-user-name">이상혁</span>
+          <span class="admin-user-role">PM</span>
+        </span>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <header class="admin-topbar">
+        <h1>API 사용량</h1>
+        <span class="admin-topbar-meta">외부 API 일자별 호출량 · 오늘</span>
+      </header>
+
+      <main class="admin-content" aria-label="외부 API 사용량">
+        <div class="usage-grid" id="usage-grid">
+          <p class="ops-empty">불러오는 중…</p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/admin/js/admin-shell.js"></script>
+  <script src="/admin/js/api-usage.js"></script>
+</body>
+</html>

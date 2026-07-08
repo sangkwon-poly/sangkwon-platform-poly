@@ -32,7 +32,9 @@ public interface TrdarRepository extends JpaRepository<Trdar, String> {
                                 @Param("trdarSeCd") String trdarSeCd,
                                 @Param("trdarCd") String trdarCd);
 
-    // 상권별 분기 요약(매출·유동·점포·변화). quarter가 없으면 최신 분기.
+    // 상권별 분기 요약(매출·유동·점포·변화). quarter가 없으면 sales 최신 분기 기준.
+    // 유동·점포·변화는 sales 최신을 상한으로 각 테이블의 최신 분기를 쓴다. 적재 시차 때
+    // 전 상권이 빈 값으로 보이는 대신 직전 분기 값을 쓰되 sales보다 앞선 분기는 섞지 않는다.
     // indutyCd를 주면 매출·점포만 그 업종으로 좁힌다 (유동·변화는 업종 구분이 없는 원천).
     @Query(value = """
             select t.trdar_cd as "trdarCd", t.trdar_cd_nm as "trdarNm", t.signgu_nm as "signguNm",
@@ -45,12 +47,15 @@ public interface TrdarRepository extends JpaRepository<Trdar, String> {
                        where stdr_yyqu_cd = coalesce(:quarter, (select max(stdr_yyqu_cd) from sales))
                          and (:indutyCd is null or induty_cd = :indutyCd) group by trdar_cd) s on s.trdar_cd = t.trdar_cd
             left join (select trdar_cd, sum(stor_co) cnt from store_stat
-                       where stdr_yyqu_cd = coalesce(:quarter, (select max(stdr_yyqu_cd) from store_stat))
+                       where stdr_yyqu_cd = coalesce(:quarter, (select max(stdr_yyqu_cd) from store_stat
+                                                                where stdr_yyqu_cd <= (select max(stdr_yyqu_cd) from sales)))
                          and (:indutyCd is null or induty_cd = :indutyCd) group by trdar_cd) st on st.trdar_cd = t.trdar_cd
             left join (select trdar_cd, tot_flpop_co flpop from street_pop
-                       where stdr_yyqu_cd = coalesce(:quarter, (select max(stdr_yyqu_cd) from street_pop))) sp on sp.trdar_cd = t.trdar_cd
+                       where stdr_yyqu_cd = coalesce(:quarter, (select max(stdr_yyqu_cd) from street_pop
+                                                                where stdr_yyqu_cd <= (select max(stdr_yyqu_cd) from sales)))) sp on sp.trdar_cd = t.trdar_cd
             left join (select trdar_cd, trdar_chnge_ix chnge_ix, trdar_chnge_ix_nm chnge_ix_nm from trdar_change
-                       where stdr_yyqu_cd = coalesce(:quarter, (select max(stdr_yyqu_cd) from trdar_change))) tc on tc.trdar_cd = t.trdar_cd
+                       where stdr_yyqu_cd = coalesce(:quarter, (select max(stdr_yyqu_cd) from trdar_change
+                                                                where stdr_yyqu_cd <= (select max(stdr_yyqu_cd) from sales)))) tc on tc.trdar_cd = t.trdar_cd
             where (:signguCd is null or t.signgu_cd = :signguCd)
               and (:trdarSeCd is null or t.trdar_se_cd = :trdarSeCd)
               and (:keyword is null or t.trdar_cd_nm like '%' || :keyword || '%')

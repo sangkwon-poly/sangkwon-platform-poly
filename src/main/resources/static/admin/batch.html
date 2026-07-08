@@ -4,7 +4,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>데이터 적재 현황 · 서울공화국</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
   <link rel="stylesheet" href="/css/common.css">
   <link rel="stylesheet" href="/css/admin/shell.css">
   <link rel="stylesheet" href="/css/admin/batch.css">
@@ -26,7 +25,7 @@
         <a href="/admin/">개요</a>
         <a href="/admin/batch.html" aria-current="page">데이터 적재</a>
         <a href="/admin/trdar-admin.html">상권 데이터</a>
-        <a href="/admin/user-admin.html">사용자 관리</a>
+        <a href="/admin/user-admin.html">관리자 계정</a>
         <hr class="admin-nav-sep">
         <span class="admin-nav-out">
           <a href="/map/">지도로 이동</a>
@@ -82,7 +81,7 @@
                   <th scope="col" class="col-num">행 수</th>
                   <th scope="col" class="col-num">소요</th>
                   <th scope="col" class="col-center">상태</th>
-                  <th scope="col" class="col-num">작업</th>
+                  <th scope="col">트리거</th>
                 </tr>
               </thead>
               <tbody>
@@ -144,5 +143,7 @@
     </div>
   </div>
 
+  <script src="/admin/js/admin-shell.js"></script>
+  <script src="/admin/js/batch.js"></script>
 </body>
 </html>

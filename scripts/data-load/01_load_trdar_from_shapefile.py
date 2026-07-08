@@ -6,7 +6,8 @@ import shapefile
 from pyproj import Transformer
 
 DSN = "localhost:1521/XEPDB1"
-USER, PW = "SANG", "1234"          # 로컬 XE (팀 공유 DB로 옮기면 여기만 교체)
+USER = os.environ.get("XE_DB_USER", "SANG")          # 로컬 XE 계정 (팀 공유 DB로 옮기면 env만 교체)
+PW = os.environ["XE_DB_PASSWORD"]                    # 비밀번호는 커밋하지 말고 env로: set XE_DB_PASSWORD=1234
 WORK = os.path.join(os.path.dirname(__file__), "_trdar_tmp")
 os.makedirs(WORK, exist_ok=True)
 

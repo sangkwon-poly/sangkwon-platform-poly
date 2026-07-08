@@ -20,6 +20,13 @@ function quarterLabel(code) {
     return code ? code.slice(0, 4) + " " + code.slice(4) + "분기" : "";
 }
 
+// "20244" -> "20251". 전분기 대비 계산이 결측 분기를 건너뛰지 않는지 확인할 때 쓴다
+function nextQuarter(code) {
+    const y = +code.slice(0, 4);
+    const q = +code.slice(4);
+    return q === 4 ? (y + 1) + "1" : "" + y + (q + 1);
+}
+
 function fmtEok(won) {
     if (won == null) {
         return "-";

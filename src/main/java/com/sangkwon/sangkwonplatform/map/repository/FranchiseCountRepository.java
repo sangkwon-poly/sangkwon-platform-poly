@@ -16,6 +16,7 @@ public interface FranchiseCountRepository extends JpaRepository<FranchiseCount, 
               and (:areaCd is null or f.areaCd = :areaCd)
               and (:indutyNm is null or f.indutyNm = :indutyNm)
             order by f.areaNm, f.indutyNm
+            fetch first 20000 rows only
             """)
     List<FranchiseCount> search(@Param("baseYear") Integer baseYear,
                                 @Param("areaCd") String areaCd,

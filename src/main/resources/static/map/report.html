@@ -7,8 +7,8 @@
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
   <link rel="stylesheet" href="/css/common.css">
-  <link rel="stylesheet" href="/css/map/shell.css">
-  <link rel="stylesheet" href="/css/map/report.css">
+  <link rel="stylesheet" href="/css/map/shell.css?v=20260707d">
+  <link rel="stylesheet" href="/css/map/report.css?v=20260707d">
   <style>
     /* 인쇄 시 종이 본문만 전체 폭으로 */
     @media print {
@@ -41,9 +41,10 @@
     <aside class="report-side scroll" aria-label="포함 섹션">
       <p class="panel-label">포함 섹션</p>
       <ul class="sec-list">
-        <li class="sec-row"><span class="sec-name">표지·요약</span></li>
-        <li class="sec-row"><span class="sec-name">분기 매출 추이</span></li>
-        <li class="sec-row"><span class="sec-name">업종 구성</span></li>
+        <li class="sec-row" data-sec="summary"><span class="sec-name">표지·요약</span><span class="sec-tog" aria-hidden="true">✓</span></li>
+        <li class="sec-row" data-sec="trend"><span class="sec-name">분기 매출 추이</span><span class="sec-tog" aria-hidden="true">✓</span></li>
+        <li class="sec-row" data-sec="mix"><span class="sec-name">업종 구성</span><span class="sec-tog" aria-hidden="true">✓</span></li>
+        <li class="sec-row" data-sec="ai"><span class="sec-name">AI 분석</span><span class="sec-tog" aria-hidden="true">✓</span></li>
       </ul>
     </aside>
 
@@ -52,25 +53,33 @@
       <article class="paper">
         <div class="paper-top" aria-hidden="true"></div>
         <div class="paper-body">
-          <p class="paper-kicker">SEOUL TRDAR REPORT</p>
-          <h1 class="paper-title">-</h1>
-          <p class="paper-meta">-</p>
+          <section class="paper-sec" data-sec="summary">
+            <p class="paper-kicker">SEOUL TRDAR REPORT</p>
+            <h1 class="paper-title">-</h1>
+            <p class="paper-meta">-</p>
 
-          <div class="paper-kpis">
-            <div class="paper-kpi"><span class="paper-kpi-label">추정 매출</span><span class="paper-kpi-val">-<span> 억/분기</span></span></div>
-            <div class="paper-kpi"><span class="paper-kpi-label">유동인구</span><span class="paper-kpi-val">-<span> 만 명</span></span></div>
-            <div class="paper-kpi"><span class="paper-kpi-label">점포 수</span><span class="paper-kpi-val">-</span></div>
-          </div>
+            <div class="paper-kpis">
+              <div class="paper-kpi"><span class="paper-kpi-label">추정 매출</span><span class="paper-kpi-val">-<span> 억/분기</span></span></div>
+              <div class="paper-kpi"><span class="paper-kpi-label">유동인구</span><span class="paper-kpi-val">-<span> 만 명</span></span></div>
+              <div class="paper-kpi"><span class="paper-kpi-label">점포 수</span><span class="paper-kpi-val">-</span></div>
+            </div>
+          </section>
 
-          <h2 class="paper-h">분기 매출 추이</h2>
-          <svg class="paper-trend" viewBox="0 0 680 150" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <section class="paper-sec" data-sec="trend">
+            <h2 class="paper-h">분기 매출 추이</h2>
+            <svg class="paper-trend" viewBox="0 0 680 150" preserveAspectRatio="none" aria-hidden="true"></svg>
+          </section>
 
-          <h2 class="paper-h">업종 구성</h2>
-          <ul class="paper-mix"></ul>
+          <section class="paper-sec" data-sec="mix">
+            <h2 class="paper-h">업종 구성</h2>
+            <ul class="paper-mix"></ul>
+          </section>
 
-          <h2 class="paper-h">AI 분석</h2>
-          <div id="ai-report" style="font-size:13.5px;line-height:1.75;color:#4a3f39;white-space:pre-line">아직 생성한 분석이 없습니다. 오른쪽 AI 분석 생성을 누르면 상권 지표를 근거로 리포트를 만듭니다.</div>
-          <p id="ai-report-meta" style="font-size:11px;color:#9a8c84;margin-top:8px"></p>
+          <section class="paper-sec" data-sec="ai">
+            <h2 class="paper-h">AI 분석</h2>
+            <div id="ai-report" style="font-size:13.5px;line-height:1.75;color:#4a3f39;white-space:pre-line">아직 생성한 분석이 없습니다. 오른쪽 AI 분석 생성을 누르면 상권 지표를 근거로 리포트를 만듭니다.</div>
+            <p id="ai-report-meta" style="font-size:11px;color:#9a8c84;margin-top:8px"></p>
+          </section>
         </div>
       </article>
     </main>
@@ -87,8 +96,8 @@
     </aside>
   </div>
 </div>
-<script src="/js/map/common.js?v=20260706f"></script>
+<script src="/js/map/common.js?v=20260707c"></script>
 <script src="/js/map/induty-map.js?v=20260706f"></script>
-<script src="/js/map/report.js?v=20260706f" defer></script>
+<script src="/js/map/report.js?v=20260707e" defer></script>
 </body>
 </html>

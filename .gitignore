@@ -1,10 +1,20 @@
 HELP.md
 application-local.properties
+application-*local.properties
 wallet/
+# Oracle 지갑/자격증명 (폴더명이 Wallet_XXX로 다르거나 압축본이 남아도 방어)
+**/Wallet_*/
+Wallet*.zip
+cwallet.sso
+ewallet.p12
+sqlnet.ora
+tnsnames.ora
+ojdbc.properties
 
 # 설계 문서는 저장소에 두지 않고 따로 보관 (docs에는 Git 협업규칙만 유지)
 docs/DB_설계보고서.md
 docs/DB_테이블_명세서.md
+docs/*.xlsx
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
@@ -47,3 +57,4 @@ __pycache__/
 *.pyc
 scripts/data-load/load_progress.log
 scripts/data-load/_trdar_tmp/
+scripts/data-load/*.env
