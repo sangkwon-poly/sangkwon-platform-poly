@@ -1,5 +1,6 @@
 package com.sangkwon.sangkwonplatform.admin.inquiry.dto.response;
 
+import com.sangkwon.sangkwonplatform.admin.account.entity.AdminUser;
 import com.sangkwon.sangkwonplatform.admin.inquiry.entity.Inquiry;
 
 import java.time.LocalDateTime;
@@ -17,6 +18,7 @@ public record InquiryAdminDetailResponse(
         LocalDateTime updatedAt
 ) {
     public static InquiryAdminDetailResponse from (Inquiry inquiry){
+        AdminUser admin = inquiry.getAdmin();
         return new InquiryAdminDetailResponse(
                 inquiry.getInquiryId(),
                 null,
@@ -24,7 +26,7 @@ public record InquiryAdminDetailResponse(
                 inquiry.getTitle(),
                 inquiry.getContent(),
                 inquiry.getAnswer(),
-                inquiry.getAdmin().getAdminName(),
+                admin == null ? null : admin.getAdminName(),
                 inquiry.getAnsweredAt(),
                 inquiry.getCreatedAt(),
                 inquiry.getUpdatedAt()

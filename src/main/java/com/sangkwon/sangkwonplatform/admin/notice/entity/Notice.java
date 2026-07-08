@@ -3,17 +3,16 @@ package com.sangkwon.sangkwonplatform.admin.notice.entity;
 import com.sangkwon.sangkwonplatform.admin.account.entity.AdminUser;
 import com.sangkwon.sangkwonplatform.admin.notice.entity.enums.IsPinned;
 import com.sangkwon.sangkwonplatform.admin.notice.entity.enums.NoticeStatus;
+import com.sangkwon.sangkwonplatform.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "NOTICE")
 @Getter
 @Setter
-public class Notice {
+public class Notice extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "notice_id", length = 19)
@@ -40,10 +39,4 @@ public class Notice {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 10)
     private NoticeStatus status = NoticeStatus.DRAFT;
-
-    @Column(name = "created_at", nullable = false, length = 6)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at", nullable = false, length = 6)
-    private LocalDateTime updatedAt;
 }

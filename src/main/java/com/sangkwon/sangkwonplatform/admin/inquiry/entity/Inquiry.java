@@ -3,6 +3,7 @@ package com.sangkwon.sangkwonplatform.admin.inquiry.entity;
 
 import com.sangkwon.sangkwonplatform.admin.account.entity.AdminUser;
 import com.sangkwon.sangkwonplatform.admin.inquiry.entity.enums.InquiryStatus;
+import com.sangkwon.sangkwonplatform.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -13,7 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "INQUIRY")
-public class Inquiry {
+public class Inquiry extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "inquiry_id", length = 19)
@@ -44,13 +45,4 @@ public class Inquiry {
 
     @Column(name = "answered_at", length = 6)
     private LocalDateTime answeredAt;
-
-    @Column(name = "created_at", nullable = false, length = 6)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at", nullable = false, length = 6)
-    private LocalDateTime updatedAt;
-
-
-
 }

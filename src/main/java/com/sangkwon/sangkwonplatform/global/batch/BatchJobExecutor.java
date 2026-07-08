@@ -19,9 +19,14 @@ public class BatchJobExecutor {
             log.succeed(processed);
             return batchJobLogRepository.save(log);
         } catch (Throwable e) {
-            // RuntimeException뿐 아니라 Error 등 어떤 실패든 RUNNING으로 남지 않도록 이력을 FAILED로 남기고 되던진다
+            // RuntimeException뿐 아니라 Error 등 어떤 실패든 RUNNING으로 남지 않도록 이력을 FAILED로 남기고 되던진다.
+            // 이력 저장까지 실패해도 원래 원인 예외를 가리지 않도록 감싸서 처리한다.
             log.fail(e.getMessage());
-            batchJobLogRepository.save(log);
+            try {
+                batchJobLogRepository.save(log);
+            } catch (Exception saveEx) {
+                e.addSuppressed(saveEx);
+            }
             throw e;
         }
     }
