@@ -395,7 +395,7 @@ async function selectTrdar(d) {
     fillDrawerMetrics(d.salesAmt, d.flpop, d.storeCnt, d.changeIxNm);
     const report = document.querySelector(".sel-report");
     report.style.display = "";
-    report.href = "/map/trdar-detail.html?trdarCd=" + d.trdarCd;
+    report.href = "/map/trdar-detail?trdarCd=" + d.trdarCd;
     document.querySelector(".sel-add").style.display = "";
     openDrawer();
 
@@ -659,7 +659,7 @@ async function init() {
         e.preventDefault();
         if (state.selected) {
             cmpAdd(state.selected.trdarCd);
-            location.href = "/map/compare.html";
+            location.href = "/map/compare";
         }
     });
     document.getElementById("app-status").textContent = "연동 정상";

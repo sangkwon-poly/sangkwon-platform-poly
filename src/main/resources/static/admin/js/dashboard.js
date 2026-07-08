@@ -17,7 +17,7 @@
         });
     }
 
-    function toLogin() { window.location.href = "/admin/login.html"; }
+    function toLogin() { window.location.href = "/admin/login"; }
 
     // 초기 로드: 세션 확인 → 계정/권한 → OTP 상태 → (SUPER_ADMIN) 관리자 목록
     api("/api/admin/auth/me").then(function (me) {

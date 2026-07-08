@@ -201,7 +201,7 @@
           console.error('[mypage] 로그아웃 실패:', err);
         })
         .finally(function () {
-          location.href = 'login.html';
+          location.href = 'login';
         });
     });
   }
@@ -240,7 +240,7 @@
       API.withdraw()
         .then(function () {
           // 탈퇴 완료 -> 로그인 화면으로.
-          location.href = 'login.html';
+          location.href = 'login';
         })
         .catch(function (err) {
           UI.handleError(err, '회원 탈퇴를 처리하지 못했어요.');
