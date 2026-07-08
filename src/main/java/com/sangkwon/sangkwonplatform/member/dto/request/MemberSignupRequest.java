@@ -2,11 +2,12 @@ package com.sangkwon.sangkwonplatform.member.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record MemberSignupRequest(
         @NotBlank
-        @Size(min = 4, max = 50)
+        @Pattern(regexp = "^[a-zA-Z0-9]{4,50}$", message = "아이디는 영문·숫자 4~50자여야 합니다.")
         String loginId,
 
         @NotBlank
@@ -15,7 +16,7 @@ public record MemberSignupRequest(
         String email,
 
         @NotBlank
-        @Size(max = 50)
+        @Pattern(regexp = "^[가-힣a-zA-Z0-9_-]{2,20}$", message = "닉네임은 한글·영문·숫자 2~20자여야 합니다.")
         String nickname,
 
         @NotBlank

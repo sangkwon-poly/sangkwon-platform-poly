@@ -36,6 +36,7 @@
 
   /* 상태색 */
   --ok: #4E7A3E;
+  --warn: #B8761F;
   --danger: #C0392B;
 
   /* 라운드 */
@@ -447,6 +448,16 @@ p {
   cursor: not-allowed;
 }
 
+/* 브라우저 자동완성이 강제하는 노란 배경을 표면색으로 덮는다 */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--ink);
+  -webkit-box-shadow: 0 0 0 1000px var(--surface) inset;
+  caret-color: var(--ink);
+  transition: background-color 9999s ease-out 0s;
+}
+
 .input--invalid,
 .input[aria-invalid="true"] {
   border-color: var(--danger);
@@ -455,6 +466,15 @@ p {
 .input--invalid:focus,
 .input[aria-invalid="true"]:focus {
   box-shadow: 0 0 0 3px rgba(192, 57, 43, .15);
+}
+
+/* 실시간 검증 통과(사용 가능) 상태 */
+.input--ok {
+  border-color: var(--ok);
+}
+
+.input--ok:focus {
+  box-shadow: 0 0 0 3px rgba(78, 122, 62, .15);
 }
 
 /* 텍스트에어리어 */
@@ -475,11 +495,19 @@ textarea.input {
   font-size: 12px;
   font-weight: 600;
   color: var(--danger);
-  min-height: 1em;
+  /* 메시지 유무와 무관하게 공간을 확보해 검증 결과가 떠도 레이아웃이 늘어나지 않게 한다 */
+  min-height: 18px;
+  line-height: 1.4;
 }
 
-.field__error:empty {
-  display: none;
+/* 통과 안내(사용 가능한 아이디/이메일 등)는 초록으로 */
+.field__error.is-ok {
+  color: var(--ok);
+}
+
+/* CapsLock 등 주의 안내는 앰버로 */
+.field__error.is-warn {
+  color: var(--warn);
 }
 
 /* 접미 요소가 있는 인풋(비밀번호 표시 토글 등) */
@@ -490,7 +518,7 @@ textarea.input {
 }
 
 .input-affix .input {
-  padding-right: 66px;
+  padding-right: 48px;
 }
 
 .input-affix__btn {
@@ -512,6 +540,81 @@ textarea.input {
 .input-affix__btn:hover {
   background: var(--surface-2);
 }
+
+/* 비밀번호 표시 토글: 눈 아이콘 */
+.input-affix__btn--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  padding: 0;
+  color: var(--muted-2);
+  transition: color .15s ease, background .15s ease;
+}
+
+.input-affix__btn--icon:hover {
+  color: var(--brand);
+}
+
+.input-affix__btn--icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.input-affix__btn--icon .ic-eye-off {
+  display: none;
+}
+
+.input-affix__btn--icon[aria-pressed="true"] .ic-eye {
+  display: none;
+}
+
+.input-affix__btn--icon[aria-pressed="true"] .ic-eye-off {
+  display: block;
+}
+
+/* 비밀번호 강도 미터 */
+.pw-meter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: -2px;
+}
+
+.pw-meter__bars {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 5px;
+}
+
+.pw-meter__bars span {
+  height: 4px;
+  border-radius: 3px;
+  background: var(--line);
+  transition: background .2s ease;
+}
+
+.pw-meter__label {
+  min-width: 3em;
+  text-align: right;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted-2);
+}
+
+.pw-meter[data-level="1"] .pw-meter__bars span:nth-child(-n+1) { background: var(--danger); }
+.pw-meter[data-level="2"] .pw-meter__bars span:nth-child(-n+2) { background: var(--warn); }
+.pw-meter[data-level="3"] .pw-meter__bars span { background: var(--ok); }
+
+.pw-meter[data-level="1"] .pw-meter__label { color: var(--danger); }
+.pw-meter[data-level="2"] .pw-meter__label { color: var(--warn); }
+.pw-meter[data-level="3"] .pw-meter__label { color: var(--ok); }
 
 /* --------------------------------------------------------------------
  * 7. 탭 (pill)
@@ -583,93 +686,221 @@ textarea.input {
   background: var(--surface-3);
 }
 
-/* 인증 카드: 좌 브랜드 히어로 + 우 폼 (2단 그리드) */
+/* 인증 화면: 풀뷰포트 중앙 정렬 위에 브릭 히어로 + 폼 2단 카드 */
+.auth-body {
+  min-height: 100dvh;
+  background:
+    radial-gradient(90% 55% at 12% -8%, var(--surface-3), transparent 60%),
+    radial-gradient(75% 55% at 105% 108%, #f0e7e1, transparent 55%),
+    var(--bg);
+}
+
+.auth-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 32px 20px;
+}
+
 .auth-card {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  max-width: 920px;
-  width: calc(100% - 32px);
-  margin: 40px auto;
+  grid-template-columns: 1.05fr 1fr;
+  width: 100%;
+  max-width: 940px;
+  min-height: 704px;
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 22px;
   box-shadow: var(--shadow-card);
   overflow: hidden;
 }
 
-.auth-card__hero {
+/* 좌: 브랜드 히어로 */
+.auth-hero {
   position: relative;
-  padding: 44px 40px;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 48px 44px;
   color: #fff;
   background:
-    radial-gradient(120% 120% at 0% 0%, rgba(255, 255, 255, .12), transparent 55%),
-    linear-gradient(155deg, var(--brand) 0%, var(--brand-700) 100%);
+    radial-gradient(120% 120% at 0% 0%, rgba(255, 255, 255, .14), transparent 52%),
+    linear-gradient(158deg, var(--brand) 0%, var(--brand-700) 100%);
   display: flex;
   flex-direction: column;
-  gap: 18px;
 }
 
-.auth-card__hero-badge {
+/* 상권 반경(heatmap)을 은유한 배경 모티프 */
+.auth-hero__deco {
+  position: absolute;
+  right: -70px;
+  bottom: -70px;
+  width: 360px;
+  height: 360px;
+  color: #fff;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* 상권 반경을 은유한 레이더 펄스: 안쪽에서 바깥으로 번지는 밝기 */
+.auth-hero__deco .ring {
+  opacity: .1;
+  animation: radar 3.8s ease-in-out infinite;
+}
+
+.auth-hero__deco .ring:nth-of-type(2) { animation-delay: .4s; }
+.auth-hero__deco .ring:nth-of-type(3) { animation-delay: .8s; }
+.auth-hero__deco .ring:nth-of-type(4) { animation-delay: 1.2s; }
+
+.auth-hero__deco .ping-core {
+  opacity: .55;
+  animation: corepulse 3.8s ease-in-out infinite;
+}
+
+@keyframes radar {
+  0%, 55%, 100% { opacity: .1; }
+  28% { opacity: .48; }
+}
+
+@keyframes corepulse {
+  0%, 100% { opacity: .5; }
+  50% { opacity: 1; }
+}
+
+.auth-hero__brand {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   align-self: flex-start;
-  padding: 6px 12px;
+  padding: 7px 15px 7px 8px;
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, .16);
-  border: 1px solid rgba(255, 255, 255, .28);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-/* 히어로 배지 안 로고: 헤더 로고보다 작게(인라인 대체) */
-.auth-card__hero-badge .app-header__logo {
-  width: 20px;
-  height: 20px;
-  font-size: 11px;
-  border-radius: 6px;
-}
-
-.auth-card__hero-title {
-  font-size: 28px;
-  line-height: 1.25;
+  background: rgba(255, 255, 255, .14);
+  border: 1px solid rgba(255, 255, 255, .26);
+  font-size: 13px;
   font-weight: 800;
+  letter-spacing: -.01em;
   color: #fff;
 }
 
-.auth-card__hero-desc {
-  font-size: 14px;
-  line-height: 1.7;
-  color: rgba(255, 255, 255, .86);
+.auth-hero__logo {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, .22);
+  font-size: 12px;
+  font-weight: 800;
 }
 
-.auth-card__hero-points {
-  margin-top: auto;
+.auth-hero__lead {
+  margin-top: 30px;
+}
+
+.auth-hero__title {
+  font-size: 31px;
+  line-height: 1.24;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: #fff;
+  text-wrap: balance;
+}
+
+.auth-hero__desc {
+  margin-top: 14px;
+  max-width: 30ch;
+  font-size: 14.5px;
+  line-height: 1.72;
+  color: rgba(255, 255, 255, .84);
+}
+
+.auth-hero__list {
+  margin-top: 34px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 13px;
 }
 
-.auth-card__hero-point {
+.auth-hero__list li {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  align-items: center;
+  gap: 11px;
   font-size: 13.5px;
-  color: rgba(255, 255, 255, .92);
+  font-weight: 500;
+  color: rgba(255, 255, 255, .93);
 }
 
-.auth-card__hero-point svg {
+.auth-hero__ic {
   flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
-  margin-top: 1px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .16);
 }
 
-.auth-card__form {
-  padding: 40px;
+.auth-hero__ic svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.auth-hero__foot {
+  margin-top: auto;
+  padding-top: 28px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, .6);
+}
+
+/* 우: 폼 */
+.auth-form {
+  padding: 44px 46px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+}
+
+.auth-form__head {
+  margin-bottom: 26px;
+}
+
+.auth-form .tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+}
+
+.auth-form .tab {
+  padding: 9px 0;
+  text-align: center;
+}
+
+/* 폼 영역을 남는 높이만큼 채우고 내용을 세로 중앙 정렬(로그인 폼 아래가 비어 보이지 않게) */
+.auth-form__panel {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+}
+
+/* display:flex 가 hidden 속성을 덮어쓰지 않도록 */
+.auth-form__panel[hidden] {
+  display: none;
+}
+
+.auth-form__row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.auth-form__meta {
+  margin: -2px 0 2px;
 }
 
 /* --------------------------------------------------------------------
@@ -1166,24 +1397,42 @@ textarea.input {
   /* 인증 카드 1열로 */
   .auth-card {
     grid-template-columns: 1fr;
-    margin: 20px auto;
+    min-height: 0;
     max-width: 460px;
   }
 
-  .auth-card__hero {
-    padding: 30px 26px;
+  .auth-hero {
+    padding: 32px 28px;
   }
 
-  .auth-card__hero-title {
-    font-size: 23px;
+  .auth-hero__title {
+    font-size: 25px;
   }
 
-  .auth-card__hero-points {
-    margin-top: 16px;
+  .auth-hero__lead {
+    margin-top: 22px;
   }
 
-  .auth-card__form {
-    padding: 26px;
+  .auth-hero__list {
+    margin-top: 22px;
+  }
+
+  .auth-hero__foot {
+    display: none;
+  }
+
+  .auth-hero__deco {
+    width: 240px;
+    right: -54px;
+    bottom: -60px;
+  }
+
+  .auth-form {
+    padding: 30px 28px;
+  }
+
+  .auth-form__row2 {
+    grid-template-columns: 1fr;
   }
 
   /* 헤더 축약: 닉네임 숨김, 네비 스크롤 */
