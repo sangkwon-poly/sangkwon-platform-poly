@@ -43,7 +43,8 @@ public class OpsService {
         List<AdminAuditLog> logs = adminAuditLogRepository.findByOrderByCreatedAtDesc(Limit.of(limit));
         Map<Long, String> loginById = adminUserRepository.findAllById(
                         logs.stream().map(AdminAuditLog::getAdminId).distinct().toList())
-                .stream().collect(Collectors.toMap(AdminUser::getAdminId, AdminUser::getLoginId));
+                .stream().collect(Collectors.toMap(AdminUser::getAdminId,
+                        u -> u.getLoginId() == null ? "-" : u.getLoginId()));
         return logs.stream()
                 .map(a -> new AuditLogResponse(
                         a.getId(), a.getAdminId(), loginById.getOrDefault(a.getAdminId(), "-"),
