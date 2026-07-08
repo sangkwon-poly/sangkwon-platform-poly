@@ -1,5 +1,5 @@
 :root {
-    /* 프로젝트 브랜드(인주 레드) 기반 — common.css 토큰과 동일 계열 */
+    /* 프로젝트 브랜드(인주 레드) 기반, common.css 토큰과 동일 계열 */
     --brand: #a8412c;
     --brand-dark: #862f1e;
     --brand-lift: #cf5638;          /* 어두운 배경에서 작은 텍스트/링크 가독용으로 살짝 띄운 톤 */
@@ -50,7 +50,7 @@ body {
 
 .mono { font-family: var(--mono); letter-spacing: 0.06em; }
 
-/* ---- top bar ---- */
+/* 상단 바 */
 .topbar {
     display: flex;
     align-items: center;
@@ -88,7 +88,7 @@ body {
 .pill .ic { width: 14px; height: 14px; fill: var(--green); }
 .ver { font-size: 11px; color: var(--muted-2); }
 
-/* ---- card ---- */
+/* 카드 */
 .wrap {
     flex: 1;
     display: grid;
@@ -127,7 +127,7 @@ body {
 .card-head h1 { margin: 0; font-size: 23px; font-weight: 800; letter-spacing: -0.02em; }
 .head-sub { margin: 3px 0 0; font-size: 11.5px; color: var(--brand-lift); }
 
-/* ---- buttons ---- */
+/* 버튼 */
 .btn {
     width: 100%;
     border: none;
@@ -159,7 +159,7 @@ body {
 .btn-login:hover { background: rgba(255, 255, 255, 0.09); border-color: rgba(255, 255, 255, 0.24); }
 .btn-login:disabled { opacity: 0.55; cursor: default; }
 
-/* ---- divider ---- */
+/* 구분선 */
 .divider {
     display: flex; align-items: center; gap: 14px;
     margin: 22px 0;
@@ -170,7 +170,7 @@ body {
     content: ""; flex: 1; height: 1px; background: var(--line);
 }
 
-/* ---- fields ---- */
+/* 입력 필드 */
 .field-label {
     display: block;
     font-size: 13px; font-weight: 600; color: #ddd3ce;
@@ -208,7 +208,7 @@ body {
 }
 .field-action:hover { color: var(--text); }
 
-/* ---- otp ---- */
+/* OTP */
 .otp-head { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
 .otp-head .field-label { margin: 0; }
 .tag {
@@ -236,7 +236,7 @@ body {
     box-shadow: 0 0 0 3px var(--focus);
 }
 
-/* ---- row: checkbox + link ---- */
+/* 체크박스 + 링크 행 */
 .row-between { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
 
 .check { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; color: var(--muted); font-size: 13.5px; user-select: none; }
@@ -259,13 +259,13 @@ body {
 .link { background: none; border: none; cursor: pointer; color: var(--brand-lift); font-size: 13.5px; font-family: inherit; font-weight: 600; padding: 0; }
 .link:hover { text-decoration: underline; }
 
-/* ---- message ---- */
+/* 메시지 */
 .msg { margin: 0 0 16px; font-size: 13.5px; padding: 11px 14px; border-radius: 10px; }
 .msg.error { color: #f3b8ab; background: rgba(192, 57, 43, 0.12); border: 1px solid rgba(192, 57, 43, 0.32); }
 .msg.ok { color: #bce6cd; background: rgba(47, 125, 91, 0.14); border: 1px solid rgba(47, 125, 91, 0.34); }
 .msg.info { color: #f0cbbd; background: var(--accent-soft); border: 1px solid rgba(168, 65, 44, 0.30); }
 
-/* ---- notice ---- */
+/* 안내 */
 .notice {
     display: flex; align-items: flex-start; gap: 10px;
     margin-top: 22px;
@@ -278,7 +278,7 @@ body {
 .notice .ic { width: 16px; height: 16px; fill: var(--danger); flex: none; margin-top: 1px; }
 .notice strong { color: #ecdcd6; }
 
-/* ---- footer ---- */
+/* 푸터 */
 .foot {
     display: flex; align-items: center; justify-content: center; gap: 8px;
     padding: 20px; text-align: center;
