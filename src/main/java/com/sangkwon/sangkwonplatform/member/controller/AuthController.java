@@ -7,6 +7,7 @@ import com.sangkwon.sangkwonplatform.member.service.MemberService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+import java.time.Duration;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -45,8 +46,13 @@ public class AuthController {
         // 세션 고정 방지: 로그인 성공 시 세션 ID를 회전시킨 뒤 인증 정보를 담는다
         request.getSession(true);
         request.changeSessionId();
-        request.getSession().setAttribute(
+        HttpSession session = request.getSession();
+        session.setAttribute(
                 HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+        // "자동 로그인" 선택 시 세션 유효기간을 연장한다(미선택 시 기본 30분)
+        session.setMaxInactiveInterval(req.remember()
+                ? (int) Duration.ofDays(14).getSeconds()
+                : (int) Duration.ofMinutes(30).getSeconds());
 
         return ApiResponse.ok(me);
     }

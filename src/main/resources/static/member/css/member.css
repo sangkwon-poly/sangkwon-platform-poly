@@ -541,7 +541,8 @@ textarea.input {
   color: var(--ink);
 }
 
-.tab.is-active {
+.tab.is-active,
+.tab[aria-selected="true"] {
   background: var(--brand);
   color: #fff;
   box-shadow: 0 6px 16px rgba(168, 65, 44, .24);
@@ -587,6 +588,7 @@ textarea.input {
   display: grid;
   grid-template-columns: 1fr 1fr;
   max-width: 920px;
+  width: calc(100% - 32px);
   margin: 40px auto;
   background: var(--surface);
   border: 1px solid var(--line);

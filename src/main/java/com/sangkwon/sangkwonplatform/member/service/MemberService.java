@@ -20,6 +20,19 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
+    private final MemberLoginRateLimiter rateLimiter;
+
+    // 아이디 열거 방지용 더미 해시(실제 인코더로 한 번만 생성해 재사용).
+    private volatile String dummyHash;
+
+    private String dummyHash() {
+        String h = dummyHash;
+        if (h == null) {
+            h = passwordEncoder.encode("timing-equalizer");
+            dummyHash = h;
+        }
+        return h;
+    }
 
     @Transactional
     public MemberResponse signup(MemberSignupRequest req) { //loginId,email,nickname,password dto
@@ -37,13 +50,26 @@ public class MemberService {
 
     @Transactional
     public MemberResponse login(MemberLoginRequest req) { // loginId,password,remember(기억할지 체크)
-        Member m = memberRepository.findByLoginId(req.loginId()) // 로그인 id존재하는지 체크
-                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_CREDENTIALS));
+        String key = req.loginId() == null ? "" : req.loginId().toLowerCase();
+        if (rateLimiter.isBlocked(key)) { // 아이디별 실패 누적 시 일정 시간 차단(무차별 대입 완화)
+            throw new BusinessException(ErrorCode.TOO_MANY_LOGIN_ATTEMPTS);
+        }
+
+        Member m = memberRepository.findByLoginId(req.loginId()).orElse(null);
+        if (m == null) {
+            // 계정이 없어도 실제 계정과 비슷한 시간(더미 해시 비교)을 써 아이디 열거를 막는다
+            passwordEncoder.matches(req.password(), dummyHash());
+            rateLimiter.recordFailure(key);
+            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
+        }
 
         // 자격 증명(비밀번호) 먼저 확인 → 그다음 계정 상태 (상태를 비번보다 먼저 노출하지 않기)
         if (!passwordEncoder.matches(req.password(), m.getPasswordHash())) {
+            rateLimiter.recordFailure(key);
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
+        rateLimiter.reset(key); // 비밀번호가 맞았으므로 실패 카운터 초기화
+
         switch (m.getStatus()) {           // 상태별로 정확히 구분 (탈퇴/정지/휴면)
             case ACTIVE -> { }             // 정상 → 통과
             case WITHDRAWN -> throw new BusinessException(ErrorCode.WITHDRAWN_MEMBER); // 탈퇴

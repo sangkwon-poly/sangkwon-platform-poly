@@ -201,6 +201,8 @@
         setError('signup-pw', '비밀번호를 입력해 주세요.'); ok = false;
       } else if (password.length < 8) {
         setError('signup-pw', '비밀번호는 8자 이상이어야 합니다.'); ok = false;
+      } else if (password.length > 72) {
+        setError('signup-pw', '비밀번호는 72자 이하여야 합니다.'); ok = false;
       }
 
       if (!password2) {
