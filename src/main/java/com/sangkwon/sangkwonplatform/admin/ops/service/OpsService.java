@@ -4,6 +4,7 @@ import com.sangkwon.sangkwonplatform.admin.account.entity.AdminUser;
 import com.sangkwon.sangkwonplatform.admin.account.repository.AdminUserRepository;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.ApiUsageResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.AuditLogResponse;
+import com.sangkwon.sangkwonplatform.admin.ops.dto.AuditPageResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.BatchLogResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.OverviewResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.entity.AdminAuditLog;
@@ -14,6 +15,8 @@ import com.sangkwon.sangkwonplatform.map.repository.LlmReportRepository;
 import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Limit;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,17 +58,24 @@ public class OpsService {
                 .stream().map(ApiUsageResponse::from).toList();
     }
 
-    public List<AuditLogResponse> recentAudits(int limit) {
-        List<AdminAuditLog> logs = adminAuditLogRepository.findByOrderByCreatedAtDesc(Limit.of(limit));
+    // 감사 로그: 행위 필터(선택) + 페이징. 관리자 로그인 아이디는 한 번에 모아 매핑한다.
+    public AuditPageResponse searchAudits(String action, Pageable pageable) {
+        Page<AdminAuditLog> logs = adminAuditLogRepository.search(blankToNull(action), pageable);
         Map<Long, String> loginById = adminUserRepository.findAllById(
-                        logs.stream().map(AdminAuditLog::getAdminId).distinct().toList())
+                        logs.getContent().stream().map(AdminAuditLog::getAdminId).distinct().toList())
                 .stream().collect(Collectors.toMap(AdminUser::getAdminId,
                         u -> u.getLoginId() == null ? "-" : u.getLoginId()));
-        return logs.stream()
+        List<AuditLogResponse> content = logs.getContent().stream()
                 .map(a -> new AuditLogResponse(
                         a.getId(), a.getAdminId(), loginById.getOrDefault(a.getAdminId(), "-"),
                         a.getAction(), a.getTargetType(), a.getTargetId(), a.getDetail(),
                         a.getIpAddr(), a.getCreatedAt()))
                 .toList();
+        return new AuditPageResponse(content, logs.getNumber(), logs.getSize(),
+                logs.getTotalElements(), logs.getTotalPages());
+    }
+
+    private static String blankToNull(String s) {
+        return (s == null || s.isBlank()) ? null : s;
     }
 }

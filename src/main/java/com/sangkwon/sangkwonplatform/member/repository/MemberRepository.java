@@ -1,7 +1,12 @@
 package com.sangkwon.sangkwonplatform.member.repository;
 
 import com.sangkwon.sangkwonplatform.member.entity.Member;
+import com.sangkwon.sangkwonplatform.member.entity.MemberStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -15,4 +20,19 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     Optional<Member> findByLoginId(String loginId);
 
     long countByCreatedAtGreaterThanEqual(LocalDateTime from);
+
+    long countByStatus(MemberStatus status);
+
+    // 관리자 회원 목록: 상태 필터(선택)와 아이디/이메일/닉네임 부분검색(선택). kw는 서비스에서 소문자·%감싸기 처리해 넘긴다.
+    @Query("""
+            select m from Member m
+            where (:status is null or m.status = :status)
+              and (:kw is null
+                   or lower(m.loginId) like :kw
+                   or lower(m.email) like :kw
+                   or lower(m.nickname) like :kw)
+            """)
+    Page<Member> searchForAdmin(@Param("status") MemberStatus status,
+                                @Param("kw") String kw,
+                                Pageable pageable);
 }

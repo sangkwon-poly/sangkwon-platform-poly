@@ -1,0 +1,101 @@
+/* 공지사항 관리 고유 스타일
+   공통 chrome·표·배지는 shell.css / common.css. 여기서는 셀·상태 컨트롤·페이지네이션·모달만. */
+
+.nt-flash {
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px; font-weight: 600;
+  background: var(--ok-bg); color: var(--ok);
+}
+.nt-flash.is-error { background: var(--danger-bg); color: var(--danger); }
+.nt-flash[hidden] { display: none; }
+
+/* 공지 셀 */
+.nt-table th, .nt-table td { white-space: nowrap; }
+.nt-title { display: flex; align-items: center; gap: 8px; }
+.nt-title-text { font-size: 13px; font-weight: 700; color: var(--text); }
+.nt-pin {
+  font-size: 10px; font-weight: 800; letter-spacing: .02em;
+  color: var(--brand-dark); background: var(--brand-tint);
+  border-radius: 5px; padding: 1px 6px; flex: 0 0 auto;
+}
+.nt-muted { font-size: 12px; color: var(--faint); }
+.nt-views { color: var(--muted-2); font-variant-numeric: tabular-nums; }
+
+.nt-table .badge { gap: 6px; font-size: 11px; padding: 4px 10px; }
+.nt-table .dot { width: 6px; height: 6px; }
+.dot-muted { background: var(--faint); }
+
+/* 상태 변경 셀렉트 */
+.nt-status-select {
+  font-size: 12.5px; font-weight: 600; color: var(--text);
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 6px 26px 6px 10px;
+  cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239a8e86' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.nt-status-select:hover { border-color: var(--brand); }
+.nt-status-select:disabled { cursor: default; opacity: .6; }
+
+/* 작업 버튼 */
+.nt-actions { display: flex; gap: 6px; justify-content: center; align-items: center; flex-wrap: wrap; }
+.nt-act {
+  font-size: 12px; font-weight: 700;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--bg); color: var(--text-soft);
+  padding: 6px 12px; cursor: pointer; white-space: nowrap;
+}
+.nt-act:hover { border-color: var(--brand); color: var(--brand); }
+.nt-act.nt-act-del:hover { border-color: var(--danger); color: var(--danger); }
+
+.nt-empty { padding: 32px 16px; text-align: center; color: var(--faint); font-size: 14px; }
+
+/* 페이지네이션 */
+.nt-pager {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin-top: 16px;
+}
+.nt-pager[hidden] { display: none; }
+.nt-page-btn {
+  font-size: 12.5px; font-weight: 700; color: var(--text-soft);
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 7px 16px; cursor: pointer;
+}
+.nt-page-btn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
+.nt-page-btn:disabled { opacity: .5; cursor: default; }
+.nt-page-info { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* 작성/수정 모달 */
+.nt-modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; }
+.nt-modal[hidden] { display: none; }
+.nt-modal-backdrop { position: absolute; inset: 0; background: rgba(35, 29, 26, .5); }
+.nt-modal-card {
+  position: relative; width: min(560px, calc(100vw - 40px));
+  background: var(--bg); border-radius: var(--radius);
+  box-shadow: var(--shadow-card); padding: 26px 26px 22px;
+}
+.nt-modal-card h2 { font-size: 17px; font-weight: 800; color: var(--ink); margin: 0 0 18px; }
+.nt-form { display: flex; flex-direction: column; gap: 13px; }
+.nt-field { display: flex; flex-direction: column; gap: 6px; }
+.nt-field span { font-size: 12px; font-weight: 700; color: var(--text-soft); }
+.nt-field input, .nt-field textarea {
+  font-size: 13px; color: var(--text);
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 9px 11px; background: var(--bg); width: 100%; font-family: inherit;
+}
+.nt-field textarea { resize: vertical; min-height: 120px; line-height: 1.5; }
+.nt-field input:focus, .nt-field textarea:focus {
+  outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-tint);
+}
+.nt-check { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-soft); }
+.nt-form-msg { font-size: 12px; font-weight: 600; color: var(--danger); margin: 0; }
+.nt-form-msg[hidden] { display: none; }
+.nt-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+.nt-btn { font-size: 13px; font-weight: 700; border-radius: var(--radius-sm); padding: 9px 16px; cursor: pointer; border: 1px solid transparent; }
+.nt-btn-ghost { background: var(--bg); border-color: var(--line); color: var(--text-soft); }
+.nt-btn-ghost:hover { border-color: var(--brand); color: var(--brand); }
+.nt-btn-primary { background: var(--brand); color: #fff; }
+.nt-btn-primary:hover { background: var(--brand-dark); }
+.nt-btn-primary:disabled { opacity: .6; cursor: default; }

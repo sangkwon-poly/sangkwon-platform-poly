@@ -33,10 +33,10 @@
         </span>
       </nav>
       <div class="admin-user">
-        <span class="admin-user-avatar" aria-hidden="true">이</span>
+        <span class="admin-user-avatar" aria-hidden="true">·</span>
         <span>
-          <span class="admin-user-name">이상혁</span>
-          <span class="admin-user-role">PM</span>
+          <span class="admin-user-name">—</span>
+          <span class="admin-user-role">—</span>
         </span>
       </div>
     </aside>
@@ -45,7 +45,7 @@
     <div class="admin-main">
       <header class="admin-topbar">
         <h1>데이터 적재 현황</h1>
-        <button type="button" class="btn-topbar">수동 실행</button>
+        <button type="button" class="btn-topbar" id="batch-refresh">새로고침</button>
       </header>
 
       <main class="admin-content" aria-label="배치 모니터링">
@@ -54,19 +54,19 @@
         <section class="stat-grid batch-stats" aria-label="배치 요약">
           <article class="stat-card">
             <div class="stat-card-label">마지막 배치</div>
-            <div class="stat-card-value">04:30</div>
+            <div class="stat-card-value">—</div>
           </article>
           <article class="stat-card">
             <div class="stat-card-label">성공</div>
-            <div class="stat-card-value bt-ok">4</div>
+            <div class="stat-card-value bt-ok">—</div>
           </article>
           <article class="stat-card">
             <div class="stat-card-label">지연</div>
-            <div class="stat-card-value bt-warn">1</div>
+            <div class="stat-card-value bt-warn">—</div>
           </article>
           <article class="stat-card">
             <div class="stat-card-label">오류</div>
-            <div class="stat-card-value bt-danger">1</div>
+            <div class="stat-card-value bt-danger">—</div>
           </article>
         </section>
 
@@ -85,56 +85,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td class="mono bt-name">TRDAR_SALES</td>
-                  <td class="bt-muted">04:12</td>
-                  <td class="col-num mono">1,247,000</td>
-                  <td class="col-num bt-muted">3m 20s</td>
-                  <td class="col-center">
-                    <span class="badge badge-ok"><span class="dot dot-ok" aria-hidden="true"></span>정상</span>
-                  </td>
-                  <td class="col-num"><button type="button" class="row-action">재실행</button></td>
-                </tr>
-                <tr>
-                  <td class="mono bt-name">STREET_POP</td>
-                  <td class="bt-muted">04:15</td>
-                  <td class="col-num mono">892,400</td>
-                  <td class="col-num bt-muted">2m 05s</td>
-                  <td class="col-center">
-                    <span class="badge badge-ok"><span class="dot dot-ok" aria-hidden="true"></span>정상</span>
-                  </td>
-                  <td class="col-num"><button type="button" class="row-action">재실행</button></td>
-                </tr>
-                <tr>
-                  <td class="mono bt-name">STORE_STAT</td>
-                  <td class="bt-muted">04:22</td>
-                  <td class="col-num mono">340,120</td>
-                  <td class="col-num bt-muted">4m 48s</td>
-                  <td class="col-center">
-                    <span class="badge badge-warn"><span class="dot dot-warn" aria-hidden="true"></span>지연</span>
-                  </td>
-                  <td class="col-num"><button type="button" class="row-action">재실행</button></td>
-                </tr>
-                <tr>
-                  <td class="mono bt-name">COMMERCIAL_RENT</td>
-                  <td class="bt-muted">04:30</td>
-                  <td class="col-num mono">51,200</td>
-                  <td class="col-num bt-muted">1m 12s</td>
-                  <td class="col-center">
-                    <span class="badge badge-ok"><span class="dot dot-ok" aria-hidden="true"></span>정상</span>
-                  </td>
-                  <td class="col-num"><button type="button" class="row-action">재실행</button></td>
-                </tr>
-                <tr>
-                  <td class="mono bt-name">TRDAR_CHANGE</td>
-                  <td class="bt-muted">-</td>
-                  <td class="col-num mono">-</td>
-                  <td class="col-num bt-muted">-</td>
-                  <td class="col-center">
-                    <span class="badge badge-danger"><span class="dot dot-danger" aria-hidden="true"></span>오류</span>
-                  </td>
-                  <td class="col-num"><button type="button" class="row-action">재실행</button></td>
-                </tr>
+                <tr><td colspan="6" class="ops-empty">불러오는 중…</td></tr>
               </tbody>
             </table>
           </div>

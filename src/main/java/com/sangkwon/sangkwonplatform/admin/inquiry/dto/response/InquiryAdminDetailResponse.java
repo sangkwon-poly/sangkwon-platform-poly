@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.admin.inquiry.dto.response;
 
 import com.sangkwon.sangkwonplatform.admin.account.entity.AdminUser;
 import com.sangkwon.sangkwonplatform.admin.inquiry.entity.Inquiry;
+import com.sangkwon.sangkwonplatform.member.entity.Member;
 
 import java.time.LocalDateTime;
 
@@ -19,10 +20,11 @@ public record InquiryAdminDetailResponse(
 ) {
     public static InquiryAdminDetailResponse from (Inquiry inquiry){
         AdminUser admin = inquiry.getAdmin();
+        Member member = inquiry.getMember();
         return new InquiryAdminDetailResponse(
                 inquiry.getInquiryId(),
-                null,
-                null,
+                member == null ? null : member.getMemberId(),
+                member == null ? null : member.getNickname(),
                 inquiry.getTitle(),
                 inquiry.getContent(),
                 inquiry.getAnswer(),

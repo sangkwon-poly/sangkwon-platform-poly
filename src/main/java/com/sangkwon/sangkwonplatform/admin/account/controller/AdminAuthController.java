@@ -75,8 +75,15 @@ public class AdminAuthController {
     }
 
     @PostMapping("/logout")
-    public ApiResponse<Void> logout(HttpSession session) {
-        session.invalidate();
+    public ApiResponse<Void> logout(HttpServletRequest http) {
+        HttpSession session = http.getSession(false);
+        if (session != null) {
+            Object attr = session.getAttribute(SessionConst.LOGIN_ADMIN);
+            if (attr instanceof AdminSession admin) {
+                auditService.record(admin.adminId(), AuditAction.LOGOUT, null, null, null, http);
+            }
+            session.invalidate();
+        }
         return ApiResponse.ok(null);
     }
 

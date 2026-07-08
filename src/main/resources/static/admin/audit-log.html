@@ -32,10 +32,10 @@
         </span>
       </nav>
       <div class="admin-user">
-        <span class="admin-user-avatar" aria-hidden="true">이</span>
+        <span class="admin-user-avatar" aria-hidden="true">·</span>
         <span>
-          <span class="admin-user-name">이상혁</span>
-          <span class="admin-user-role">PM</span>
+          <span class="admin-user-name">—</span>
+          <span class="admin-user-role">—</span>
         </span>
       </div>
     </aside>
@@ -43,10 +43,29 @@
     <div class="admin-main">
       <header class="admin-topbar">
         <h1>감사 로그</h1>
-        <span class="admin-topbar-meta">관리자 행위 기록 · 최근 100건</span>
+        <span class="admin-topbar-meta">관리자 행위 기록</span>
       </header>
 
       <main class="admin-content" aria-label="관리자 감사 로그">
+        <div class="ops-toolbar">
+          <label class="ops-field">
+            <span class="sr-only">행위 필터</span>
+            <select id="ag-action" class="ops-select" aria-label="행위 필터">
+              <option value="">전체 행위</option>
+              <option value="LOGIN">로그인</option>
+              <option value="LOGIN_FAILED">로그인 실패</option>
+              <option value="LOGOUT">로그아웃</option>
+              <option value="ACCOUNT_LOCKED">계정 잠금</option>
+              <option value="ADMIN_CREATE">관리자 생성</option>
+              <option value="ADMIN_ROLE_UPDATE">역할 변경</option>
+              <option value="ADMIN_STATUS_UPDATE">관리자 상태 변경</option>
+              <option value="MEMBER_STATUS_UPDATE">회원 상태 변경</option>
+              <option value="PASSWORD_RESET">비밀번호 재설정</option>
+              <option value="OTP_ENABLE">2단계 인증 켬</option>
+              <option value="OTP_DISABLE">2단계 인증 끔</option>
+            </select>
+          </label>
+        </div>
         <section class="data-table-wrap">
           <div class="table-scroll">
             <table class="data-table audit-table">
@@ -66,6 +85,11 @@
             </table>
           </div>
         </section>
+        <div class="ops-pager" id="ag-pager" hidden>
+          <button type="button" class="ops-page-btn" id="ag-prev">이전</button>
+          <span class="ops-page-info" id="ag-page-info"></span>
+          <button type="button" class="ops-page-btn" id="ag-next">다음</button>
+        </div>
       </main>
     </div>
   </div>

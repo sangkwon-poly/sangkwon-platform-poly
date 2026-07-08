@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>회원 관리 · 서울공화국</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/admin/shell.css">
+  <link rel="stylesheet" href="/css/admin/member-admin.css">
+</head>
+<body>
+
+  <div class="admin">
+
+    <aside class="admin-side" aria-label="관리자 메뉴">
+      <a class="admin-brand" href="/admin/">
+        <span class="brand-mark" aria-hidden="true">서</span>
+        <span class="admin-brand-text">
+          <span class="admin-brand-name">서울공화국</span>
+          <span class="admin-brand-sub">관리자 콘솔</span>
+        </span>
+      </a>
+      <nav class="admin-nav" aria-label="관리자 내비게이션">
+        <a href="/admin/">개요</a>
+        <a href="/admin/batch.html">데이터 적재</a>
+        <a href="/admin/trdar-admin.html">상권 데이터</a>
+        <a href="/admin/user-admin.html">관리자 계정</a>
+        <hr class="admin-nav-sep">
+        <span class="admin-nav-out">
+          <a href="/map/">지도로 이동</a>
+          <a href="/">랜딩으로</a>
+        </span>
+      </nav>
+      <div class="admin-user">
+        <span class="admin-user-avatar" aria-hidden="true">·</span>
+        <span>
+          <span class="admin-user-name">—</span>
+          <span class="admin-user-role">—</span>
+        </span>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <header class="admin-topbar">
+        <h1>회원 관리</h1>
+        <span class="admin-topbar-meta" id="ma-meta">회원 계정 조회 및 상태 관리</span>
+      </header>
+
+      <main class="admin-content" aria-label="회원 목록">
+
+        <p class="ma-flash" id="ma-flash" role="status" hidden></p>
+
+        <div class="ma-toolbar">
+          <div class="ma-chips" id="ma-chips" aria-label="상태 필터"></div>
+          <div class="ma-search">
+            <input type="search" id="ma-search" placeholder="아이디·이메일·닉네임 검색"
+                   autocomplete="off" aria-label="회원 검색">
+          </div>
+        </div>
+
+        <section class="data-table-wrap" aria-label="회원 표">
+          <div class="table-scroll">
+            <table class="data-table ma-table">
+              <thead>
+                <tr>
+                  <th scope="col">회원</th>
+                  <th scope="col">이메일</th>
+                  <th scope="col" class="col-center">상태</th>
+                  <th scope="col">가입일</th>
+                  <th scope="col">최근 로그인</th>
+                  <th scope="col" class="col-center">상태 변경</th>
+                </tr>
+              </thead>
+              <tbody id="ma-tbody">
+                <tr><td colspan="6" class="ma-empty">불러오는 중…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="ma-pager" id="ma-pager" hidden>
+          <button type="button" class="ma-page-btn" id="ma-prev">이전</button>
+          <span class="ma-page-info" id="ma-page-info"></span>
+          <button type="button" class="ma-page-btn" id="ma-next">다음</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/admin/js/admin-shell.js"></script>
+  <script src="/admin/js/member-admin.js"></script>
+</body>
+</html>
