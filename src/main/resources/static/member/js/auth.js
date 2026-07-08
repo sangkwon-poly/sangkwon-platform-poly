@@ -112,57 +112,68 @@
         .then(function (b) { return (b && b.data) ? b.data.available : null; })
         .catch(function () { return null; });
     }
-    function live(input, delay, fn) {
+    var sPw = document.getElementById('signup-pw');
+    var sPw2 = document.getElementById('signup-pw2');
+    var signupBtn = panelSignup.querySelector('[data-submit="signup"]');
+
+    // 모든 필드가 통과해야 회원가입 버튼이 활성화된다.
+    var valid = { id: false, email: false, nick: false, pw: false, pw2: false };
+    function set(key, ok) {
+      valid[key] = ok;
+      signupBtn.disabled = !(valid.id && valid.email && valid.nick && valid.pw && valid.pw2);
+    }
+
+    // 입력 중에는 즉시 해당 항목을 무효로 두고(버튼 비활성), delay 후 실제 검사.
+    function guard(input, key, delay, check) {
       var timer = null;
       input.addEventListener('input', function () {
+        set(key, false);
         clearTimeout(timer);
-        timer = setTimeout(function () { fn(input.value.trim()); }, delay);
+        timer = setTimeout(function () { check(input.value.trim()); }, delay);
       });
     }
 
-    var sPw = document.getElementById('signup-pw');
-    var sPw2 = document.getElementById('signup-pw2');
-
-    live(document.getElementById('signup-id'), 350, function (v) {
+    guard(document.getElementById('signup-id'), 'id', 350, function (v) {
       if (!v) { clearError('signup-id'); return; }
       if (!ID_RE.test(v)) { setError('signup-id', '영문·숫자 4~50자로 입력해 주세요.'); return; }
       availability('check-login-id', 'loginId', v).then(function (a) {
-        if (a === true) setField('signup-id', '사용 가능한 아이디입니다.', 'ok');
+        if (a === true) { setField('signup-id', '사용 가능한 아이디입니다.', 'ok'); set('id', true); }
         else if (a === false) setError('signup-id', '이미 사용 중인 아이디입니다.');
         else clearError('signup-id');
       });
     });
 
-    live(document.getElementById('signup-email'), 350, function (v) {
+    guard(document.getElementById('signup-email'), 'email', 350, function (v) {
       if (!v) { clearError('signup-email'); return; }
       if (!EMAIL_RE.test(v)) { setError('signup-email', '올바른 이메일 형식이 아닙니다.'); return; }
       availability('check-email', 'email', v).then(function (a) {
-        if (a === true) setField('signup-email', '사용 가능한 이메일입니다.', 'ok');
+        if (a === true) { setField('signup-email', '사용 가능한 이메일입니다.', 'ok'); set('email', true); }
         else if (a === false) setError('signup-email', '이미 가입된 이메일입니다.');
         else clearError('signup-email');
       });
     });
 
-    live(document.getElementById('signup-nick'), 250, function (v) {
+    guard(document.getElementById('signup-nick'), 'nick', 0, function (v) {
       if (!v) { clearError('signup-nick'); return; }
       if (!NICK_RE.test(v)) { setError('signup-nick', '한글·영문·숫자 2~20자로 입력해 주세요.'); return; }
-      setField('signup-nick', '사용 가능한 닉네임입니다.', 'ok');
+      setField('signup-nick', '사용 가능한 닉네임입니다.', 'ok'); set('nick', true);
     });
 
     function checkPw2() {
       var v = sPw2.value;
-      if (!v) { clearError('signup-pw2'); return; }
-      if (v !== sPw.value) setError('signup-pw2', '비밀번호가 일치하지 않습니다.');
-      else setField('signup-pw2', '비밀번호가 일치합니다.', 'ok');
+      if (!v) { clearError('signup-pw2'); set('pw2', false); return; }
+      if (v === sPw.value && valid.pw) { setField('signup-pw2', '비밀번호가 일치합니다.', 'ok'); set('pw2', true); }
+      else { setError('signup-pw2', '비밀번호가 일치하지 않습니다.'); set('pw2', false); }
     }
-    live(sPw, 250, function (v) {
-      if (!v) { clearError('signup-pw'); return; }
-      if (v.length < 8) { setError('signup-pw', '비밀번호는 8자 이상이어야 합니다.'); }
-      else if (v.length > 72) { setError('signup-pw', '비밀번호는 72자 이하여야 합니다.'); }
-      else clearError('signup-pw');
-      if (sPw2.value) checkPw2();
+    sPw.addEventListener('input', function () {
+      var v = sPw.value;
+      if (!v) { clearError('signup-pw'); set('pw', false); }
+      else if (v.length < 8) { setError('signup-pw', '비밀번호는 8자 이상이어야 합니다.'); set('pw', false); }
+      else if (v.length > 72) { setError('signup-pw', '비밀번호는 72자 이하여야 합니다.'); set('pw', false); }
+      else { clearError('signup-pw'); set('pw', true); }
+      checkPw2();
     });
-    live(sPw2, 200, checkPw2);
+    sPw2.addEventListener('input', checkPw2);
 
     /* ---------------------------------------------------------------
      * 제출 중 버튼 로딩 상태
