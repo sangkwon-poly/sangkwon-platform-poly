@@ -22,16 +22,13 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final MemberLoginRateLimiter rateLimiter;
 
-    // 아이디 열거 방지용 더미 해시(실제 인코더로 한 번만 생성해 재사용).
-    private volatile String dummyHash;
+    // 가입 화면 실시간 중복 확인용
+    public boolean isLoginIdAvailable(String loginId) {
+        return loginId != null && !loginId.isBlank() && !memberRepository.existsByLoginId(loginId);
+    }
 
-    private String dummyHash() {
-        String h = dummyHash;
-        if (h == null) {
-            h = passwordEncoder.encode("timing-equalizer");
-            dummyHash = h;
-        }
-        return h;
+    public boolean isEmailAvailable(String email) {
+        return email != null && !email.isBlank() && !memberRepository.existsByEmail(email);
     }
 
     @Transactional
@@ -57,16 +54,14 @@ public class MemberService {
 
         Member m = memberRepository.findByLoginId(req.loginId()).orElse(null);
         if (m == null) {
-            // 계정이 없어도 실제 계정과 비슷한 시간(더미 해시 비교)을 써 아이디 열거를 막는다
-            passwordEncoder.matches(req.password(), dummyHash());
             rateLimiter.recordFailure(key);
-            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
+            throw new BusinessException(ErrorCode.LOGIN_ID_NOT_FOUND);
         }
 
         // 자격 증명(비밀번호) 먼저 확인 → 그다음 계정 상태 (상태를 비번보다 먼저 노출하지 않기)
         if (!passwordEncoder.matches(req.password(), m.getPasswordHash())) {
             rateLimiter.recordFailure(key);
-            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
         rateLimiter.reset(key); // 비밀번호가 맞았으므로 실패 카운터 초기화
 

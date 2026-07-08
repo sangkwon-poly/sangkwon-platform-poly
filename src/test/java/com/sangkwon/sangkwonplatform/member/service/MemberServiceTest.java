@@ -100,17 +100,17 @@ class MemberServiceTest {
     }
 
     @Test
-    @DisplayName("로그인: 없는 아이디 → M004")
+    @DisplayName("로그인: 없는 아이디 → M011")
     void login_noSuchId() {
         var req = new MemberLoginRequest("nope", "password1", false);
         when(memberRepository.findByLoginId("nope")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> memberService.login(req))
-                .satisfies(t -> assertThat(errorCodeOf(t)).isEqualTo(ErrorCode.INVALID_CREDENTIALS));
+                .satisfies(t -> assertThat(errorCodeOf(t)).isEqualTo(ErrorCode.LOGIN_ID_NOT_FOUND));
     }
 
     @Test
-    @DisplayName("로그인: 비밀번호 불일치 → M004 (상태보다 먼저 검증)")
+    @DisplayName("로그인: 비밀번호 불일치 → M012 (상태보다 먼저 검증)")
     void login_wrongPassword() {
         Member m = activeMember();
         var req = new MemberLoginRequest("minhyuk", "wrong", false);
@@ -118,7 +118,7 @@ class MemberServiceTest {
         when(passwordEncoder.matches("wrong", "hashed-pw")).thenReturn(false);
 
         assertThatThrownBy(() -> memberService.login(req))
-                .satisfies(t -> assertThat(errorCodeOf(t)).isEqualTo(ErrorCode.INVALID_CREDENTIALS));
+                .satisfies(t -> assertThat(errorCodeOf(t)).isEqualTo(ErrorCode.INVALID_PASSWORD));
     }
 
     @Test

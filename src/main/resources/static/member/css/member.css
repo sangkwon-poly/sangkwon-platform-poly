@@ -457,6 +457,15 @@ p {
   box-shadow: 0 0 0 3px rgba(192, 57, 43, .15);
 }
 
+/* 실시간 검증 통과(사용 가능) 상태 */
+.input--ok {
+  border-color: var(--ok);
+}
+
+.input--ok:focus {
+  box-shadow: 0 0 0 3px rgba(78, 122, 62, .15);
+}
+
 /* 텍스트에어리어 */
 textarea.input {
   height: auto;
@@ -480,6 +489,11 @@ textarea.input {
 
 .field__error:empty {
   display: none;
+}
+
+/* 통과 안내(사용 가능한 아이디/이메일 등)는 초록으로 */
+.field__error.is-ok {
+  color: var(--ok);
 }
 
 /* 접미 요소가 있는 인풋(비밀번호 표시 토글 등) */
@@ -604,7 +618,7 @@ textarea.input {
   grid-template-columns: 1.05fr 1fr;
   width: 100%;
   max-width: 940px;
-  min-height: 560px;
+  min-height: 660px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 22px;

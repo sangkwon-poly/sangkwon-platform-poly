@@ -3,6 +3,7 @@ package com.sangkwon.sangkwonplatform.member.controller;
 import com.sangkwon.sangkwonplatform.global.common.ApiResponse;
 import com.sangkwon.sangkwonplatform.member.dto.request.MemberSignupRequest;
 import com.sangkwon.sangkwonplatform.member.dto.request.MemberUpdateRequest;
+import com.sangkwon.sangkwonplatform.member.dto.response.AvailabilityResponse;
 import com.sangkwon.sangkwonplatform.member.dto.response.MemberResponse;
 import com.sangkwon.sangkwonplatform.member.service.MemberService;
 import jakarta.validation.Valid;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -26,6 +28,17 @@ public class MemberController {
     @PostMapping
     public ApiResponse<MemberResponse> signup(@Valid @RequestBody MemberSignupRequest req) {
         return ApiResponse.ok(memberService.signup(req));
+    }
+
+    // 가입 화면 실시간 중복 확인
+    @GetMapping("/check-login-id")
+    public ApiResponse<AvailabilityResponse> checkLoginId(@RequestParam String loginId) {
+        return ApiResponse.ok(new AvailabilityResponse(memberService.isLoginIdAvailable(loginId)));
+    }
+
+    @GetMapping("/check-email")
+    public ApiResponse<AvailabilityResponse> checkEmail(@RequestParam String email) {
+        return ApiResponse.ok(new AvailabilityResponse(memberService.isEmailAvailable(email)));
     }
 
     @GetMapping("/me")
