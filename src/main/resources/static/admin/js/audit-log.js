@@ -17,7 +17,7 @@
             });
         });
     }
-    function esc(s) { var d = document.createElement("div"); d.textContent = (s == null) ? "" : String(s); return d.innerHTML; }
+    function esc(s) { var d = document.createElement("div"); d.textContent = (s == null) ? "" : String(s); return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
     function pad(n) { return String(n).padStart(2, "0"); }
     function stamp(iso) {
         if (!iso) { return "-"; }

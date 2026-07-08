@@ -17,7 +17,7 @@
             });
         });
     }
-    function esc(s) { var d = document.createElement("div"); d.textContent = (s == null) ? "" : String(s); return d.innerHTML; }
+    function esc(s) { var d = document.createElement("div"); d.textContent = (s == null) ? "" : String(s); return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
     function level(pct) { return pct >= 90 ? "danger" : (pct >= 70 ? "warn" : "ok"); }
 
     var grid = document.getElementById("usage-grid");
@@ -32,6 +32,7 @@
         }
         grid.innerHTML = rows.map(function (a) {
             var lv = level(a.usagePct);
+            var pct = Number(a.usagePct) || 0;
             return '<article class="usage-card">'
                 + '<div class="usage-head">'
                 + '<span class="usage-name">' + esc(LABELS[a.apiName] || a.apiName) + "</span>"
@@ -39,8 +40,8 @@
                 + "</div>"
                 + '<div class="usage-num"><b>' + Number(a.callCnt).toLocaleString() + "</b>"
                 + '<span class="usage-limit"> / ' + Number(a.dailyLimit).toLocaleString() + " 호출</span></div>"
-                + '<div class="usage-bar"><span class="usage-fill usage-' + lv + '" style="width:' + a.usagePct + '%"></span></div>'
-                + '<div class="usage-pct usage-' + lv + '">' + a.usagePct + "% 사용</div>"
+                + '<div class="usage-bar"><span class="usage-fill usage-' + lv + '" style="width:' + pct + '%"></span></div>'
+                + '<div class="usage-pct usage-' + lv + '">' + pct + "% 사용</div>"
                 + "</article>";
         }).join("");
     });

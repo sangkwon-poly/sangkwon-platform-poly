@@ -21,7 +21,7 @@
     function jsonOpts(method, body) {
         return { method: method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
     }
-    function esc(s) { var d = document.createElement("div"); d.textContent = (s == null) ? "" : String(s); return d.innerHTML; }
+    function esc(s) { var d = document.createElement("div"); d.textContent = (s == null) ? "" : String(s); return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
     function msgOf(r, fallback) { return (r.body && r.body.message) ? r.body.message : fallback; }
     function two(n) { return n < 10 ? "0" + n : "" + n; }
     function fmtDateTime(iso) {

@@ -42,6 +42,10 @@ public class AdminUser {
     @Column(name="failed_login_cnt", nullable = false)
     private int failedLoginCnt = 0;
 
+    // 비밀번호가 바뀔 때마다 증가한다. 세션에 담아두고 요청마다 비교해, 비번 변경/재설정 시 기존 세션을 무효화한다.
+    @Column(name = "PW_VERSION", nullable = false)
+    private int pwVersion = 0;
+
     @Convert(converter = YesNoConverter.class)
     @Column(name = "OTP_ENABLED", nullable = false)
     private boolean otpEnabled = false;
@@ -89,6 +93,8 @@ public class AdminUser {
         this.passwordHash = passwordHash;
         this.pwAlgo = HashAlgo.BCRYPT;
         this.failedLoginCnt = 0;
+        // 비번이 바뀌면 버전을 올려, 이 계정의 다른 기존 세션이 다음 요청에서 즉시 무효화되게 한다
+        this.pwVersion++;
     }
 
     public void updateRole(AdminRole role) {

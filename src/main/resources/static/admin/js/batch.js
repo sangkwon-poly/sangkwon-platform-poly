@@ -8,7 +8,7 @@
             });
         });
     }
-    function esc(s) { var d = document.createElement("div"); d.textContent = (s == null) ? "" : String(s); return d.innerHTML; }
+    function esc(s) { var d = document.createElement("div"); d.textContent = (s == null) ? "" : String(s); return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
     function pad(n) { return String(n).padStart(2, "0"); }
     function hhmm(iso) { if (!iso) { return "-"; } var d = new Date(iso); return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
     function badge(status) {
@@ -19,7 +19,7 @@
             FAILED: ["badge-danger", "dot-danger", "오류"]
         };
         var m = map[status] || ["badge-warn", "dot-warn", status];
-        return '<span class="badge ' + m[0] + '"><span class="dot ' + m[1] + '"></span>' + m[2] + "</span>";
+        return '<span class="badge ' + m[0] + '"><span class="dot ' + m[1] + '"></span>' + esc(m[2]) + "</span>";
     }
 
     api("/api/admin/ops/batch").then(function (r) {
