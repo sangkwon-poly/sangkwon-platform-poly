@@ -834,31 +834,21 @@ CREATE INDEX IX_INQUIRY_MEMBER ON INQUIRY (MEMBER_ID);
 CREATE INDEX IX_INQUIRY_ADMIN  ON INQUIRY (ANSWERED_BY);
 CREATE INDEX IX_INQUIRY_STATUS ON INQUIRY (STATUS, CREATED_AT);
 
--- ============================================
--- 1. INDUSTRY_NEWS (업종 뉴스 - 1개월용 원문)
--- ============================================
-CREATE TABLE INDUSTRY_NEWS (
-                               NEWS_ID       VARCHAR2(64)   NOT NULL,
-                               INDUTY_CD     VARCHAR2(20)   NOT NULL,
-                               INDUTY_NM     VARCHAR2(50)   NOT NULL,
-                               TITLE         VARCHAR2(500)  NOT NULL,
-                               ORIGINAL_LINK VARCHAR2(1000) NOT NULL,
-                               PUB_DATE      DATE           NOT NULL,
-                               CACHED_AT     TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
-                               IS_VISIBLE    CHAR(1) DEFAULT 'Y' NOT NULL,
-                               CONSTRAINT PK_INDUSTRY_NEWS PRIMARY KEY (NEWS_ID),
-                               CONSTRAINT CK_NEWS_VISIBLE CHECK (IS_VISIBLE IN ('Y','N'))
+CREATE TABLE INDUSTRY_NEWS_INSIGHT (
+                                       INDUTY_CD      VARCHAR2(20)  NOT NULL,
+                                       INDUTY_NM      VARCHAR2(50)  NOT NULL,
+                                       YEAR_MONTH     VARCHAR2(7)   NOT NULL,
+                                       INSIGHT_TEXT   CLOB          NOT NULL,
+                                       BASED_ON_COUNT NUMBER,
+                                       CREATED_AT     TIMESTAMP(6)  NOT NULL,
+                                       CONSTRAINT PK_NEWS_INSIGHT PRIMARY KEY (INDUTY_CD, YEAR_MONTH)
 );
 
-CREATE INDEX IX_NEWS_INDUTY_DATE ON INDUSTRY_NEWS (INDUTY_CD, PUB_DATE);
-
-COMMENT ON TABLE  INDUSTRY_NEWS                IS '업종별 뉴스 (1개월치 원문 헤드라인 캐시)';
-COMMENT ON COLUMN INDUSTRY_NEWS.NEWS_ID         IS '뉴스 고유ID (원문 링크를 해시하여 생성, 중복 저장 방지용)';
-COMMENT ON COLUMN INDUSTRY_NEWS.INDUTY_CD       IS '업종 코드 (INDUTY 마스터 코드값)';
-COMMENT ON COLUMN INDUSTRY_NEWS.INDUTY_NM       IS '업종명 (한글, 적재 시점에 매핑값을 그대로 저장)';
-COMMENT ON COLUMN INDUSTRY_NEWS.TITLE           IS '기사 제목(헤드라인)';
-COMMENT ON COLUMN INDUSTRY_NEWS.ORIGINAL_LINK   IS '원문 기사 링크 (클릭 시 이동)';
-COMMENT ON COLUMN INDUSTRY_NEWS.PUB_DATE        IS '기사 발행일';
-COMMENT ON COLUMN INDUSTRY_NEWS.CACHED_AT       IS '우리 시스템에 이 기사를 저장한 시각';
-COMMENT ON COLUMN INDUSTRY_NEWS.IS_VISIBLE      IS '노출 여부 (Y=노출, N=숨김). 30일 지나면 배치가 N으로 전환';
+COMMENT ON TABLE  INDUSTRY_NEWS_INSIGHT               IS '업종별 월간 뉴스 AI 인사이트 (원문 미저장, 요약만 보관)';
+COMMENT ON COLUMN INDUSTRY_NEWS_INSIGHT.INDUTY_CD      IS '업종 코드';
+COMMENT ON COLUMN INDUSTRY_NEWS_INSIGHT.INDUTY_NM      IS '업종명(한글)';
+COMMENT ON COLUMN INDUSTRY_NEWS_INSIGHT.YEAR_MONTH     IS '인사이트 대상 연월 (예: 2026-07)';
+COMMENT ON COLUMN INDUSTRY_NEWS_INSIGHT.INSIGHT_TEXT   IS 'LLM이 생성한 업종 동향 요약 (원문 뉴스 아님)';
+COMMENT ON COLUMN INDUSTRY_NEWS_INSIGHT.BASED_ON_COUNT IS '요약 생성에 근거로 쓴 필터 통과 기사 건수(참고용)';
+COMMENT ON COLUMN INDUSTRY_NEWS_INSIGHT.CREATED_AT     IS '생성 시각';
 
