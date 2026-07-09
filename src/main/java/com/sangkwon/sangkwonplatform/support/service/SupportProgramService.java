@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -31,8 +30,6 @@ import java.util.Map;
 @Transactional(readOnly = true)
 public class SupportProgramService {
 
-    // 마감이 이 일수 이내면 '마감 임박'
-    private static final int CLOSING_DAYS = 7;
     // 유형 필터 미사용 시 IN 절이 비지 않도록 넣는 더미값
     private static final List<String> NO_TYPE = List.of("__none__");
 
@@ -99,8 +96,8 @@ public class SupportProgramService {
                 p.getSourceCd(), p.getProgramId(), p.getTitle(), tab.name(), tab.label(),
                 p.getRegion(), p.getTarget(), p.getDescription(),
                 p.getApplyBgngDe(), p.getApplyEndDe(), p.getApplyPeriodRaw(),
-                statusOf(p.getApplyBgngDe(), p.getApplyEndDe(), p.getApplyPeriodRaw(), today),
-                dday(p.getApplyEndDe(), today), p.getContact(), p.getDetailUrl(), kstartup);
+                SupportStatus.of(p.getApplyBgngDe(), p.getApplyEndDe(), p.getApplyPeriodRaw(), today),
+                SupportStatus.dday(p.getApplyEndDe(), today), p.getContact(), p.getDetailUrl(), kstartup);
     }
 
     private SupportProgramCardResponse toCard(SupportProgramListRow r, LocalDate today) {
@@ -110,8 +107,8 @@ public class SupportProgramService {
         return new SupportProgramCardResponse(
                 r.getSourceCd(), r.getProgramId(), r.getTitle(), tab.name(), tab.label(),
                 r.getOrg(), r.getRegion(), bgn, end, r.getApplyPeriodRaw(),
-                statusOf(bgn, end, r.getApplyPeriodRaw(), today),
-                dday(end, today), r.getDetailUrl());
+                SupportStatus.of(bgn, end, r.getApplyPeriodRaw(), today),
+                SupportStatus.dday(end, today), r.getDetailUrl());
     }
 
     private static LocalDate toDate(java.time.LocalDateTime dt) {
@@ -131,24 +128,6 @@ public class SupportProgramService {
             out.add(new SupportProgramPageResponse.TypeCount(t.name(), t.label(), byTab.getOrDefault(t, 0L)));
         }
         return out;
-    }
-
-    // 상태: 마감일 없으면 원문 있으면 상시, 없으면 모집중. 시작 전이면 예정, 지났으면 마감, 임박이면 임박.
-    private String statusOf(LocalDate bgn, LocalDate end, String periodRaw, LocalDate today) {
-        if (end == null) {
-            return periodRaw != null ? "ALWAYS" : "RECRUITING";
-        }
-        if (bgn != null && bgn.isAfter(today)) {
-            return "UPCOMING";
-        }
-        if (end.isBefore(today)) {
-            return "CLOSED";
-        }
-        return ChronoUnit.DAYS.between(today, end) <= CLOSING_DAYS ? "CLOSING" : "RECRUITING";
-    }
-
-    private Integer dday(LocalDate end, LocalDate today) {
-        return end == null ? null : (int) ChronoUnit.DAYS.between(today, end);
     }
 
     private static SupportProgramDetailResponse.Kstartup toKstartup(SupportProgramKstartupDetail d) {

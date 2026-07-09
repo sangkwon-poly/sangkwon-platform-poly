@@ -28,7 +28,7 @@
         if (nav && sep) {
             // 구형 .html 주소로 들어와도 활성 표시가 맞도록 확장자를 떼고 비교
             var path = window.location.pathname.replace(/\.html$/, "");
-            [["/admin/member-admin", "회원 관리"], ["/admin/notice-admin", "공지사항"], ["/admin/inquiry-admin", "1:1 문의"], ["/admin/audit-log", "감사 로그"], ["/admin/api-usage", "API 사용"]].forEach(function (item) {
+            [["/admin/support-admin", "지원사업"], ["/admin/member-admin", "회원 관리"], ["/admin/notice-admin", "공지사항"], ["/admin/inquiry-admin", "1:1 문의"], ["/admin/audit-log", "감사 로그"], ["/admin/api-usage", "API 사용"]].forEach(function (item) {
                 if (nav.querySelector('a[href="' + item[0] + '"]')) { return; }
                 var link = document.createElement("a");
                 link.href = item[0];

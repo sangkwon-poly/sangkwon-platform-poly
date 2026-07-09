@@ -13,7 +13,8 @@ public class PageRoutesConfig implements WebMvcConfigurer {
 
     private static final String[] ADMIN_PAGES = {
             "login", "dashboard", "batch", "trdar-admin", "user-admin",
-            "member-admin", "notice-admin", "inquiry-admin", "audit-log", "api-usage"
+            "member-admin", "notice-admin", "inquiry-admin", "audit-log", "api-usage",
+            "support-admin"
     };
     private static final String[] MAP_PAGES = { "search", "trdar-detail", "compare", "report", "insight" };
     private static final String[] MEMBER_PAGES = { "login", "mypage", "favorites" };
