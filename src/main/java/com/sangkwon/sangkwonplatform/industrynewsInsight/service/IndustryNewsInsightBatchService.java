@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -33,10 +34,21 @@ public class IndustryNewsInsightBatchService {
     @Value("${gemini.api-news-key}")
     private String geminiApiKey;
 
-    private static final int PAGE_SIZE = 30;
-    private static final int MAX_START = 300;
+    private static final int PAGE_SIZE = 100;
+    private static final int MAX_START = 1000;
     private static final int MIN_TITLES_FOR_INSIGHT = 3;
     private static final int MAX_TITLES_FOR_GEMINI = 30;
+
+    // Gemini 호출 사이 대기시간 (밀리초) - 무료 티어 분당 요청 제한(429) 방지용
+    private static final long GEMINI_CALL_INTERVAL_MS = 5000;
+    // 429 발생 시 재시도 횟수 및 대기시간
+    private static final int GEMINI_MAX_RETRY = 3;
+    private static final long GEMINI_RETRY_WAIT_MS = 15000;
+
+    // 네이버 API 호출 사이 대기시간 - 순간 속도 제한(rate limit) 방지용
+    private static final long NAVER_CALL_INTERVAL_MS = 500;
+    private static final int NAVER_MAX_RETRY = 3;
+    private static final long NAVER_RETRY_WAIT_MS = 5000;
 
     private static final Map<String, String> ALL_INDUTY_NM = Map.ofEntries(
             Map.entry("CS100001", "한식음식점"),
@@ -175,19 +187,22 @@ public class IndustryNewsInsightBatchService {
     }
 
     private static final List<String> SEARCH_SUFFIXES = List.of(
+            "동향",
+            "업황",
+            "시장",
+            "트렌드",
             "매출",
-            "원가",
+            "신상품",
+            "간편식",
+            "도시락",
             "창업",
             "폐업",
-            "프랜차이즈",
+            "원가",
             "가격",
-            "시장",
-            "소비",
-            "트렌드",
-            "전망",
+            "프랜차이즈",
             "정책",
-            "동향",
-            "업황"
+            "소비",
+            "전망"
     );
 
     private static final List<String> BUSINESS_SIGNAL_KEYWORDS = List.of(
@@ -197,6 +212,7 @@ public class IndustryNewsInsightBatchService {
             "인상",
             "인하",
             "물가",
+            "고물가",
             "창업",
             "폐업",
             "프랜차이즈",
@@ -212,13 +228,24 @@ public class IndustryNewsInsightBatchService {
             "임대료",
             "배달",
             "포장",
-            "신제품"
+            "신제품",
+            "신상품",
+            "간편식",
+            "도시락",
+            "PB",
+            "협업",
+            "콜라보",
+            "프로모션",
+            "할인",
+            "주류",
+            "위스키",
+            "보양식"
     );
 
     private static final List<String> EXCLUDE_KEYWORDS = List.of(
             "화재", "불이 나", "구조", "진화", "소방",
             "살인", "폭행", "사망", "사고", "검거", "재판",
-            "연예인", "방송", "맛집", "후기"
+            "연예인", "방송"
     );
 
     public void generateAllIndustryInsights() {
@@ -253,6 +280,8 @@ public class IndustryNewsInsightBatchService {
                 } else {
                     generated++;
                 }
+
+                sleep(GEMINI_CALL_INTERVAL_MS);
             }
 
             saveInsight(indutyCd, indutyNm, yearMonth, insightText, titles.size());
@@ -275,7 +304,13 @@ public class IndustryNewsInsightBatchService {
             if (titleSet.size() >= MAX_TITLES_FOR_GEMINI) {
                 break;
             }
+
+            sleep(NAVER_CALL_INTERVAL_MS);
         }
+
+        System.out.println(indutyNm + " : " + titleSet.size());
+
+        titleSet.forEach(System.out::println);
 
         return new ArrayList<>(titleSet);
     }
@@ -294,18 +329,30 @@ public class IndustryNewsInsightBatchService {
             headers.set("X-Naver-Client-Id", naverClientId);
             headers.set("X-Naver-Client-Secret", naverClientSecret);
 
-            ResponseEntity<String> response;
+            ResponseEntity<String> response = null;
 
-            try {
-                response = restTemplate.exchange(
-                        URI.create(url),
-                        HttpMethod.GET,
-                        new HttpEntity<>(headers),
-                        String.class
-                );
-            } catch (Exception e) {
-                System.out.println("네이버 뉴스 호출 실패: " + query + " / " + e.getMessage());
-                break;
+            for (int attempt = 1; attempt <= NAVER_MAX_RETRY; attempt++) {
+                try {
+                    response = restTemplate.exchange(
+                            URI.create(url),
+                            HttpMethod.GET,
+                            new HttpEntity<>(headers),
+                            String.class
+                    );
+                    break;
+                } catch (HttpClientErrorException.TooManyRequests e) {
+                    System.out.printf("네이버 429 발생: %s / %d초 대기 후 재시도 (%d/%d)%n",
+                            query, NAVER_RETRY_WAIT_MS / 1000, attempt, NAVER_MAX_RETRY);
+                    sleep(NAVER_RETRY_WAIT_MS);
+                } catch (Exception e) {
+                    System.out.println("네이버 뉴스 호출 실패: " + query + " / " + e.getMessage());
+                    return;
+                }
+            }
+
+            if (response == null) {
+                System.out.println("네이버 재시도 한도 초과, 이번 검색어는 건너뜀: " + query);
+                return;
             }
 
             List<JsonNode> items = extractItems(response.getBody());
@@ -319,6 +366,7 @@ public class IndustryNewsInsightBatchService {
                 String description = stripTags(item.path("description").asText());
                 String text = title + " " + description;
 
+                if (!text.contains(baseKeyword)) continue;
                 if (EXCLUDE_KEYWORDS.stream().anyMatch(text::contains)) continue;
                 if (BUSINESS_SIGNAL_KEYWORDS.stream().noneMatch(text::contains)) continue;
 
@@ -330,6 +378,7 @@ public class IndustryNewsInsightBatchService {
             }
 
             start += PAGE_SIZE;
+            sleep(NAVER_CALL_INTERVAL_MS);
         }
     }
 
@@ -360,31 +409,32 @@ public class IndustryNewsInsightBatchService {
         );
 
         String prompt = """
-                당신은 예비 창업자와 소상공인을 위한 업종 동향 분석가입니다.
-                
-                아래 뉴스 제목을 바탕으로 업종의 최근 상황을 분석하세요.
-                
-                반드시 아래 형식으로 작성하세요.
-                
-                [업황 요약]
-                최근 업종 상황을 한 문장으로 설명
-                
-                [기회 요인]
-                사업자가 참고할 만한 긍정적인 요인을 한 문장
-                
-                [주의 요인]
-                원가, 경쟁, 정책 등 주의해야 할 사항을 한 문장
-                
-                규칙
-                - 뉴스 제목에 없는 내용은 추측하지 말 것
-                - 사건사고, 연예, 정치 이슈는 제외
-                - 제목을 그대로 복사하지 말 것
-                - 전체 250자 이하
-                - 근거가 부족하면 "이번 달은 뚜렷한 업황 변화가 관측되지 않았습니다."만 출력
+        당신은 예비 창업자와 소상공인을 위한 업종 동향 분석가입니다.
 
-                [뉴스 제목 목록]
-                %s
-                """.formatted(indutyNm, titlesBlock);
+        아래는 '%s' 업종과 관련된 뉴스 제목 목록입니다.
+        아래 뉴스 제목을 바탕으로 업종의 최근 상황을 분석하세요.
+
+        반드시 아래 형식으로 작성하세요.
+
+        [업황 요약]
+        최근 업종 상황을 한 문장으로 설명
+
+        [기회 요인]
+        사업자가 참고할 만한 긍정적인 요인을 한 문장
+
+        [주의 요인]
+        원가, 경쟁, 정책 등 주의해야 할 사항을 한 문장
+
+        규칙
+        - 뉴스 제목에 없는 내용은 추측하지 말 것
+        - 사건사고, 연예, 정치 이슈는 제외
+        - 제목을 그대로 복사하지 말 것
+        - 전체 250자 이하
+        - 뉴스 제목이 5개 미만으로 정말 근거가 부족할 때만 "이번 달은 뚜렷한 업황 변화가 관측되지 않았습니다."라고 답할 것
+
+        [뉴스 제목 목록]
+        %s
+        """.formatted(indutyNm, titlesBlock);
 
         Map<String, Object> body = Map.of(
                 "contents", List.of(
@@ -396,30 +446,46 @@ public class IndustryNewsInsightBatchService {
                 )
         );
 
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent"
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent"
                 + "?key=" + geminiApiKey;
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        for (int attempt = 1; attempt <= GEMINI_MAX_RETRY; attempt++) {
+            try {
+                ResponseEntity<String> response = restTemplate.postForEntity(
+                        url, requestEntity, String.class);
+
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode root = mapper.readTree(response.getBody());
+
+                return root.path("candidates").get(0)
+                        .path("content").path("parts").get(0)
+                        .path("text").asText()
+                        .trim();
+
+            } catch (HttpClientErrorException.TooManyRequests e) {
+                System.out.printf("Gemini 429(Too Many Requests) 발생, %d초 대기 후 재시도 (%d/%d)%n",
+                        GEMINI_RETRY_WAIT_MS / 1000, attempt, GEMINI_MAX_RETRY);
+                sleep(GEMINI_RETRY_WAIT_MS);
+
+            } catch (Exception e) {
+                System.out.println("Gemini 요약 실패: " + e.getMessage());
+                return null;
+            }
+        }
+
+        System.out.println("Gemini 재시도 한도 초과, 이번 업종은 건너뜀");
+        return null;
+    }
+
+    private void sleep(long millis) {
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    url,
-                    new HttpEntity<>(body, headers),
-                    String.class
-            );
-
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(response.getBody());
-
-            return root.path("candidates").get(0)
-                    .path("content").path("parts").get(0)
-                    .path("text").asText()
-                    .trim();
-
-        } catch (Exception e) {
-            System.out.println("Gemini 요약 실패: " + e.getMessage());
-            return null;
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 
