@@ -27,6 +27,7 @@ public class PageRoutesConfig implements WebMvcConfigurer {
         forward(registry, "/map/", "/map/index.html");
         forward(registry, "/support", "/support/support.html");
         forward(registry, "/support/", "/support/support.html");
+        forward(registry, "/support/detail", "/support/support-detail.html");
 
         for (String page : ADMIN_PAGES) {
             forward(registry, "/admin/" + page, "/admin/" + page + ".html");

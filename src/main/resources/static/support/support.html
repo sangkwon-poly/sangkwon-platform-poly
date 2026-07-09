@@ -3,17 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>지원사업 매칭 · 서울공화국</title>
-  <meta name="description" content="업종·지역·창업 단계에 맞는 정부·지자체 창업 지원사업을 자동으로 매칭받으세요.">
+  <title>지원사업 · 서울공화국</title>
+  <meta name="description" content="기업마당과 K-Startup 창업 지원사업을 유형·지역·조건으로 한 번에 조회하세요.">
 
-  <!-- 폰트 → 공통 → 화면 CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
   <link rel="stylesheet" href="/css/common.css">
   <link rel="stylesheet" href="/css/support/support.css">
 </head>
 <body>
 
-  <!-- 헤더 내비 -->
   <header class="site-header">
     <div class="container header-inner">
       <a class="brand" href="/">
@@ -38,191 +36,96 @@
     </div>
   </header>
 
-  <main class="support-main" aria-label="지원사업 매칭">
+  <main class="support-main" aria-label="지원사업 통합 조회">
     <div class="container support-inner">
 
-      <!-- 페이지 헤더: 매칭 건수 + 조건 칩 + 정렬 -->
-      <section class="support-head" aria-label="매칭 요약">
-        <div class="support-head-left">
-          <h1 class="support-count">내 조건에 맞는 지원사업 <span class="support-count-num">24</span>건</h1>
-          <ul class="cond-chips">
-            <li class="cond-chip">업종 · 카페</li>
-            <li class="cond-chip">지역 · 강남구</li>
-            <li class="cond-chip">창업 3년차</li>
-          </ul>
+      <section class="sp-head">
+        <div class="sp-head-left">
+          <h1 class="sp-count">지원사업 <span class="sp-count-num" id="sp-count">0</span>건</h1>
+          <p class="sp-sub" id="sp-sub">기업마당, K-Startup 공고 통합. 기본 정렬은 마감임박순.</p>
+          <ul class="sp-active-chips" id="sp-active-chips" aria-label="적용된 상세필터"></ul>
         </div>
-        <button type="button" class="sort-select">매칭순 ▾</button>
+        <div class="sp-recruit" role="group" aria-label="모집 상태">
+          <button type="button" class="sp-recruit-btn is-active" data-recruiting="true">모집중</button>
+          <button type="button" class="sp-recruit-btn" data-recruiting="false">마감 포함</button>
+        </div>
       </section>
 
-      <!-- 유형 필터 탭 -->
-      <nav class="type-tabs" aria-label="지원 유형 필터">
-        <button type="button" class="type-tab is-active" aria-pressed="true">전체</button>
-        <button type="button" class="type-tab" aria-pressed="false">융자</button>
-        <button type="button" class="type-tab" aria-pressed="false">보조금</button>
-        <button type="button" class="type-tab" aria-pressed="false">컨설팅</button>
-      </nav>
+      <nav class="sp-type-tabs" id="sp-type-tabs" aria-label="지원 유형 필터"></nav>
 
-      <!-- 지원사업 목록 -->
-      <section aria-label="지원사업 목록">
-        <ul class="support-list">
+      <div class="sp-filters">
+        <div class="sp-filter" role="group" aria-label="지역">
+          <span class="sp-filter-label">지역</span>
+          <button type="button" class="sp-chip is-active" data-key="region" data-value="">전체</button>
+          <button type="button" class="sp-chip" data-key="region" data-value="seoul">서울</button>
+          <button type="button" class="sp-chip" data-key="region" data-value="nation">전국</button>
+        </div>
+        <div class="sp-filter" role="group" aria-label="출처">
+          <span class="sp-filter-label">출처</span>
+          <button type="button" class="sp-chip is-active" data-key="source" data-value="">전체</button>
+          <button type="button" class="sp-chip" data-key="source" data-value="BIZINFO">기업마당</button>
+          <button type="button" class="sp-chip" data-key="source" data-value="KSTARTUP">K-Startup</button>
+        </div>
+        <div class="sp-filter" role="group" aria-label="대상">
+          <span class="sp-filter-label">대상</span>
+          <button type="button" class="sp-chip is-active" data-key="target" data-value="">전체</button>
+          <button type="button" class="sp-chip" data-key="target" data-value="소상공인">소상공인</button>
+          <button type="button" class="sp-chip" data-key="target" data-value="예비창업">예비창업자</button>
+          <button type="button" class="sp-chip" data-key="target" data-value="청년">청년</button>
+          <button type="button" class="sp-chip" data-key="target" data-value="중소기업">중소기업</button>
+        </div>
+        <form class="sp-search" id="sp-search" role="search">
+          <input type="search" id="sp-q" name="q" placeholder="공고명 검색" aria-label="공고명 검색">
+        </form>
+      </div>
 
-          <li class="support-card">
-            <div class="match-ring" role="img" aria-label="매칭 92점">
-              <svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true">
-                <circle cx="20" cy="20" r="17" fill="none" stroke="#F0E8E3" stroke-width="5"></circle>
-                <circle cx="20" cy="20" r="17" fill="none" stroke="#A8412C" stroke-width="5" stroke-linecap="round" stroke-dasharray="98.3 106.8" transform="rotate(-90 20 20)"></circle>
-              </svg>
-              <div class="match-ring-text">
-                <span class="match-score">92</span>
-                <span class="match-label">매칭</span>
-              </div>
-            </div>
-            <div class="support-body">
-              <div class="support-title-row">
-                <h2 class="support-title">소상공인 성장지원 자금</h2>
-                <span class="type-tag">융자</span>
-              </div>
-              <p class="support-agency">소상공인시장진흥공단</p>
-            </div>
-            <div class="support-scale">
-              <span class="support-meta-label">지원 규모</span>
-              <span class="support-scale-value">최대 7,000만원</span>
-            </div>
-            <div class="support-deadline">
-              <span class="support-meta-label">마감</span>
-              <span class="support-deadline-value">D-12</span>
-            </div>
-            <span class="status-badge status-open">신청 가능</span>
-            <a class="btn btn-primary apply-btn" href="#">신청</a>
-          </li>
+      <details class="sp-detail" id="sp-detail">
+        <summary class="sp-detail-summary">
+          상세 필터 · 창업기간 / 연령
+          <span class="sp-detail-note">K-Startup 공고에만 제공</span>
+        </summary>
+        <div class="sp-detail-body">
+          <div class="sp-detail-row" role="group" aria-label="창업기간">
+            <span class="sp-filter-label">창업기간</span>
+            <button type="button" class="sp-chip" data-key="founding" data-value="PRELIMINARY">예비창업자</button>
+            <button type="button" class="sp-chip" data-key="founding" data-value="Y1">1년 미만</button>
+            <button type="button" class="sp-chip" data-key="founding" data-value="Y3">3년 미만</button>
+            <button type="button" class="sp-chip" data-key="founding" data-value="Y5">5년 미만</button>
+            <button type="button" class="sp-chip" data-key="founding" data-value="Y7">7년 미만</button>
+            <button type="button" class="sp-chip" data-key="founding" data-value="Y10">10년 미만</button>
+          </div>
+          <div class="sp-detail-row" role="group" aria-label="연령">
+            <span class="sp-filter-label">연령</span>
+            <button type="button" class="sp-chip" data-key="age" data-value="UNDER20">만 20세 미만</button>
+            <button type="button" class="sp-chip" data-key="age" data-value="A20_39">만 20~39세</button>
+            <button type="button" class="sp-chip" data-key="age" data-value="OVER40">만 40세 이상</button>
+          </div>
+        </div>
+      </details>
 
-          <li class="support-card">
-            <div class="match-ring" role="img" aria-label="매칭 88점">
-              <svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true">
-                <circle cx="20" cy="20" r="17" fill="none" stroke="#F0E8E3" stroke-width="5"></circle>
-                <circle cx="20" cy="20" r="17" fill="none" stroke="#A8412C" stroke-width="5" stroke-linecap="round" stroke-dasharray="94.0 106.8" transform="rotate(-90 20 20)"></circle>
-              </svg>
-              <div class="match-ring-text">
-                <span class="match-score">88</span>
-                <span class="match-label">매칭</span>
-              </div>
-            </div>
-            <div class="support-body">
-              <div class="support-title-row">
-                <h2 class="support-title">청년창업 사관학교</h2>
-                <span class="type-tag">보조금</span>
-              </div>
-              <p class="support-agency">중소벤처기업부</p>
-            </div>
-            <div class="support-scale">
-              <span class="support-meta-label">지원 규모</span>
-              <span class="support-scale-value">최대 1억원</span>
-            </div>
-            <div class="support-deadline">
-              <span class="support-meta-label">마감</span>
-              <span class="support-deadline-value">D-5</span>
-            </div>
-            <span class="status-badge status-soon">마감 임박</span>
-            <a class="btn btn-primary apply-btn" href="#">신청</a>
-          </li>
+      <div class="sp-banner" id="sp-banner" hidden>
+        <span class="sp-banner-text" id="sp-banner-text"></span>
+        <label class="sp-banner-check">
+          <input type="checkbox" id="sp-include-unknown"> 정보 없는 공고도 포함
+        </label>
+        <button type="button" class="sp-banner-clear" id="sp-clear-detail">상세필터 해제</button>
+      </div>
 
-          <li class="support-card">
-            <div class="match-ring" role="img" aria-label="매칭 81점">
-              <svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true">
-                <circle cx="20" cy="20" r="17" fill="none" stroke="#F0E8E3" stroke-width="5"></circle>
-                <circle cx="20" cy="20" r="17" fill="none" stroke="#A8412C" stroke-width="5" stroke-linecap="round" stroke-dasharray="86.5 106.8" transform="rotate(-90 20 20)"></circle>
-              </svg>
-              <div class="match-ring-text">
-                <span class="match-score">81</span>
-                <span class="match-label">매칭</span>
-              </div>
-            </div>
-            <div class="support-body">
-              <div class="support-title-row">
-                <h2 class="support-title">서울 골목상권 활력사업</h2>
-                <span class="type-tag">컨설팅</span>
-              </div>
-              <p class="support-agency">서울신용보증재단</p>
-            </div>
-            <div class="support-scale">
-              <span class="support-meta-label">지원 규모</span>
-              <span class="support-scale-value">최대 3,000만원</span>
-            </div>
-            <div class="support-deadline">
-              <span class="support-meta-label">마감</span>
-              <span class="support-deadline-value">D-24</span>
-            </div>
-            <span class="status-badge status-open">신청 가능</span>
-            <a class="btn btn-primary apply-btn" href="#">신청</a>
-          </li>
+      <ul class="sp-list" id="sp-list" aria-label="지원사업 목록"></ul>
 
-          <li class="support-card">
-            <div class="match-ring" role="img" aria-label="매칭 74점">
-              <svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true">
-                <circle cx="20" cy="20" r="17" fill="none" stroke="#F0E8E3" stroke-width="5"></circle>
-                <circle cx="20" cy="20" r="17" fill="none" stroke="#A8412C" stroke-width="5" stroke-linecap="round" stroke-dasharray="79.0 106.8" transform="rotate(-90 20 20)"></circle>
-              </svg>
-              <div class="match-ring-text">
-                <span class="match-score">74</span>
-                <span class="match-label">매칭</span>
-              </div>
-            </div>
-            <div class="support-body">
-              <div class="support-title-row">
-                <h2 class="support-title">로컬크리에이터 육성</h2>
-                <span class="type-tag">보조금</span>
-              </div>
-              <p class="support-agency">창업진흥원</p>
-            </div>
-            <div class="support-scale">
-              <span class="support-meta-label">지원 규모</span>
-              <span class="support-scale-value">최대 5,000만원</span>
-            </div>
-            <div class="support-deadline">
-              <span class="support-meta-label">마감</span>
-              <span class="support-deadline-value">마감</span>
-            </div>
-            <span class="status-badge status-closed">마감</span>
-            <a class="btn btn-primary apply-btn" href="#">신청</a>
-          </li>
+      <div class="sp-empty" id="sp-empty" hidden>
+        <p class="sp-empty-title">조건에 맞는 지원사업이 없습니다.</p>
+        <p class="sp-empty-sub">필터를 줄이거나 초기화해 보세요.</p>
+        <button type="button" class="btn btn-primary" id="sp-reset">필터 초기화</button>
+      </div>
 
-          <li class="support-card">
-            <div class="match-ring" role="img" aria-label="매칭 69점">
-              <svg width="56" height="56" viewBox="0 0 40 40" aria-hidden="true">
-                <circle cx="20" cy="20" r="17" fill="none" stroke="#F0E8E3" stroke-width="5"></circle>
-                <circle cx="20" cy="20" r="17" fill="none" stroke="#A8412C" stroke-width="5" stroke-linecap="round" stroke-dasharray="73.7 106.8" transform="rotate(-90 20 20)"></circle>
-              </svg>
-              <div class="match-ring-text">
-                <span class="match-score">69</span>
-                <span class="match-label">매칭</span>
-              </div>
-            </div>
-            <div class="support-body">
-              <div class="support-title-row">
-                <h2 class="support-title">전통시장 시설현대화</h2>
-                <span class="type-tag">융자</span>
-              </div>
-              <p class="support-agency">소상공인시장진흥공단</p>
-            </div>
-            <div class="support-scale">
-              <span class="support-meta-label">지원 규모</span>
-              <span class="support-scale-value">최대 2억원</span>
-            </div>
-            <div class="support-deadline">
-              <span class="support-meta-label">마감</span>
-              <span class="support-deadline-value">D-40</span>
-            </div>
-            <span class="status-badge status-planned">예정</span>
-            <a class="btn btn-primary apply-btn" href="#">신청</a>
-          </li>
-
-        </ul>
-      </section>
+      <div class="sp-more-wrap" id="sp-more-wrap" hidden>
+        <button type="button" class="sp-more" id="sp-more">더 보기</button>
+      </div>
 
     </div>
   </main>
 
-  <!-- 푸터 -->
   <footer class="site-footer">
     <div class="container footer-inner">
       <div class="footer-brand">
@@ -261,5 +164,6 @@
         .catch(function () {});
     })();
   </script>
+  <script src="/support/support.js"></script>
 </body>
 </html>
