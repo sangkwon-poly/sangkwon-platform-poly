@@ -42,6 +42,7 @@ public class IndustryNewsInsight {
     //복합키 클래스
     @Getter
     @Setter
+    @NoArgsConstructor
     public static class PK implements Serializable{
 
         //ID

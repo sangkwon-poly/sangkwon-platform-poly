@@ -14,5 +14,5 @@ public interface IndustryNewsInsightRepository extends JpaRepository<IndustryNew
             where i.indutyCd = :industyCd
             order by i.yearMonth desc
             """)
-    Optional<IndustryNewsInsight>findLatestByIndustyCd(@Param("indutyCd") String indutyCd);
+    Optional<IndustryNewsInsight>findLatestByIndutyCd(@Param("industyCd") String indutyCd);
 }
