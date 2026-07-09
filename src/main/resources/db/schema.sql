@@ -837,3 +837,24 @@ COMMENT ON COLUMN INQUIRY.UPDATED_AT  IS '수정 시각';
 CREATE INDEX IX_INQUIRY_MEMBER ON INQUIRY (MEMBER_ID);
 CREATE INDEX IX_INQUIRY_ADMIN  ON INQUIRY (ANSWERED_BY);
 CREATE INDEX IX_INQUIRY_STATUS ON INQUIRY (STATUS, CREATED_AT);
+
+-- 뉴스 동향 llm 인사이트 저장
+
+CREATE TABLE INDUSTRY_NEWS_INSIGHT (
+                                       INDUTY_CD      VARCHAR2(20)  NOT NULL,
+                                       INDUTY_NM      VARCHAR2(50)  NOT NULL,
+                                       YEAR_MONTH     VARCHAR2(7)   NOT NULL,
+                                       INSIGHT_TEXT   CLOB          NOT NULL,
+                                       BASED_ON_COUNT NUMBER,
+                                       CREATED_AT     TIMESTAMP(6)  NOT NULL,
+                                       CONSTRAINT PK_NEWS_INSIGHT PRIMARY KEY (INDUTY_CD, YEAR_MONTH)
+);
+
+COMMENT ON TABLE  INDUSTRY_NEWS_INSIGHT               IS '업종별 월간 뉴스 AI 인사이트 (원문 미저장, 요약만 보관)';
+COMMENT ON COLUMN INDUSTRY_NEWS_INSIGHT.INDUTY_CD      IS '업종 코드';
+COMMENT ON COLUMN INDUSTRY_NEWS_INSIGHT.INDUTY_NM      IS '업종명(한글)';
+COMMENT ON COLUMN INDUSTRY_NEWS_INSIGHT.YEAR_MONTH     IS '인사이트 대상 연월 (예: 2026-07)';
+COMMENT ON COLUMN INDUSTRY_NEWS_INSIGHT.INSIGHT_TEXT   IS 'LLM이 생성한 업종 동향 요약 (원문 뉴스 아님)';
+COMMENT ON COLUMN INDUSTRY_NEWS_INSIGHT.BASED_ON_COUNT IS '요약 생성에 근거로 쓴 필터 통과 기사 건수(참고용)';
+COMMENT ON COLUMN INDUSTRY_NEWS_INSIGHT.CREATED_AT     IS '생성 시각';
+

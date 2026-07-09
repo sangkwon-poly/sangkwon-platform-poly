@@ -57,4 +57,4 @@ __pycache__/
 *.pyc
 scripts/data-load/load_progress.log
 scripts/data-load/_trdar_tmp/
-scripts/data-load/*.env
+scripts/*/*.env

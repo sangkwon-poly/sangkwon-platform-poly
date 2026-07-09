@@ -50,3 +50,4 @@ class LlmReportControllerTest {
                 .andExpect(jsonPath("$.data.trdarCd").value("3110001"));
     }
 }
+
