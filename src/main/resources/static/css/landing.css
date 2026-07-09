@@ -51,13 +51,18 @@
   border-radius: 20px;
   overflow: visible;
 }
-.base-poly{
-  stroke: #ffffff;
-  stroke-width: 1.5;
-}
-.hit{
-  fill: transparent;
+.region{
   cursor: pointer;
+}
+.tri{
+  stroke: rgba(255,255,255,0.55);
+  stroke-width: 0.6;
+}
+.district-border{
+  fill: transparent;
+  stroke: #ffffff;
+  stroke-width: 2;
+  pointer-events: none;
 }
 .overlay-poly{
   fill: rgba(255, 205, 90, 0);
@@ -189,26 +194,167 @@
 }
 .stat-label { display: block; margin-top: 4px; font-size: 12.5px; color: rgba(255, 255, 255, .66); }
 
-/* 5. 기능 3종 */
-.features-inner {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px;
-  padding: 46px 24px 54px;
+/* 5. 핵심 기능 (지도 비교 / 상세 리포트 / 지원사업 매칭) */
+.section-title{
+  font-size: 30px; font-weight: 800; line-height: 1.28;
+  letter-spacing: -.03em; color: var(--ink);
 }
-.feature-card {
+.section-lead{
+  margin-top: 12px; font-size: 14.5px; line-height: 1.7; color: var(--muted);
+  max-width: 480px;
+}
+
+/* 5-1. 지도 비교 */
+.feature-map{ padding: 88px 0 76px; background: #fff; }
+.feature-map-head{ text-align: center; }
+.feature-map-head .section-lead{ margin-left: auto; margin-right: auto; }
+
+.map-demo{
+  margin: 40px auto 0;
+  max-width: 920px;
+  background: #fff;
+  border: 1px solid #eadfd9;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.map-demo-bar{
+  height: 46px;
+  display: flex; align-items: center; gap: 9px;
+  padding: 0 18px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+  color: #fff; font-size: 12.5px; font-weight: 700;
+}
+.map-demo-dot{ width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.5); }
+.map-demo-tag{ margin-left: auto; font-weight: 600; opacity: .8; font-size: 11.5px; }
+
+.map-demo-body{
+  position: relative;
+  background: var(--surface-2);
+  padding: 28px 24px;
+}
+.mini-map-svg{
+  display: block;
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto;
+  filter: drop-shadow(0 10px 24px rgba(90,45,28,.14));
+}
+
+.map-demo-panel{
+  position: absolute;
+  background: #fff;
+  border: 1px solid var(--card-line);
+  border-radius: 12px;
+  box-shadow: 0 14px 30px rgba(90,45,28,.12);
+  padding: 12px 14px;
+  font-size: 12px;
+}
+.map-demo-filter{ top: 36px; left: 32px; width: 148px; }
+.map-demo-rank{ top: 36px; right: 32px; width: 176px; }
+.mdp-label{ font-size: 11px; font-weight: 800; color: var(--muted-2); margin-bottom: 8px; letter-spacing: .02em; }
+.mdp-row{ display: flex; align-items: center; gap: 7px; padding: 4px 0; color: var(--text-soft); font-size: 11.5px; }
+.mdp-checkbox{ width: 13px; height: 13px; border-radius: 4px; border: 1.5px solid #d9cbc3; flex: 0 0 auto; }
+.mdp-checkbox.checked{ background: var(--brand); border-color: var(--brand); }
+.mdp-scale{
+  margin-top: 8px; height: 6px; border-radius: 4px;
+  background: linear-gradient(90deg, #f7e9e3, var(--brand));
+}
+.mdp-rank-list{ display: flex; flex-direction: column; gap: 6px; }
+.mdp-rank-list li{
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11.5px; font-weight: 700; color: var(--text-soft);
+}
+.mdp-rank-list li em{ margin-left: auto; font-style: normal; font-family: var(--mono); color: var(--brand); font-weight: 800; }
+.mdp-rank-badge{
+  width: 16px; height: 16px; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 5px; background: var(--brand-tint); color: var(--brand);
+  font-size: 9.5px; font-weight: 800;
+}
+.mdp-rank-badge.is-top{ background: var(--brand); color: #fff; }
+
+.feature-sub-grid{
+  margin-top: 32px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+}
+.feature-sub-card{
   background: var(--surface);
   border: 1px solid var(--card-line);
   border-radius: var(--radius);
-  padding: 24px;
+  padding: 22px;
 }
-.feature-icon {
-  width: 44px; height: 44px;
+.feature-sub-icon{
+  width: 40px; height: 40px;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 11px;
+  border-radius: 10px;
   background: var(--brand-icon-bg); color: var(--brand);
-  font-size: 20px; font-weight: 800;
 }
-.feature-title { font-size: 16px; font-weight: 800; color: var(--text); margin-top: 15px; }
-.feature-desc { font-size: 13px; line-height: 1.6; color: var(--muted-2); margin-top: 7px; }
+.feature-sub-icon svg{ width: 20px; height: 20px; }
+.feature-sub-card h3{ font-size: 15px; font-weight: 800; color: var(--text); margin-top: 14px; }
+.feature-sub-card p{ font-size: 12.5px; line-height: 1.6; color: var(--muted-2); margin-top: 6px; }
+
+/* 5-2. 상세 리포트 */
+.feature-report{ padding: 84px 0; background: var(--surface-2); }
+.feature-report-inner{
+  display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center;
+}
+.report-chip-grid{
+  margin-top: 26px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+.report-chip{
+  display: flex; align-items: center; gap: 10px;
+  background: #fff; border: 1px solid var(--card-line);
+  border-radius: 12px; padding: 13px 14px;
+  font-size: 12.5px; font-weight: 700; color: var(--text-soft);
+}
+.report-chip svg{ width: 20px; height: 20px; flex: 0 0 auto; color: var(--brand); }
+
+.report-mock{
+  background: #fff; border: 1px solid #eadfd9; border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card); padding: 26px 26px 22px;
+  max-width: 340px; margin: 0 auto;
+}
+.report-mock-kicker{ font-size: 10px; font-weight: 800; letter-spacing: .06em; color: var(--brand); }
+.report-mock-title{ font-size: 15.5px; font-weight: 800; color: var(--ink); margin-top: 8px; line-height: 1.4; }
+.report-mock-sub{ font-size: 11px; color: var(--faint); margin-top: 4px; }
+.report-mock-stats{
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 8px;
+  margin-top: 16px; padding: 12px 0; border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft);
+}
+.report-mock-stats div{ text-align: center; }
+.report-mock-stats em{ display: block; font-style: normal; font-size: 15px; font-weight: 800; color: var(--ink); }
+.report-mock-stats span{ display: block; font-size: 10px; color: var(--faint); margin-top: 2px; }
+.report-mock-chart{ margin-top: 16px; }
+.report-mock-bars{ margin-top: 14px; display: flex; flex-direction: column; gap: 9px; }
+.rmb-row{ display: flex; align-items: center; gap: 8px; font-size: 10.5px; color: var(--muted-2); }
+.rmb-row span{ width: 68px; flex: 0 0 auto; }
+.rmb-row i{ display: block; height: 6px; border-radius: 4px; background: var(--brand); opacity: .85; }
+
+/* 5-3. 지원사업 매칭 */
+.feature-support{ padding: 84px 0 96px; background: #fff; }
+.feature-support-inner{
+  display: grid; grid-template-columns: .9fr 1.1fr; gap: 48px; align-items: center;
+}
+.support-network{ width: 100%; max-width: 320px; margin: 0 auto; display: block; }
+.feature-support-copy .eyebrow{ margin-bottom: 16px; }
+.feature-support-copy .btn{ margin-top: 26px; }
+
+/* 반응형 */
+@media (max-width: 900px) {
+  .feature-map-panel, .map-demo-panel{ display: none; }
+  .feature-sub-grid{ grid-template-columns: 1fr; }
+  .feature-report-inner{ grid-template-columns: 1fr; }
+  .feature-support-inner{ grid-template-columns: 1fr; text-align: center; }
+  .support-network{ margin-bottom: 8px; }
+}
+@media (max-width: 640px) {
+  .section-title{ font-size: 24px; }
+  .map-demo-panel{ display: none; }
+}
+
+
 
 /* 6. 푸터 */
 .site-footer { border-top: 1px solid var(--line); background: #fff; }
@@ -228,7 +374,6 @@
   .stats-inner { grid-template-columns: repeat(2, 1fr); }
   .stat:nth-child(-n + 2) { border-top: 0; }
   .stat:nth-child(odd) { border-left: 0; }
-  .features-inner { grid-template-columns: 1fr; }
 }
 
 /* 반응형 · 모바일 (명세: 1열 · 햄버거) */
