@@ -65,3 +65,95 @@
 
 .trd-empty { padding: 32px 16px; text-align: center; color: var(--faint); font-size: 14px; }
 .trd-note { margin: 12px 2px 0; font-size: 12px; color: var(--faint); }
+
+/* ── 데이터 품질 점검 ── */
+.trd-health { background: #fff; border: 1px solid var(--card-line); border-radius: 12px; padding: 16px 18px; margin-bottom: 16px; }
+.trd-health-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+.trd-health-head h2 { font-size: 14px; font-weight: 800; color: var(--ink); }
+.trd-health-q { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+.trd-health-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px 18px; }
+.trd-muted { font-size: 12.5px; color: var(--faint); }
+.trd-fact-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 5px; }
+.trd-fact-label { font-size: 12.5px; font-weight: 700; color: var(--text); }
+.trd-cov { font-size: 11px; font-weight: 700; font-family: var(--mono); white-space: nowrap; }
+.trd-cov-ok { color: var(--ok); }
+.trd-cov-warn { color: var(--warn); }
+.trd-cov-danger { color: var(--danger); }
+.trd-bar { height: 6px; border-radius: 4px; background: var(--line-soft); overflow: hidden; }
+.trd-bar-fill { height: 100%; border-radius: 4px; }
+.trd-bg-ok { background: var(--ok); }
+.trd-bg-warn { background: var(--warn); }
+.trd-bg-danger { background: var(--danger); }
+.trd-fact-rows { margin-top: 4px; font-size: 10.5px; color: var(--faint); font-family: var(--mono); }
+.trd-health-flags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line-soft); }
+.trd-flag { font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 20px; }
+.trd-flag b { font-weight: 800; }
+.trd-flag-ok { color: var(--ok); background: var(--ok-bg); }
+.trd-flag-warn { color: var(--warn); background: var(--warn-bg); }
+.trd-flag-danger { color: var(--danger); background: var(--danger-bg); }
+
+/* ── 클릭 가능한 행 ── */
+.trd-table tbody tr.trd-row { cursor: pointer; transition: background .12s ease; }
+.trd-table tbody tr.trd-row:hover { background: var(--surface); }
+
+/* ── 상세 모달 ── */
+.trd-modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(35, 29, 26, .42); }
+.trd-modal[hidden] { display: none; }
+.trd-modal-backdrop { position: absolute; inset: 0; }
+.trd-modal-card { position: relative; width: 100%; max-width: 620px; max-height: 88vh; overflow: auto; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-card); }
+.trd-modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 20px 22px 14px; border-bottom: 1px solid var(--line-soft); }
+.trd-modal-head h2 { font-size: 17px; font-weight: 800; color: var(--ink); }
+.trd-modal-sub { margin-top: 4px; font-size: 12px; color: var(--muted); font-family: var(--mono); }
+.trd-modal-x { flex: 0 0 auto; width: 30px; height: 30px; border: 0; border-radius: 8px; background: var(--surface); color: var(--muted); font-size: 18px; line-height: 1; }
+.trd-modal-x:hover { background: var(--line-soft); color: var(--ink); }
+.trd-modal-body { padding: 18px 22px 22px; }
+.trd-sec-title { font-size: 12px; font-weight: 700; color: var(--text-soft); margin: 18px 0 10px; }
+
+/* 지표 타일 */
+.trd-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.trd-metric { background: var(--surface); border: 1px solid var(--card-line); border-radius: 10px; padding: 10px 12px; }
+.trd-metric-label { font-size: 10.5px; font-weight: 700; color: var(--faint); font-family: var(--mono); letter-spacing: .03em; }
+.trd-metric-val { margin-top: 4px; font-size: 15px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+.trd-metric-unit { font-size: 11px; font-weight: 600; color: var(--muted); }
+
+/* 업종별 매출 바 */
+.trd-ind-row { display: grid; grid-template-columns: 92px 1fr 66px; align-items: center; gap: 10px; margin-bottom: 7px; }
+.trd-ind-nm { font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trd-ind-bar { height: 9px; border-radius: 5px; background: var(--line-soft); overflow: hidden; }
+.trd-ind-fill { display: block; height: 100%; border-radius: 5px; background: var(--brand); }
+.trd-ind-amt { font-size: 11.5px; font-weight: 700; color: var(--text-soft); text-align: right; font-family: var(--mono); }
+
+/* 분기 추이 바 (분기 많으면 차트만 가로 스크롤, 모달은 안 밀림) */
+.trd-trend { display: flex; align-items: flex-end; gap: 7px; height: 124px; padding-top: 8px; overflow-x: auto; }
+.trd-trend-col { flex: 0 0 26px; display: flex; flex-direction: column; align-items: center; height: 100%; }
+.trd-trend-track { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
+.trd-trend-bar { width: 62%; max-width: 22px; border-radius: 3px 3px 0 0; background: var(--brand); transition: opacity .12s ease; }
+.trd-trend-col:hover .trd-trend-bar { opacity: .78; }
+.trd-trend-col:last-child .trd-trend-bar { background: var(--brand-dark); }
+.trd-trend-x { margin-top: 6px; font-size: 9.5px; color: var(--faint); font-family: var(--mono); }
+
+/* ── 상세 모달: 두 구간 (위=지표·업종 / 아래=차트 카드) ── */
+.trd-region-top { padding-bottom: 2px; }
+.trd-region-chart {
+  margin-top: 18px;
+  padding: 15px 16px 13px;
+  background: var(--surface);
+  border: 1px solid var(--card-line);
+  border-radius: 12px;
+}
+.trd-region-top .trd-sec-title { margin: 16px 0 10px; }
+.trd-region-chart .trd-sec-title { margin: 0 0 10px; }
+
+/* ── 목록 페이저 ── */
+.trd-pager { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; margin: 16px 0 2px; }
+.trd-pager[hidden] { display: none; }
+.trd-pg {
+  min-width: 32px; height: 32px; padding: 0 9px;
+  border: 1px solid var(--line); background: #fff; border-radius: 8px;
+  font-size: 12.5px; font-weight: 600; color: var(--text-soft);
+  font-variant-numeric: tabular-nums;
+}
+.trd-pg:hover:not(:disabled):not(.is-active) { background: var(--surface); }
+.trd-pg.is-active { background: var(--brand); border-color: var(--brand); color: #fff; }
+.trd-pg:disabled { opacity: .4; cursor: default; }
+.trd-pg-gap { padding: 0 3px; color: var(--faint); font-size: 12px; }

@@ -67,6 +67,15 @@
           <span class="trd-count" id="trd-count"></span>
         </div>
 
+        <section class="trd-health" aria-label="데이터 품질 점검">
+          <div class="trd-health-head">
+            <h2>데이터 품질 점검</h2>
+            <span class="trd-health-q" id="trd-health-q">—</span>
+          </div>
+          <div class="trd-health-facts" id="trd-health-facts"><span class="trd-muted">불러오는 중…</span></div>
+          <div class="trd-health-flags" id="trd-health-flags"></div>
+        </section>
+
         <section class="stat-grid trd-stats" aria-label="상권 요약">
           <article class="stat-card"><div class="stat-card-label">상권 수</div><div class="stat-card-value" id="trd-stat-count">—</div></article>
           <article class="stat-card"><div class="stat-card-label">총 추정매출</div><div class="stat-card-value" id="trd-stat-sales">—</div></article>
@@ -92,8 +101,33 @@
             </table>
           </div>
         </section>
-        <p class="trd-note" id="trd-note" hidden></p>
+        <nav class="trd-pager" id="trd-pager" aria-label="페이지" hidden></nav>
       </main>
+    </div>
+  </div>
+
+  <!-- 상권 상세 모달 -->
+  <div class="trd-modal" id="trd-modal" hidden>
+    <div class="trd-modal-backdrop" data-close></div>
+    <div class="trd-modal-card" role="dialog" aria-modal="true" aria-labelledby="trd-modal-title">
+      <header class="trd-modal-head">
+        <div>
+          <h2 id="trd-modal-title">—</h2>
+          <p class="trd-modal-sub" id="trd-modal-sub">—</p>
+        </div>
+        <button type="button" class="trd-modal-x" data-close aria-label="닫기">×</button>
+      </header>
+      <div class="trd-modal-body">
+        <section class="trd-region trd-region-top">
+          <div class="trd-metrics" id="trd-metrics"></div>
+          <h3 class="trd-sec-title">업종별 매출 상위</h3>
+          <div class="trd-induty" id="trd-induty"></div>
+        </section>
+        <section class="trd-region trd-region-chart">
+          <h3 class="trd-sec-title">분기 추이 · 추정매출</h3>
+          <div class="trd-trend" id="trd-trend"></div>
+        </section>
+      </div>
     </div>
   </div>
 

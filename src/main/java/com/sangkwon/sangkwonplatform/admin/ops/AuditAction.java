@@ -21,5 +21,6 @@ public enum AuditAction {
     NAME_UPDATE,
     OTP_SETUP,
     OTP_ENABLE,
-    OTP_DISABLE
+    OTP_DISABLE,
+    BATCH_RUN
 }
