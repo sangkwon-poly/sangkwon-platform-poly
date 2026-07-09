@@ -82,6 +82,9 @@
 .app-page-name { font-size: 13.5px; font-weight: 600; color: rgba(255, 255, 255, .9); }
 
 /* 헤더 우측 도구 묶음 */
+.app-nav-link { font-size: 12.5px; font-weight: 700; color: rgba(255, 255, 255, .85); white-space: nowrap; }
+.app-nav-link:hover { color: #fff; }
+
 .app-tools {
   display: flex;
   align-items: center;

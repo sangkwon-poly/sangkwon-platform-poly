@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>지원사업 상세 · 서울공화국</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/support/support.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/">
+        <span class="brand-mark" aria-hidden="true">서</span>
+        <span class="brand-name">서울공화국</span>
+      </a>
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
+      <label for="nav-toggle" class="nav-toggle-btn" aria-label="메뉴 열기">
+        <span></span><span></span><span></span>
+      </label>
+      <nav class="site-nav" aria-label="주요 메뉴">
+        <ul class="nav-menu">
+          <li><a href="/map">상권분석</a></li>
+          <li><a href="/support" aria-current="page">지원사업</a></li>
+        </ul>
+        <div class="nav-actions">
+          <a class="link-login" href="/login">로그인</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="support-main spd-main" aria-label="지원사업 상세">
+    <div class="container spd-wrap">
+      <a class="spd-back" href="/support">지원사업 목록</a>
+      <article class="spd-card" id="spd-root">
+        <p class="spd-loading">불러오는 중…</p>
+      </article>
+    </div>
+
+    <div class="spd-cta" id="spd-cta" hidden>
+      <div class="container spd-cta-inner">
+        <span class="spd-cta-note" id="spd-cta-note"></span>
+        <a class="spd-cta-btn" id="spd-cta-link" target="_blank" rel="noopener">원문 공고 보기 ↗</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // 로그인 세션을 헤더 액션 영역에 반영
+    (function () {
+      var actions = document.querySelector('.nav-actions');
+      if (!actions) return;
+      function esc(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
+      fetch('/api/members/me', { credentials: 'include', headers: { Accept: 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (b) {
+          var me = b && b.data;
+          if (!me) return;
+          actions.innerHTML =
+            '<a class="link-login" href="/member/mypage">' + esc(me.nickname || me.loginId) + '님</a>' +
+            '<button type="button" class="btn btn-primary btn-sm" id="nav-logout">로그아웃</button>';
+          var btn = document.getElementById('nav-logout');
+          if (btn) btn.addEventListener('click', function () {
+            fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+              .then(function () { location.reload(); }, function () { location.reload(); });
+          });
+        })
+        .catch(function () {});
+    })();
+  </script>
+  <script src="/support/support-detail.js"></script>
+</body>
+</html>
