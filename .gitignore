@@ -58,3 +58,6 @@ __pycache__/
 scripts/data-load/load_progress.log
 scripts/data-load/_trdar_tmp/
 scripts/*/*.env
+
+# 로컬 실행 편의 설정 (application.properties 오버라이드, 커밋 금지)
+/config/
