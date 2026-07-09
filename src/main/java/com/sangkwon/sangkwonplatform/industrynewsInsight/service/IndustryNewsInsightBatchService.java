@@ -248,11 +248,12 @@ public class IndustryNewsInsightBatchService {
             "연예인", "방송"
     );
 
-    public void generateAllIndustryInsights() {
-        generateMonthlyInsights(ALL_INDUTY_NM);
+    // 처리(저장)한 업종 수를 돌려준다. 관리자 트리거 시 BATCH_JOB_LOG의 처리 건수로 기록된다.
+    public long generateAllIndustryInsights() {
+        return generateMonthlyInsights(ALL_INDUTY_NM);
     }
 
-    public void generateMonthlyInsights(Map<String, String> indutyNmMap) {
+    public long generateMonthlyInsights(Map<String, String> indutyNmMap) {
         String yearMonth = YearMonth.now().toString();
 
         int generated = 0;
@@ -290,6 +291,8 @@ public class IndustryNewsInsightBatchService {
         }
 
         System.out.printf("전체 완료: 인사이트 생성 %d건 / 근거부족 처리 %d건%n", generated, skipped);
+
+        return (long) generated + skipped;
     }
 
     private List<String> fetchAndFilterTitles(String indutyCd, String indutyNm) {

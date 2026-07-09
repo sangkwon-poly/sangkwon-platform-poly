@@ -1,0 +1,11 @@
+-- BATCH_JOB_LOG 데이터셋 카탈로그를 실제 적재 대상과 맞춘다.
+-- 앱에서 산업뉴스 인사이트 적재를 트리거하려면(DATASET_CD='INDUSTRY_NEWS' 기록) 이 ALTER를
+-- 실 DB에 먼저 적용해야 한다. 스키마는 ddl-auto=none이라 변경은 수동 반영한다.
+-- 실행: sqlplus / SQL Developer에서 SANG(로컬) 또는 운영 계정으로 한 번 실행.
+
+ALTER TABLE BATCH_JOB_LOG DROP CONSTRAINT CK_BJL_DATASET;
+
+ALTER TABLE BATCH_JOB_LOG ADD CONSTRAINT CK_BJL_DATASET CHECK (DATASET_CD IN
+    ('INDUSTRY_NEWS','SUPPORT_PROGRAM','TRDAR','SALES','STORE_STAT','TRDAR_CHANGE',
+     'STREET_POP','RESIDENT_POP','ATTRACTION','APT','RENT','FRANCHISE',
+     'WORKER_POP','FACILITY','INCOME_CONSUM','APARTMENT'));
