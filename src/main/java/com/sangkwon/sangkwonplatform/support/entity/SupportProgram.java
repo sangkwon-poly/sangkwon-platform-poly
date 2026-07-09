@@ -76,4 +76,20 @@ public class SupportProgram extends BaseEntity {
     public void updateVisible(boolean visible) {
         this.isVisible = visible ? "Y" : "N";
     }
+
+    // 관리자 콘텐츠 수정. 원본 식별자(SOURCE_CD/PROGRAM_ID)와 유형은 두고 노출용 필드만 갱신한다.
+    // 배치가 다시 적재하면 덮어써지는 필드이므로, 필요 시 노출/숨김으로 함께 통제한다.
+    public void updateContent(String title, String region, String target, String description,
+                              String contact, String detailUrl,
+                              LocalDate applyBgngDe, LocalDate applyEndDe, String applyPeriodRaw) {
+        this.title = title;
+        this.region = region;
+        this.target = target;
+        this.description = description;
+        this.contact = contact;
+        this.detailUrl = detailUrl;
+        this.applyBgngDe = applyBgngDe;
+        this.applyEndDe = applyEndDe;
+        this.applyPeriodRaw = applyPeriodRaw;
+    }
 }

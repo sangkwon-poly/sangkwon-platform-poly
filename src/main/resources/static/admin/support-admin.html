@@ -50,20 +50,26 @@
 
         <section class="sa-summary" aria-label="요약">
           <article class="sa-stat"><span class="sa-stat-label">전체</span><span class="sa-stat-value" id="sa-c-total">—</span></article>
-          <article class="sa-stat"><span class="sa-stat-label">노출</span><span class="sa-stat-value sa-ok" id="sa-c-visible">—</span></article>
+          <article class="sa-stat sa-stat-accent"><span class="sa-stat-label">진행중</span><span class="sa-stat-value sa-ok" id="sa-c-open">—</span></article>
+          <article class="sa-stat"><span class="sa-stat-label">마감</span><span class="sa-stat-value sa-muted" id="sa-c-closed">—</span></article>
+          <article class="sa-stat"><span class="sa-stat-label">노출</span><span class="sa-stat-value" id="sa-c-visible">—</span></article>
           <article class="sa-stat"><span class="sa-stat-label">숨김</span><span class="sa-stat-value sa-muted" id="sa-c-hidden">—</span></article>
-          <article class="sa-stat"><span class="sa-stat-label">기업마당</span><span class="sa-stat-value" id="sa-c-bizinfo">—</span></article>
-          <article class="sa-stat"><span class="sa-stat-label">K-Startup</span><span class="sa-stat-value" id="sa-c-kstartup">—</span></article>
         </section>
 
         <p class="sa-flash" id="sa-flash" role="status" hidden></p>
 
         <div class="sa-toolbar">
-          <div class="sa-chips" id="sa-chips" aria-label="노출여부 필터">
-            <button type="button" class="sa-chip is-active" data-vis="ALL">전체</button>
-            <button type="button" class="sa-chip" data-vis="Y">노출</button>
-            <button type="button" class="sa-chip" data-vis="N">숨김</button>
+          <div class="sa-chips" id="sa-chips" aria-label="상태 필터">
+            <button type="button" class="sa-chip is-active" data-status="OPEN">진행중</button>
+            <button type="button" class="sa-chip" data-status="CLOSING">마감 임박</button>
+            <button type="button" class="sa-chip" data-status="CLOSED">마감</button>
+            <button type="button" class="sa-chip" data-status="ALL">전체</button>
           </div>
+          <select class="sa-select" id="sa-visibility" aria-label="노출여부">
+            <option value="">노출여부 전체</option>
+            <option value="Y">노출만</option>
+            <option value="N">숨김만</option>
+          </select>
           <select class="sa-select" id="sa-source" aria-label="출처">
             <option value="">출처 전체</option>
             <option value="BIZINFO">기업마당</option>
@@ -107,9 +113,9 @@
         </section>
 
         <div class="sa-pager" id="sa-pager" hidden>
-          <button type="button" class="sa-page-btn" id="sa-prev">이전</button>
-          <span class="sa-page-info" id="sa-page-info"></span>
-          <button type="button" class="sa-page-btn" id="sa-next">다음</button>
+          <button type="button" class="sa-page-btn sa-page-nav" id="sa-prev" aria-label="이전 페이지">이전</button>
+          <div class="sa-pages" id="sa-pages" aria-label="페이지 번호"></div>
+          <button type="button" class="sa-page-btn sa-page-nav" id="sa-next" aria-label="다음 페이지">다음</button>
         </div>
       </main>
     </div>

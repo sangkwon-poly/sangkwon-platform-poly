@@ -43,7 +43,9 @@ public interface SupportProgramRepository extends JpaRepository<SupportProgram, 
               and (:typeMode = 0
                    or (:typeMode = 1 and p.program_type in (:typeRaws))
                    or (:typeMode = 2 and (p.program_type is null or p.program_type not in (:typeRaws))))
-              and (:recruitingOnly = 0 or p.apply_end_de is null or p.apply_end_de >= :today)
+              and (:recruitingOnly = 0
+                   or (p.apply_end_de is not null and p.apply_end_de >= :today)
+                   or (p.apply_end_de is null and (p.recruit_yn = 'Y' or p.apply_period_raw is not null)))
               and (:foundingLike is null
                    or exists (select 1 from support_program_kstartup_detail df
                                where df.source_cd = p.source_cd and df.program_id = p.program_id
@@ -69,7 +71,9 @@ public interface SupportProgramRepository extends JpaRepository<SupportProgram, 
               and (:typeMode = 0
                    or (:typeMode = 1 and p.program_type in (:typeRaws))
                    or (:typeMode = 2 and (p.program_type is null or p.program_type not in (:typeRaws))))
-              and (:recruitingOnly = 0 or p.apply_end_de is null or p.apply_end_de >= :today)
+              and (:recruitingOnly = 0
+                   or (p.apply_end_de is not null and p.apply_end_de >= :today)
+                   or (p.apply_end_de is null and (p.recruit_yn = 'Y' or p.apply_period_raw is not null)))
               and (:foundingLike is null
                    or exists (select 1 from support_program_kstartup_detail df
                                where df.source_cd = p.source_cd and df.program_id = p.program_id
@@ -106,7 +110,9 @@ public interface SupportProgramRepository extends JpaRepository<SupportProgram, 
                    or (:region = 'nation' and p.region = '전국'))
               and (:targetLike is null or lower(p.target) like :targetLike)
               and (:qLike is null or lower(p.title) like :qLike)
-              and (:recruitingOnly = 0 or p.apply_end_de is null or p.apply_end_de >= :today)
+              and (:recruitingOnly = 0
+                   or (p.apply_end_de is not null and p.apply_end_de >= :today)
+                   or (p.apply_end_de is null and (p.recruit_yn = 'Y' or p.apply_period_raw is not null)))
               and (:foundingLike is null
                    or exists (select 1 from support_program_kstartup_detail df
                                where df.source_cd = p.source_cd and df.program_id = p.program_id
@@ -142,7 +148,9 @@ public interface SupportProgramRepository extends JpaRepository<SupportProgram, 
               and (:typeMode = 0
                    or (:typeMode = 1 and p.program_type in (:typeRaws))
                    or (:typeMode = 2 and (p.program_type is null or p.program_type not in (:typeRaws))))
-              and (:recruitingOnly = 0 or p.apply_end_de is null or p.apply_end_de >= :today)
+              and (:recruitingOnly = 0
+                   or (p.apply_end_de is not null and p.apply_end_de >= :today)
+                   or (p.apply_end_de is null and (p.recruit_yn = 'Y' or p.apply_period_raw is not null)))
             """, nativeQuery = true)
     long countBizinfoExcludable(@Param("region") String region,
                                 @Param("targetLike") String targetLike,
@@ -152,7 +160,8 @@ public interface SupportProgramRepository extends JpaRepository<SupportProgram, 
                                 @Param("recruitingOnly") int recruitingOnly,
                                 @Param("today") LocalDate today);
 
-    // 관리자용 목록: 숨김(IS_VISIBLE='N') 포함 전체. 노출여부/출처/유형/제목 필터.
+    // 관리자용 목록: 숨김(IS_VISIBLE='N') 포함 전체. 노출여부/출처/유형/상태/제목 필터.
+    // 정렬은 진행중(상시 포함)을 먼저, 그 안에서 최근 등록순으로. 오래된 마감 공고가 위를 덮지 않게 한다.
     @Query(value = """
             select p.source_cd       as "sourceCd",
                    p.program_id      as "programId",
@@ -172,7 +181,19 @@ public interface SupportProgramRepository extends JpaRepository<SupportProgram, 
                    or (:typeMode = 1 and p.program_type in (:typeRaws))
                    or (:typeMode = 2 and (p.program_type is null or p.program_type not in (:typeRaws))))
               and (:qLike is null or lower(p.title) like :qLike)
-            order by case when p.apply_end_de is null then 1 else 0 end, p.apply_end_de, p.program_id
+              and (:status is null
+                   or (:status = 'OPEN' and ((p.apply_end_de is not null and p.apply_end_de >= :today)
+                        or (p.apply_end_de is null and (p.recruit_yn = 'Y' or p.apply_period_raw is not null))))
+                   or (:status = 'CLOSED' and not ((p.apply_end_de is not null and p.apply_end_de >= :today)
+                        or (p.apply_end_de is null and (p.recruit_yn = 'Y' or p.apply_period_raw is not null))))
+                   or (:status = 'CLOSING' and p.apply_end_de is not null
+                        and p.apply_end_de >= :today and p.apply_end_de <= :today + 7))
+            order by case when (p.apply_end_de is not null and p.apply_end_de >= :today)
+                               or (p.apply_end_de is null and (p.recruit_yn = 'Y' or p.apply_period_raw is not null))
+                          then 0 else 1 end,
+                     case when p.apply_end_de is not null and p.apply_end_de >= :today then p.apply_end_de end asc nulls last,
+                     case when p.apply_end_de is not null and p.apply_end_de < :today then p.apply_end_de end desc nulls last,
+                     p.program_id
             """,
             countQuery = """
             select count(*)
@@ -183,24 +204,39 @@ public interface SupportProgramRepository extends JpaRepository<SupportProgram, 
                    or (:typeMode = 1 and p.program_type in (:typeRaws))
                    or (:typeMode = 2 and (p.program_type is null or p.program_type not in (:typeRaws))))
               and (:qLike is null or lower(p.title) like :qLike)
+              and (:status is null
+                   or (:status = 'OPEN' and ((p.apply_end_de is not null and p.apply_end_de >= :today)
+                        or (p.apply_end_de is null and (p.recruit_yn = 'Y' or p.apply_period_raw is not null))))
+                   or (:status = 'CLOSED' and not ((p.apply_end_de is not null and p.apply_end_de >= :today)
+                        or (p.apply_end_de is null and (p.recruit_yn = 'Y' or p.apply_period_raw is not null))))
+                   or (:status = 'CLOSING' and p.apply_end_de is not null
+                        and p.apply_end_de >= :today and p.apply_end_de <= :today + 7))
             """, nativeQuery = true)
     Page<AdminSupportListRow> adminSearch(@Param("visibility") String visibility,
                                           @Param("source") String source,
                                           @Param("typeMode") int typeMode,
                                           @Param("typeRaws") List<String> typeRaws,
                                           @Param("qLike") String qLike,
+                                          @Param("status") String status,
+                                          @Param("today") LocalDate today,
                                           Pageable pageable);
 
-    // 관리자 요약: 전체·노출·숨김·출처별
+    // 관리자 요약: 전체·진행중·마감·노출·숨김·출처별
     @Query(value = """
             select count(*) as "total",
+                   sum(case when (apply_end_de is not null and apply_end_de >= :today)
+                             or (apply_end_de is null and (recruit_yn = 'Y' or apply_period_raw is not null))
+                        then 1 else 0 end) as "open",
+                   sum(case when not ((apply_end_de is not null and apply_end_de >= :today)
+                             or (apply_end_de is null and (recruit_yn = 'Y' or apply_period_raw is not null)))
+                        then 1 else 0 end) as "closed",
                    sum(case when is_visible = 'Y' then 1 else 0 end) as "visible",
                    sum(case when is_visible = 'N' then 1 else 0 end) as "hidden",
                    sum(case when source_cd = 'BIZINFO' then 1 else 0 end) as "bizinfo",
                    sum(case when source_cd = 'KSTARTUP' then 1 else 0 end) as "kstartup"
             from support_program
             """, nativeQuery = true)
-    AdminSupportCounts adminCounts();
+    AdminSupportCounts adminCounts(@Param("today") LocalDate today);
 
     // 목록 카드용 투영
     interface SupportProgramListRow {
@@ -260,6 +296,10 @@ public interface SupportProgramRepository extends JpaRepository<SupportProgram, 
 
     interface AdminSupportCounts {
         long getTotal();
+
+        long getOpen();
+
+        long getClosed();
 
         long getVisible();
 

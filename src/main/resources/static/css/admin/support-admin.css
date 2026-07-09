@@ -13,6 +13,7 @@
 .sa-stat-value { font-size: 22px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
 .sa-stat-value.sa-ok { color: var(--ok); }
 .sa-stat-value.sa-muted { color: var(--faint); }
+.sa-stat-accent { box-shadow: inset 3px 0 0 var(--ok); }
 
 /* 작업 결과 안내 */
 .sa-flash {
@@ -57,6 +58,15 @@ a.sa-title:hover { color: var(--brand); text-decoration: underline; }
 .sa-muted { font-size: 12px; color: var(--faint); }
 .sa-period { font-size: 11px; color: var(--faint); margin-top: 4px; }
 .sa-hidden-row td { opacity: .55; }
+
+/* 상태 셀: 배지 + D데이 */
+.sa-status { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.sa-dday { font-size: 10.5px; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sa-dday-danger { color: var(--danger); }
+
+/* 마감 행: 제목·유형을 눌러 진행중과 시각적으로 구분 */
+.sa-closed-row .sa-title { color: var(--muted); font-weight: 500; }
+.sa-closed-row .sa-type { color: var(--faint); }
 .sa-table .badge { gap: 6px; font-size: 11px; padding: 4px 10px; white-space: nowrap; }
 .sa-table .dot { width: 6px; height: 6px; }
 .badge-muted { color: var(--faint); background: var(--surface); }
@@ -87,7 +97,20 @@ a.sa-title:hover { color: var(--brand); text-decoration: underline; }
 }
 .sa-page-btn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
 .sa-page-btn:disabled { opacity: .5; cursor: default; }
-.sa-page-info { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* 번호 페이징 */
+.sa-pages { display: flex; align-items: center; gap: 4px; }
+.sa-page-num {
+  min-width: 34px; height: 34px; padding: 0 8px;
+  font-size: 12.5px; font-weight: 700; color: var(--text-soft);
+  background: #fff; border: 1px solid var(--line); border-radius: 9px;
+  cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.sa-page-num:hover { border-color: var(--brand); color: var(--brand); }
+.sa-page-num.is-active, .sa-page-num.is-active:hover {
+  color: #fff; background: var(--brand); border-color: var(--brand); cursor: default;
+}
+.sa-page-gap { padding: 0 4px; color: var(--faint); font-weight: 700; }
 
 @media (max-width: 720px) {
   .sa-search { margin-left: 0; width: 100%; }

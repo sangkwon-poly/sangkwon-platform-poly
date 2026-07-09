@@ -1,12 +1,15 @@
 package com.sangkwon.sangkwonplatform.admin.support.service;
 
+import com.sangkwon.sangkwonplatform.admin.support.dto.request.AdminSupportUpdateRequest;
 import com.sangkwon.sangkwonplatform.admin.support.dto.response.AdminSupportCardResponse;
 import com.sangkwon.sangkwonplatform.admin.support.dto.response.AdminSupportCountsResponse;
 import com.sangkwon.sangkwonplatform.admin.support.dto.response.AdminSupportPageResponse;
+import com.sangkwon.sangkwonplatform.support.dto.response.SupportProgramDetailResponse;
 import com.sangkwon.sangkwonplatform.support.entity.SupportProgram;
 import com.sangkwon.sangkwonplatform.support.entity.SupportProgramId;
 import com.sangkwon.sangkwonplatform.support.repository.SupportProgramRepository;
 import com.sangkwon.sangkwonplatform.support.repository.SupportProgramRepository.AdminSupportListRow;
+import com.sangkwon.sangkwonplatform.support.service.SupportProgramService;
 import com.sangkwon.sangkwonplatform.support.service.SupportProgramTypeTab;
 import com.sangkwon.sangkwonplatform.support.service.SupportStatus;
 import lombok.RequiredArgsConstructor;
@@ -30,13 +33,15 @@ public class AdminSupportService {
     private static final List<String> NO_TYPE = List.of("__none__");
 
     private final SupportProgramRepository programRepository;
+    private final SupportProgramService supportProgramService;
 
     @Transactional(readOnly = true)
-    public AdminSupportPageResponse search(String visibility, String source, String type, String keyword,
-                                           int page, int size) {
+    public AdminSupportPageResponse search(String visibility, String source, String type, String status,
+                                           String keyword, int page, int size) {
         LocalDate today = LocalDate.now();
         String vis = oneOf(visibility, "Y", "N");
         String src = oneOf(source, "BIZINFO", "KSTARTUP");
+        String stat = oneOf(status, "OPEN", "CLOSED", "CLOSING");
         String qLike = like(keyword);
 
         SupportProgramTypeTab tab = SupportProgramTypeTab.fromCode(type);
@@ -47,7 +52,7 @@ public class AdminSupportService {
         int safeSize = Math.min(Math.max(size, 1), MAX_SIZE);
         PageRequest pageable = PageRequest.of(Math.max(page, 0), safeSize);
 
-        Page<AdminSupportListRow> rows = programRepository.adminSearch(vis, src, typeMode, typeRaws, qLike, pageable);
+        Page<AdminSupportListRow> rows = programRepository.adminSearch(vis, src, typeMode, typeRaws, qLike, stat, today, pageable);
         List<AdminSupportCardResponse> content = rows.getContent().stream()
                 .map(r -> toCard(r, today))
                 .toList();
@@ -57,13 +62,28 @@ public class AdminSupportService {
 
     @Transactional(readOnly = true)
     public AdminSupportCountsResponse counts() {
-        return AdminSupportCountsResponse.from(programRepository.adminCounts());
+        return AdminSupportCountsResponse.from(programRepository.adminCounts(LocalDate.now()));
+    }
+
+    // 관리자 상세: 숨김 공고도 조립한다(공개 상세는 노출만 보여줌).
+    @Transactional(readOnly = true)
+    public SupportProgramDetailResponse getDetail(String sourceCd, String programId) {
+        return supportProgramService.getDetail(sourceCd, programId, false);
     }
 
     public void setVisibility(String sourceCd, String programId, boolean visible) {
-        SupportProgram program = programRepository.findById(new SupportProgramId(sourceCd, programId))
+        find(sourceCd, programId).updateVisible(visible);
+    }
+
+    public SupportProgramDetailResponse update(String sourceCd, String programId, AdminSupportUpdateRequest req) {
+        find(sourceCd, programId).updateContent(req.title(), req.region(), req.target(), req.description(),
+                req.contact(), req.detailUrl(), req.applyBgngDe(), req.applyEndDe(), req.applyPeriodRaw());
+        return supportProgramService.getDetail(sourceCd, programId, false);
+    }
+
+    private SupportProgram find(String sourceCd, String programId) {
+        return programRepository.findById(new SupportProgramId(sourceCd, programId))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "지원사업을 찾을 수 없습니다"));
-        program.updateVisible(visible);
     }
 
     private AdminSupportCardResponse toCard(AdminSupportListRow r, LocalDate today) {
@@ -73,7 +93,7 @@ public class AdminSupportService {
         return new AdminSupportCardResponse(
                 r.getSourceCd(), r.getProgramId(), r.getTitle(), tab.label(), r.getRegion(),
                 bgn, end, r.getApplyPeriodRaw(),
-                SupportStatus.of(bgn, end, r.getApplyPeriodRaw(), today),
+                SupportStatus.of(bgn, end, r.getApplyPeriodRaw(), r.getRecruitYn(), today),
                 SupportStatus.dday(end, today),
                 "Y".equals(r.getIsVisible()), r.getDetailUrl());
     }

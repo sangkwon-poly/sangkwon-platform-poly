@@ -5,12 +5,15 @@ import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminRole;
 import com.sangkwon.sangkwonplatform.admin.account.session.LoginAdmin;
 import com.sangkwon.sangkwonplatform.admin.ops.AuditAction;
 import com.sangkwon.sangkwonplatform.admin.ops.service.AdminAuditService;
+import com.sangkwon.sangkwonplatform.admin.support.dto.request.AdminSupportUpdateRequest;
 import com.sangkwon.sangkwonplatform.admin.support.dto.request.VisibilityUpdateRequest;
 import com.sangkwon.sangkwonplatform.admin.support.dto.response.AdminSupportCountsResponse;
 import com.sangkwon.sangkwonplatform.admin.support.dto.response.AdminSupportPageResponse;
 import com.sangkwon.sangkwonplatform.admin.support.service.AdminSupportService;
 import com.sangkwon.sangkwonplatform.global.common.ApiResponse;
+import com.sangkwon.sangkwonplatform.support.dto.response.SupportProgramDetailResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,17 +39,39 @@ public class AdminSupportController {
                                                       @RequestParam(required = false) String visibility,
                                                       @RequestParam(required = false) String source,
                                                       @RequestParam(required = false) String type,
+                                                      @RequestParam(required = false) String status,
                                                       @RequestParam(required = false) String keyword,
                                                       @RequestParam(defaultValue = "0") int page,
                                                       @RequestParam(defaultValue = "20") int size) {
         requireSuperAdmin(admin);
-        return ApiResponse.ok(adminSupportService.search(visibility, source, type, keyword, page, size));
+        return ApiResponse.ok(adminSupportService.search(visibility, source, type, status, keyword, page, size));
     }
 
     @GetMapping("/counts")
     public ApiResponse<AdminSupportCountsResponse> counts(@LoginAdmin AdminSession admin) {
         requireSuperAdmin(admin);
         return ApiResponse.ok(adminSupportService.counts());
+    }
+
+    @GetMapping("/{sourceCd}/{programId}")
+    public ApiResponse<SupportProgramDetailResponse> detail(@LoginAdmin AdminSession admin,
+                                                            @PathVariable String sourceCd,
+                                                            @PathVariable String programId) {
+        requireSuperAdmin(admin);
+        return ApiResponse.ok(adminSupportService.getDetail(sourceCd, programId));
+    }
+
+    @PatchMapping("/{sourceCd}/{programId}")
+    public ApiResponse<SupportProgramDetailResponse> update(@LoginAdmin AdminSession admin,
+                                                            @PathVariable String sourceCd,
+                                                            @PathVariable String programId,
+                                                            @Valid @RequestBody AdminSupportUpdateRequest request,
+                                                            HttpServletRequest http) {
+        requireSuperAdmin(admin);
+        SupportProgramDetailResponse res = adminSupportService.update(sourceCd, programId, request);
+        auditService.record(admin.adminId(), AuditAction.SUPPORT_UPDATE, "SUPPORT_PROGRAM",
+                sourceCd + "/" + programId, null, http);
+        return ApiResponse.ok(res);
     }
 
     @PatchMapping("/{sourceCd}/{programId}/visibility")

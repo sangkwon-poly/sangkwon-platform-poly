@@ -35,17 +35,18 @@
 
     var tbody = document.getElementById("sa-tbody");
     var chipsEl = document.getElementById("sa-chips");
+    var visEl = document.getElementById("sa-visibility");
     var sourceEl = document.getElementById("sa-source");
     var typeEl = document.getElementById("sa-type");
     var searchEl = document.getElementById("sa-search");
     var pagerEl = document.getElementById("sa-pager");
     var prevBtn = document.getElementById("sa-prev");
     var nextBtn = document.getElementById("sa-next");
-    var pageInfo = document.getElementById("sa-page-info");
+    var pagesEl = document.getElementById("sa-pages");
     var metaEl = document.getElementById("sa-meta");
     var flashEl = document.getElementById("sa-flash");
 
-    var state = { vis: "ALL", source: "", type: "", keyword: "", page: 0, size: 20, resp: null };
+    var state = { status: "OPEN", vis: "", source: "", type: "", keyword: "", page: 0, size: 20, resp: null };
     var flashTimer = null, searchTimer = null;
 
     function flash(msg, isError) {
@@ -56,21 +57,16 @@
         flashTimer = setTimeout(function () { flashEl.hidden = true; }, 2600);
     }
     function emptyRow(msg) { return '<tr><td colspan="6" class="sa-empty">' + esc(msg) + "</td></tr>"; }
-    function findRow(src, id) {
-        var list = (state.resp && state.resp.content) || [];
-        for (var i = 0; i < list.length; i++) { if (list[i].sourceCd === src && list[i].programId === id) { return list[i]; } }
-        return null;
-    }
 
     function loadCounts() {
         api("/api/admin/support-programs/counts").then(function (r) {
             if (!r.ok || !r.body || !r.body.data) { return; }
             var c = r.body.data;
             document.getElementById("sa-c-total").textContent = num(c.total);
+            document.getElementById("sa-c-open").textContent = num(c.open);
+            document.getElementById("sa-c-closed").textContent = num(c.closed);
             document.getElementById("sa-c-visible").textContent = num(c.visible);
             document.getElementById("sa-c-hidden").textContent = num(c.hidden);
-            document.getElementById("sa-c-bizinfo").textContent = num(c.bizinfo);
-            document.getElementById("sa-c-kstartup").textContent = num(c.kstartup);
         });
     }
 
@@ -84,7 +80,8 @@
 
     function load() {
         var q = "/api/admin/support-programs?page=" + state.page + "&size=" + state.size;
-        if (state.vis !== "ALL") { q += "&visibility=" + state.vis; }
+        if (state.status !== "ALL") { q += "&status=" + state.status; }
+        if (state.vis) { q += "&visibility=" + state.vis; }
         if (state.source) { q += "&source=" + state.source; }
         if (state.type) { q += "&type=" + state.type; }
         if (state.keyword) { q += "&keyword=" + encodeURIComponent(state.keyword); }
@@ -98,23 +95,32 @@
         }, function () { tbody.innerHTML = emptyRow("목록을 불러오지 못했습니다."); pagerEl.hidden = true; });
     }
 
-    function rowHtml(c) {
+    function statusCell(c) {
         var s = statusMeta(c.status);
-        var badge = '<span class="badge ' + s.badge + '"><span class="dot ' + s.dot + '" aria-hidden="true"></span>'
-            + esc(s.label) + (c.dday != null && (c.status === "CLOSING" || c.status === "RECRUITING") ? " " + ddayText(c.dday) : "") + "</span>";
+        var badge = '<span class="badge ' + s.badge + '"><span class="dot ' + s.dot + '" aria-hidden="true"></span>' + esc(s.label) + "</span>";
+        var dday = "";
+        if (c.dday != null && c.status === "CLOSING") { dday = '<span class="sa-dday sa-dday-danger">' + ddayText(c.dday) + "</span>"; }
+        else if (c.dday != null && c.status === "RECRUITING") { dday = '<span class="sa-dday">' + ddayText(c.dday) + "</span>"; }
+        return '<div class="sa-status">' + badge + dday + "</div>"
+            + '<div class="sa-period">' + esc(periodText(c)) + "</div>";
+    }
+
+    function rowHtml(c) {
         var srcBadge = '<span class="sa-src sa-src-' + esc(c.sourceCd) + '">' + esc(SOURCE_LABEL[c.sourceCd] || c.sourceCd) + "</span>";
         var toggle = '<button type="button" class="sa-toggle ' + (c.visible ? "is-on" : "is-off") + '"'
             + ' data-src="' + esc(c.sourceCd) + '" data-id="' + esc(c.programId) + '" data-visible="' + (c.visible ? "1" : "0") + '">'
             + (c.visible ? "노출" : "숨김") + "</button>";
-        var titleLink = c.detailUrl
-            ? '<a class="sa-title" href="' + esc(c.detailUrl) + '" target="_blank" rel="noopener">' + esc(c.title) + "</a>"
-            : '<span class="sa-title">' + esc(c.title) + "</span>";
-        return "<tr" + (c.visible ? "" : ' class="sa-hidden-row"') + ">"
+        var detailHref = "/admin/support-detail?source=" + encodeURIComponent(c.sourceCd) + "&id=" + encodeURIComponent(c.programId);
+        var titleLink = '<a class="sa-title" href="' + detailHref + '">' + esc(c.title) + "</a>";
+        var cls = [];
+        if (!c.visible) { cls.push("sa-hidden-row"); }
+        if (c.status === "CLOSED") { cls.push("sa-closed-row"); }
+        return "<tr" + (cls.length ? ' class="' + cls.join(" ") + '"' : "") + ">"
             + '<td class="col-center">' + srcBadge + "</td>"
             + '<td class="sa-type">' + esc(c.typeLabel) + "</td>"
             + "<td>" + titleLink + "</td>"
             + '<td class="sa-muted">' + esc(c.region || "-") + "</td>"
-            + "<td>" + badge + '<div class="sa-period">' + esc(periodText(c)) + "</div></td>"
+            + "<td>" + statusCell(c) + "</td>"
             + '<td class="col-center">' + toggle + "</td>"
             + "</tr>";
     }
@@ -123,17 +129,44 @@
         var resp = state.resp;
         var list = resp.content || [];
         tbody.innerHTML = list.length ? list.map(rowHtml).join("")
-            : emptyRow(state.keyword ? "검색 결과가 없습니다." : "표시할 공고가 없습니다.");
+            : emptyRow(state.keyword ? "검색 결과가 없습니다." : "조건에 맞는 공고가 없습니다.");
         wireRows();
         if (resp.totalPages > 1) {
             pagerEl.hidden = false;
             prevBtn.disabled = resp.page <= 0;
             nextBtn.disabled = resp.page >= resp.totalPages - 1;
-            pageInfo.textContent = "페이지 " + (resp.page + 1) + " / " + resp.totalPages;
+            renderPages(resp.page, resp.totalPages);
         } else {
             pagerEl.hidden = true;
         }
-        metaEl.textContent = "총 " + num(resp.totalElements) + "건";
+        metaEl.textContent = "조건에 맞는 공고 " + num(resp.totalElements) + "건";
+    }
+
+    // 번호 페이징: 현재 페이지 주변 창 + 처음/끝 + 생략(...) 표시
+    function pageWindow(cur, total) {
+        var out = [], i;
+        var from = Math.max(1, cur - 1), to = Math.min(total, cur + 3);
+        out.push(1);
+        if (from > 2) { out.push("gap"); }
+        for (i = Math.max(2, from); i <= Math.min(total - 1, to); i++) { out.push(i); }
+        if (to < total - 1) { out.push("gap"); }
+        if (total > 1) { out.push(total); }
+        return out;
+    }
+
+    function renderPages(page, totalPages) {
+        var items = pageWindow(page + 1, totalPages);
+        pagesEl.innerHTML = items.map(function (it) {
+            if (it === "gap") { return '<span class="sa-page-gap">…</span>'; }
+            var active = (it === page + 1) ? " is-active" : "";
+            return '<button type="button" class="sa-page-num' + active + '" data-page="' + (it - 1) + '">' + it + "</button>";
+        }).join("");
+        Array.prototype.forEach.call(pagesEl.querySelectorAll(".sa-page-num"), function (btn) {
+            btn.addEventListener("click", function () {
+                var p = Number(btn.getAttribute("data-page"));
+                if (p !== state.page) { state.page = p; load(); }
+            });
+        });
     }
 
     function wireRows() {
@@ -160,7 +193,7 @@
 
     Array.prototype.forEach.call(chipsEl.querySelectorAll(".sa-chip"), function (chip) {
         chip.addEventListener("click", function () {
-            state.vis = chip.getAttribute("data-vis");
+            state.status = chip.getAttribute("data-status");
             state.page = 0;
             Array.prototype.forEach.call(chipsEl.querySelectorAll(".sa-chip"), function (c) {
                 c.classList.toggle("is-active", c === chip);
@@ -168,6 +201,7 @@
             load();
         });
     });
+    visEl.addEventListener("change", function () { state.vis = visEl.value; state.page = 0; load(); });
     sourceEl.addEventListener("change", function () { state.source = sourceEl.value; state.page = 0; load(); });
     typeEl.addEventListener("change", function () { state.type = typeEl.value; state.page = 0; load(); });
     searchEl.addEventListener("input", function () {

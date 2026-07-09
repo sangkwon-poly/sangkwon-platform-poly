@@ -78,8 +78,13 @@ public class SupportProgramService {
     }
 
     public SupportProgramDetailResponse getDetail(String sourceCd, String programId) {
+        return getDetail(sourceCd, programId, true);
+    }
+
+    // requireVisible=false면 숨김 공고도 조립한다(관리자 상세용).
+    public SupportProgramDetailResponse getDetail(String sourceCd, String programId, boolean requireVisible) {
         SupportProgram p = programRepository.findById(new SupportProgramId(sourceCd, programId))
-                .filter(sp -> "Y".equals(sp.getIsVisible()))
+                .filter(sp -> !requireVisible || "Y".equals(sp.getIsVisible()))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "지원사업을 찾을 수 없습니다"));
 
         LocalDate today = LocalDate.now();
@@ -96,8 +101,9 @@ public class SupportProgramService {
                 p.getSourceCd(), p.getProgramId(), p.getTitle(), tab.name(), tab.label(),
                 p.getRegion(), p.getTarget(), p.getDescription(),
                 p.getApplyBgngDe(), p.getApplyEndDe(), p.getApplyPeriodRaw(),
-                SupportStatus.of(p.getApplyBgngDe(), p.getApplyEndDe(), p.getApplyPeriodRaw(), today),
-                SupportStatus.dday(p.getApplyEndDe(), today), p.getContact(), p.getDetailUrl(), kstartup);
+                SupportStatus.of(p.getApplyBgngDe(), p.getApplyEndDe(), p.getApplyPeriodRaw(), p.getRecruitYn(), today),
+                SupportStatus.dday(p.getApplyEndDe(), today), p.getContact(), p.getDetailUrl(),
+                "Y".equals(p.getIsVisible()), kstartup);
     }
 
     private SupportProgramCardResponse toCard(SupportProgramListRow r, LocalDate today) {
@@ -107,7 +113,7 @@ public class SupportProgramService {
         return new SupportProgramCardResponse(
                 r.getSourceCd(), r.getProgramId(), r.getTitle(), tab.name(), tab.label(),
                 r.getOrg(), r.getRegion(), bgn, end, r.getApplyPeriodRaw(),
-                SupportStatus.of(bgn, end, r.getApplyPeriodRaw(), today),
+                SupportStatus.of(bgn, end, r.getApplyPeriodRaw(), r.getRecruitYn(), today),
                 SupportStatus.dday(end, today), r.getDetailUrl());
     }
 

@@ -34,6 +34,9 @@ class AdminSupportServiceTest {
     @Mock
     SupportProgramRepository programRepository;
 
+    @Mock
+    com.sangkwon.sangkwonplatform.support.service.SupportProgramService supportProgramService;
+
     @InjectMocks
     AdminSupportService adminSupportService;
 
@@ -46,10 +49,10 @@ class AdminSupportServiceTest {
         when(row.getProgramType()).thenReturn("사업화");
         when(row.getApplyEndDe()).thenReturn(LocalDate.now().plusDays(3).atStartOfDay());
         when(row.getIsVisible()).thenReturn("N");
-        when(programRepository.adminSearch(any(), any(), anyInt(), any(), any(), any()))
+        when(programRepository.adminSearch(any(), any(), anyInt(), any(), any(), any(), any(), any()))
                 .thenReturn(new PageImpl<>(List.of(row), PageRequest.of(0, 20), 1));
 
-        AdminSupportPageResponse res = adminSupportService.search(null, null, null, null, 0, 20);
+        AdminSupportPageResponse res = adminSupportService.search(null, null, null, null, null, 0, 20);
 
         assertThat(res.content()).hasSize(1);
         AdminSupportCardResponse card = res.content().get(0);
@@ -67,7 +70,7 @@ class AdminSupportServiceTest {
         when(counts.getHidden()).thenReturn(10L);
         when(counts.getBizinfo()).thenReturn(5L);
         when(counts.getKstartup()).thenReturn(95L);
-        when(programRepository.adminCounts()).thenReturn(counts);
+        when(programRepository.adminCounts(any())).thenReturn(counts);
 
         AdminSupportCountsResponse res = adminSupportService.counts();
 
@@ -92,5 +95,27 @@ class AdminSupportServiceTest {
 
         assertThatThrownBy(() -> adminSupportService.setVisibility("KSTARTUP", "nope", true))
                 .isInstanceOf(ResponseStatusException.class);
+    }
+
+    @Test
+    void 관리자_상세는_숨김_공고도_조회한다() {
+        adminSupportService.getDetail("KSTARTUP", "178030");
+
+        verify(supportProgramService).getDetail("KSTARTUP", "178030", false);
+    }
+
+    @Test
+    void 공고_내용을_수정하고_상세를_반환한다() {
+        SupportProgram program = mock(SupportProgram.class);
+        when(programRepository.findById(any())).thenReturn(Optional.of(program));
+        var req = new com.sangkwon.sangkwonplatform.admin.support.dto.request.AdminSupportUpdateRequest(
+                "제목", "서울", "청년", "내용", "02-000-0000", "https://example.com",
+                LocalDate.of(2026, 7, 1), LocalDate.of(2026, 8, 1), null);
+
+        adminSupportService.update("KSTARTUP", "178030", req);
+
+        verify(program).updateContent("제목", "서울", "청년", "내용", "02-000-0000", "https://example.com",
+                LocalDate.of(2026, 7, 1), LocalDate.of(2026, 8, 1), null);
+        verify(supportProgramService).getDetail("KSTARTUP", "178030", false);
     }
 }
