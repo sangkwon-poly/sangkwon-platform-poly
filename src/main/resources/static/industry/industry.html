@@ -12,7 +12,6 @@
 </head>
 <body>
 <div class="trend-page">
-
     <section class="trend-panel">
 
         <header class="trend-header">
@@ -25,50 +24,40 @@
         </header>
 
         <div class="trend-filter">
-            <button type="button" class="filter-btn">카페·디저트 ▾</button>
-            <button type="button" class="filter-btn">강남구 ▾</button>
-            <span class="filter-desc">상권 상세·리포트에서 진입 시 업종·자치구 자동 설정</span>
-            <span class="update-time">수집 07-07 09:00</span>
+            <select id="industrySelect" class="filter-select"></select>
+
+
+            <span class="update-time" id="updateTime">수집 -</span>
         </div>
 
         <main class="trend-grid">
 
             <section class="trend-card">
                 <div class="card-head">
-                    <h2>업종 뉴스</h2>
-                    <span>NAVER 뉴스검색</span>
+                    <h2>업계 동향</h2>
+                    <span>네이버 뉴스 / Gemini 요약</span>
                 </div>
 
-                <div class="card-chip">‘카페 창업’ + ‘강남’ 검색</div>
+                <div class="card-chip" id="insightChip">업종 선택 · 불러오는 중</div>
 
-                <ul class="news-list">
-                    <li>
-                        <strong>강남 카페 창업, 대로변 대신 골목 상권으로</strong>
-                        <p>임대료 부담으로 신규 카페 창업이 이면 골목 상권으로 이동하고 있다는 분석.</p>
-                        <div>
-                            <span>3시간 전</span>
-                            <a href="#">원문 ↗</a>
-                        </div>
-                    </li>
-                    <li>
-                        <strong>저당·디카페인 수요 확대… 디저트 메뉴 전략 변화</strong>
-                        <p>건강 지향 소비 확산으로 저당 디저트·디카페인 음료 도입 매장이 증가.</p>
-                        <div>
-                            <span>7시간 전</span>
-                            <a href="#">원문 ↗</a>
-                        </div>
-                    </li>
-                    <li>
-                        <strong>서울시, 소상공인 배달·포장 수수료 지원 확대</strong>
-                        <p>하반기부터 지원 대상 확대 — 카페·음식점 업종 우선 적용 검토.</p>
-                        <div>
-                            <span>1일 전</span>
-                            <a href="#">원문 ↗</a>
-                        </div>
-                    </li>
-                </ul>
+                <div class="insight-list">
+                    <div class="insight-row">
+                        <strong>업황 요약</strong>
+                        <p id="summaryText">업황 요약을 불러오고 있습니다.</p>
+                    </div>
 
-                <a class="card-more" href="#">전체 보기 →</a>
+                    <div class="insight-row">
+                        <strong>기회 요인</strong>
+                        <p id="opportunityText">기회 요인을 불러오고 있습니다.</p>
+                    </div>
+
+                    <div class="insight-row">
+                        <strong>주의 요인</strong>
+                        <p id="warningText">주의 요인을 불러오고 있습니다.</p>
+                    </div>
+                </div>
+
+
             </section>
 
             <section class="trend-card">
@@ -127,7 +116,7 @@
                     <span>KIPRIS</span>
                 </div>
 
-                <div class="card-chip">‘카페·디저트’ 상표 출원 동향</div>
+                <div class="card-chip">선택 업종 상표 출원 동향</div>
 
                 <ul class="patent-list">
                     <li>
@@ -165,7 +154,8 @@
 
         </main>
     </section>
-
 </div>
+<script src="/js/map/induty-map.js"></script>
+<script src="/js/industry/industry.js" defer></script>
 </body>
 </html>

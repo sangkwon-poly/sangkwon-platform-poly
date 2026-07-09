@@ -14,7 +14,7 @@ public record IndustryNewsInsightResponse(
                 entity.getIndutyCd(),
                 entity.getIndutyNm(),
                 entity.getYearMonth(),
-                entity.getYearMonth(),
+                entity.getInsightText(),
                 entity.getBasedOnCount()
         );
     }

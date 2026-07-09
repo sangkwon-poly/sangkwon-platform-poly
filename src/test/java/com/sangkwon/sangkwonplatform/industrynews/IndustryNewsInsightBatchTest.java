@@ -13,17 +13,10 @@ import java.util.Map;
 class IndustryNewsInsightBatchTest {
 
     @Autowired
-    private IndustryNewsInsightBatchService batchService;
+    private IndustryNewsInsightBatchService service;
 
     @Test
-    void 인사이트_수동_생성_테스트() {
-        Map<String, String> indutyNmMap = Map.of(
-                "CS100007", "치킨전문점",
-                "CS300002", "편의점"
-                // 처음엔 이렇게 2~3개만 넣어서 먼저 확인해보세요
-                // 잘 되면 INDUTY 마스터 93개 전체로 넓히시면 됩니다
-        );
-
-        batchService.generateMonthlyInsights(indutyNmMap);
+    void 전체_업종_인사이트_적재_테스트() {
+        service.generateAllIndustryInsights();
     }
 }
