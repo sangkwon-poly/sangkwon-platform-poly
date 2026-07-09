@@ -23,14 +23,14 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     long countByStatus(MemberStatus status);
 
-    // 관리자 회원 목록: 상태 필터(선택)와 아이디/이메일/닉네임 부분검색(선택). kw는 서비스에서 소문자·%감싸기 처리해 넘긴다.
+    // 관리자 회원 목록: 상태 필터(선택)와 아이디/이메일/닉네임 부분검색(선택). kw는 서비스에서 소문자·%감싸기·이스케이프 처리해 넘긴다.
     @Query("""
             select m from Member m
             where (:status is null or m.status = :status)
               and (:kw is null
-                   or lower(m.loginId) like :kw
-                   or lower(m.email) like :kw
-                   or lower(m.nickname) like :kw)
+                   or lower(m.loginId) like :kw escape '\\'
+                   or lower(m.email) like :kw escape '\\'
+                   or lower(m.nickname) like :kw escape '\\')
             """)
     Page<Member> searchForAdmin(@Param("status") MemberStatus status,
                                 @Param("kw") String kw,

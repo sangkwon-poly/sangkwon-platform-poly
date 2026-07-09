@@ -30,7 +30,7 @@ public class AuthController {
     @PostMapping("/login")
     public ApiResponse<MemberResponse> login(@Valid @RequestBody MemberLoginRequest req,
                                              HttpServletRequest request) {
-        MemberResponse me = memberService.login(req);
+        MemberResponse me = memberService.login(req, clientIp(request));
 
 
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
@@ -65,5 +65,14 @@ public class AuthController {
         }
         SecurityContextHolder.clearContext();
         return ApiResponse.<Void>ok(null);
+    }
+
+    // 프록시 뒤에 있으면 X-Forwarded-For의 첫 IP, 아니면 원격 주소
+    private static String clientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

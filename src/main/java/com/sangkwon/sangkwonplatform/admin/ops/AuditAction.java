@@ -15,6 +15,9 @@ public enum AuditAction {
     INQUIRY_ANSWER,
     INQUIRY_CLOSE,
     PASSWORD_RESET,
+    PASSWORD_CHANGE,
+    NAME_UPDATE,
+    OTP_SETUP,
     OTP_ENABLE,
     OTP_DISABLE
 }

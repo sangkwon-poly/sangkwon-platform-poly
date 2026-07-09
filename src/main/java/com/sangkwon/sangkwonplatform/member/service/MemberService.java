@@ -46,22 +46,24 @@ public class MemberService {
     }
 
     @Transactional
-    public MemberResponse login(MemberLoginRequest req) { // loginId,password,remember(기억할지 체크)
-        String key = req.loginId() == null ? "" : req.loginId().toLowerCase();
-        if (rateLimiter.isBlocked(key)) { // 아이디별 실패 누적 시 일정 시간 차단(무차별 대입 완화)
+    public MemberResponse login(MemberLoginRequest req, String clientIp) { // loginId,password,remember(기억할지 체크)
+        // 요청 IP별로 실패를 센다. 아이디 단위로 세면 남의 아이디로 일부러 잠그는 표적 잠금이 가능하다
+        String key = (clientIp == null || clientIp.isBlank()) ? "unknown" : clientIp;
+        if (rateLimiter.isBlocked(key)) {
             throw new BusinessException(ErrorCode.TOO_MANY_LOGIN_ATTEMPTS);
         }
 
         Member m = memberRepository.findByLoginId(req.loginId()).orElse(null);
+        // 아이디 없음과 비밀번호 틀림을 같은 코드로 응답해 계정 열거를 막는다
         if (m == null) {
             rateLimiter.recordFailure(key);
-            throw new BusinessException(ErrorCode.LOGIN_ID_NOT_FOUND);
+            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
 
         // 자격 증명(비밀번호) 먼저 확인 → 그다음 계정 상태 (상태를 비번보다 먼저 노출하지 않기)
         if (!passwordEncoder.matches(req.password(), m.getPasswordHash())) {
             rateLimiter.recordFailure(key);
-            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
+            throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
         rateLimiter.reset(key); // 비밀번호가 맞았으므로 실패 카운터 초기화
 

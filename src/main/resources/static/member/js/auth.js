@@ -275,8 +275,8 @@
         .catch(function (err) {
           setLoading(btn, false, '로그인');
           var code = err && err.code;
-          if (code === 'M011') { setError('login-id', '존재하지 않는 아이디입니다.'); document.getElementById('login-id').focus(); return; }
-          if (code === 'M012') { setError('login-pw', '비밀번호가 틀렸습니다.'); document.getElementById('login-pw').focus(); return; }
+          // 아이디 존재 여부를 흘리지 않도록 실패는 하나의 안내로 통일
+          if (code === 'M004') { setError('login-pw', '아이디 또는 비밀번호가 올바르지 않습니다.'); document.getElementById('login-pw').focus(); return; }
           // 정지/휴면/탈퇴/과다 시도 등은 토스트로 안내
           MemberUI.handleError(err, '로그인에 실패했습니다.');
         });
