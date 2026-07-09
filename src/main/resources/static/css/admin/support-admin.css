@@ -97,7 +97,20 @@ a.sa-title:hover { color: var(--brand); text-decoration: underline; }
 }
 .sa-page-btn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
 .sa-page-btn:disabled { opacity: .5; cursor: default; }
-.sa-page-info { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* 번호 페이징 */
+.sa-pages { display: flex; align-items: center; gap: 4px; }
+.sa-page-num {
+  min-width: 34px; height: 34px; padding: 0 8px;
+  font-size: 12.5px; font-weight: 700; color: var(--text-soft);
+  background: #fff; border: 1px solid var(--line); border-radius: 9px;
+  cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.sa-page-num:hover { border-color: var(--brand); color: var(--brand); }
+.sa-page-num.is-active, .sa-page-num.is-active:hover {
+  color: #fff; background: var(--brand); border-color: var(--brand); cursor: default;
+}
+.sa-page-gap { padding: 0 4px; color: var(--faint); font-weight: 700; }
 
 @media (max-width: 720px) {
   .sa-search { margin-left: 0; width: 100%; }

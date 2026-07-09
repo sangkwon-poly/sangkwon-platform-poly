@@ -42,7 +42,7 @@
     var pagerEl = document.getElementById("sa-pager");
     var prevBtn = document.getElementById("sa-prev");
     var nextBtn = document.getElementById("sa-next");
-    var pageInfo = document.getElementById("sa-page-info");
+    var pagesEl = document.getElementById("sa-pages");
     var metaEl = document.getElementById("sa-meta");
     var flashEl = document.getElementById("sa-flash");
 
@@ -110,9 +110,8 @@
         var toggle = '<button type="button" class="sa-toggle ' + (c.visible ? "is-on" : "is-off") + '"'
             + ' data-src="' + esc(c.sourceCd) + '" data-id="' + esc(c.programId) + '" data-visible="' + (c.visible ? "1" : "0") + '">'
             + (c.visible ? "노출" : "숨김") + "</button>";
-        var titleLink = c.detailUrl
-            ? '<a class="sa-title" href="' + esc(c.detailUrl) + '" target="_blank" rel="noopener">' + esc(c.title) + "</a>"
-            : '<span class="sa-title">' + esc(c.title) + "</span>";
+        var detailHref = "/admin/support-detail?source=" + encodeURIComponent(c.sourceCd) + "&id=" + encodeURIComponent(c.programId);
+        var titleLink = '<a class="sa-title" href="' + detailHref + '">' + esc(c.title) + "</a>";
         var cls = [];
         if (!c.visible) { cls.push("sa-hidden-row"); }
         if (c.status === "CLOSED") { cls.push("sa-closed-row"); }
@@ -136,11 +135,38 @@
             pagerEl.hidden = false;
             prevBtn.disabled = resp.page <= 0;
             nextBtn.disabled = resp.page >= resp.totalPages - 1;
-            pageInfo.textContent = "페이지 " + (resp.page + 1) + " / " + resp.totalPages;
+            renderPages(resp.page, resp.totalPages);
         } else {
             pagerEl.hidden = true;
         }
         metaEl.textContent = "조건에 맞는 공고 " + num(resp.totalElements) + "건";
+    }
+
+    // 번호 페이징: 현재 페이지 주변 창 + 처음/끝 + 생략(...) 표시
+    function pageWindow(cur, total) {
+        var out = [], i;
+        var from = Math.max(1, cur - 1), to = Math.min(total, cur + 3);
+        out.push(1);
+        if (from > 2) { out.push("gap"); }
+        for (i = Math.max(2, from); i <= Math.min(total - 1, to); i++) { out.push(i); }
+        if (to < total - 1) { out.push("gap"); }
+        if (total > 1) { out.push(total); }
+        return out;
+    }
+
+    function renderPages(page, totalPages) {
+        var items = pageWindow(page + 1, totalPages);
+        pagesEl.innerHTML = items.map(function (it) {
+            if (it === "gap") { return '<span class="sa-page-gap">…</span>'; }
+            var active = (it === page + 1) ? " is-active" : "";
+            return '<button type="button" class="sa-page-num' + active + '" data-page="' + (it - 1) + '">' + it + "</button>";
+        }).join("");
+        Array.prototype.forEach.call(pagesEl.querySelectorAll(".sa-page-num"), function (btn) {
+            btn.addEventListener("click", function () {
+                var p = Number(btn.getAttribute("data-page"));
+                if (p !== state.page) { state.page = p; load(); }
+            });
+        });
     }
 
     function wireRows() {

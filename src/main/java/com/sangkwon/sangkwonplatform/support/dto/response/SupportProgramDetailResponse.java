@@ -20,6 +20,7 @@ public record SupportProgramDetailResponse(
         Integer dday,
         String contact,
         String detailUrl,
+        boolean visible,
         Kstartup kstartup
 ) {
     public record Kstartup(
