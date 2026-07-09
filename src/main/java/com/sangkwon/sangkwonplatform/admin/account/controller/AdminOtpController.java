@@ -35,8 +35,12 @@ public class AdminOtpController {
     }
 
     @PostMapping("/setup")
-    public ApiResponse<OtpSetupResponse> setup(@LoginAdmin AdminSession admin) {
-        return ApiResponse.ok(adminUserService.setupOtp(admin.adminId()));
+    public ApiResponse<OtpSetupResponse> setup(@LoginAdmin AdminSession admin, HttpServletRequest http) {
+        OtpSetupResponse res = adminUserService.setupOtp(admin.adminId());
+        // 시크릿 재발급은 기존 2단계 인증을 무력화하므로 흔적을 남긴다
+        auditService.record(admin.adminId(), AuditAction.OTP_SETUP, "ADMIN",
+                String.valueOf(admin.adminId()), null, http);
+        return ApiResponse.ok(res);
     }
 
     @GetMapping(value = "/qr", produces = MediaType.IMAGE_PNG_VALUE)

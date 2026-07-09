@@ -65,7 +65,8 @@ public class AdminUserService {
     }
 
     public AdminSession login(AdminLoginRequest request, String trustToken) {
-        AdminUser adminUser = adminUserRepository.findByLoginId(request.loginId())
+        // 행 잠금으로 조회해 같은 계정의 동시 로그인을 직렬화한다(OTP 리플레이 방지)
+        AdminUser adminUser = adminUserRepository.findByLoginIdForUpdate(request.loginId())
                 .orElse(null);
         if (adminUser == null) {
             // 계정이 없어도 실제 계정과 비슷한 시간(더미 해시 비교)을 쓰게 해 아이디 열거를 막는다

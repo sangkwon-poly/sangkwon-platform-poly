@@ -6,9 +6,12 @@ import com.sangkwon.sangkwonplatform.member.dto.request.MemberUpdateRequest;
 import com.sangkwon.sangkwonplatform.member.dto.response.AvailabilityResponse;
 import com.sangkwon.sangkwonplatform.member.dto.response.MemberResponse;
 import com.sangkwon.sangkwonplatform.member.service.MemberService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -53,8 +56,14 @@ public class MemberController {
     }
 
     @DeleteMapping("/me")
-    public ApiResponse<Void> withdraw(@AuthenticationPrincipal Long memberId) {
+    public ApiResponse<Void> withdraw(@AuthenticationPrincipal Long memberId, HttpServletRequest request) {
         memberService.withdraw(memberId);
+        // 탈퇴 후 남아있는 세션으로 계속 접근하지 못하도록 세션을 무효화한다
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        SecurityContextHolder.clearContext();
         return ApiResponse.<Void>ok(null);
     }
 }

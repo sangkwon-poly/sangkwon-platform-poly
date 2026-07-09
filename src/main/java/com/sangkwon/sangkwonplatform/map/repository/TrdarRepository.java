@@ -27,6 +27,7 @@ public interface TrdarRepository extends JpaRepository<Trdar, String> {
               and (:trdarSeCd is null or trdar_se_cd = :trdarSeCd)
               and (:trdarCd is null or trdar_cd = :trdarCd)
             order by trdar_cd_nm
+            fetch first 20000 rows only
             """, nativeQuery = true)
     List<DistrictGeo> searchGeo(@Param("signguCd") String signguCd,
                                 @Param("trdarSeCd") String trdarSeCd,
@@ -60,6 +61,7 @@ public interface TrdarRepository extends JpaRepository<Trdar, String> {
               and (:trdarSeCd is null or t.trdar_se_cd = :trdarSeCd)
               and (:keyword is null or t.trdar_cd_nm like '%' || :keyword || '%')
             order by s.amt desc nulls last
+            fetch first 20000 rows only
             """, nativeQuery = true)
     List<DistrictSummary> searchSummary(@Param("signguCd") String signguCd,
                                         @Param("trdarSeCd") String trdarSeCd,
