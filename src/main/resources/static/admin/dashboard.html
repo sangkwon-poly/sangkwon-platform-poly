@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>내 계정 · 보안 · 서울공화국</title>
+    <link rel="stylesheet" href="/css/common.css?v=20260708"/>
+    <link rel="stylesheet" href="/admin/css/login.css?v=20260708"/>
+    <link rel="stylesheet" href="/admin/css/dashboard.css?v=20260708"/>
+</head>
+<body>
+
+<header class="topbar">
+    <div class="brand">
+        <div class="brand-mark">서</div>
+        <div class="brand-text">
+            <strong>서울공화국</strong>
+            <span class="mono">ADMIN CONSOLE</span>
+        </div>
+    </div>
+    <div class="topbar-right">
+        <span class="pill" id="who">…</span>
+        <a class="link" href="/admin">← 콘솔</a>
+        <button type="button" class="link" id="logout">로그아웃</button>
+    </div>
+</header>
+
+<main class="wrap">
+    <section class="card">
+        <div class="card-head">
+            <div class="head-icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5l-8-3Zm-1 14-4-4 1.4-1.4L11 13.2l4.6-4.6L17 10l-6 6Z"/></svg>
+            </div>
+            <div>
+                <h1>내 계정 · 보안</h1>
+                <p class="mono head-sub" id="who-sub">SEOUL TRDAR · CONSOLE</p>
+            </div>
+        </div>
+
+        <div class="sec">
+            <h2 class="sec-title">내 계정</h2>
+            <div class="info-grid">
+                <div class="info-row"><span>이름</span><b id="acc-name">…</b></div>
+                <div class="info-row"><span>로그인 ID</span><b id="acc-loginid" class="mono">…</b></div>
+                <div class="info-row"><span>권한</span><b id="acc-role">…</b></div>
+            </div>
+        </div>
+
+        <div class="sec">
+            <div class="sec-head">
+                <div>
+                    <h2 class="sec-title">2단계 인증 (OTP)</h2>
+                    <div class="sec-desc">Google OTP 등 인증 앱으로 로그인을 한 겹 더 보호합니다.</div>
+                </div>
+                <span class="status off" id="otp-status">확인 중…</span>
+            </div>
+
+            <div id="otp-actions"></div>
+
+            <div id="otp-setup" class="setup" hidden>
+                <p class="setup-guide"><b>①</b> 인증 앱으로 QR을 스캔하거나, 설정 키를 직접 입력해 등록하세요.</p>
+                <div class="qr-row">
+                    <img id="otp-qr" class="qr" alt="OTP 등록 QR"/>
+                    <div class="secret-box">
+                        <div class="secret-label">설정 키 (수동 입력용)</div>
+                        <code id="otp-secret" class="secret"></code>
+                    </div>
+                </div>
+                <p class="setup-guide"><b>②</b> 앱에 표시된 6자리 코드를 입력하고 확인을 누르면 켜집니다.</p>
+                <div class="enable-row">
+                    <label class="sr-only" for="otp-code">OTP 인증코드 6자리</label>
+                    <input id="otp-code" class="code-input" inputmode="numeric" maxlength="6" placeholder="000000"/>
+                    <button type="button" class="btn btn-sso btn-inline" id="otp-confirm">확인</button>
+                </div>
+            </div>
+
+            <p class="msg" id="msg" role="status" hidden></p>
+        </div>
+
+        <div class="sec" id="admins-sec" hidden>
+            <div class="sec-head">
+                <div>
+                    <h2 class="sec-title">관리자 계정</h2>
+                    <div class="sec-desc">관리자 추가·권한 변경·잠금은 콘솔에서 관리합니다.</div>
+                </div>
+                <a class="link" href="/admin/user-admin">관리자 계정 관리 →</a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="foot">
+    <svg viewBox="0 0 24 24" class="ic" aria-hidden="true"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5Zm3 8H9V7a3 3 0 0 1 6 0v3Z"/></svg>
+    인가된 사용자 전용 시스템입니다 · 모든 접속과 조작은 기록·감사됩니다
+</footer>
+
+<script src="/admin/js/dashboard.js"></script>
+</body>
+</html>

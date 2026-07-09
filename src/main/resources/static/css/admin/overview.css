@@ -11,6 +11,10 @@
 .ov-up { color: #4e7a3e; }
 .ov-flat { color: #a99c94; }
 .ov-warn { color: #c08a2e; }
+.ov-danger { color: var(--danger); }
+
+/* 권한 없거나 비어있을 때 안내 */
+.ov-note { padding: 10px 0; font-size: 12px; color: var(--faint); }
 
 /* 하단 2단: 적재 현황(넓게) + 최근 활동 */
 .ov-cols {
@@ -52,7 +56,67 @@
 .feed-text { font-size: 12.5px; color: #3a322e; }
 .feed-time { font-size: 10.5px; color: #a99c94; margin-top: 2px; }
 
+/* 개요 지표 카드: 6개 한 줄 (좁아지면 단계적으로 접힘) */
+.stat-grid { grid-template-columns: repeat(6, 1fr); }
+
+/* 중단 2단: API 사용량(넓게) + 배치 결과 도넛 */
+.ov-charts {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 13px;
+  margin-top: 16px;
+}
+
+/* API 사용률 막대 */
+.bar-list { display: flex; flex-direction: column; gap: 13px; }
+.bar-row {
+  display: grid;
+  grid-template-columns: 104px 1fr 42px;
+  align-items: center; gap: 11px;
+}
+.bar-label {
+  font-size: 12px; color: #3a322e;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.bar-track {
+  height: 8px; border-radius: 20px;
+  background: var(--line-soft); overflow: hidden;
+}
+.bar-fill { display: block; height: 100%; border-radius: 20px; }
+.bar-ok { background: var(--brand); }
+.bar-warn { background: var(--warn); }
+.bar-danger { background: var(--danger); }
+.bar-val { font-size: 11.5px; color: var(--faint); text-align: right; }
+
+/* 배치 결과 도넛 */
+.donut-wrap { display: flex; align-items: center; gap: 22px; padding: 4px 0; }
+.donut { width: 128px; height: 128px; flex: 0 0 auto; }
+.donut-bg { fill: none; stroke: var(--line-soft); stroke-width: 15; }
+.donut-seg { fill: none; stroke-width: 15; }
+.seg-ok { stroke: var(--ok); }
+.seg-warn { stroke: var(--warn); }
+.seg-danger { stroke: var(--danger); }
+.donut-pct { fill: var(--ink); font-size: 27px; font-weight: 800; text-anchor: middle; }
+.donut-cap { fill: var(--faint); font-size: 11px; text-anchor: middle; }
+.donut-legend { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.donut-legend li {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12.5px; color: #3a322e;
+}
+.donut-legend b { margin-left: auto; font-weight: 800; color: var(--ink); }
+.lg { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+.lg-ok { background: var(--ok); }
+.lg-warn { background: var(--warn); }
+.lg-danger { background: var(--danger); }
+
 /* 반응형 */
+@media (max-width: 1200px) {
+  .stat-grid { grid-template-columns: repeat(3, 1fr); }
+}
 @media (max-width: 900px) {
+  .ov-charts { grid-template-columns: 1fr; }
   .ov-cols { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .stat-grid { grid-template-columns: repeat(2, 1fr); }
 }

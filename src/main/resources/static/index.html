@@ -35,10 +35,10 @@
 
       <nav class="site-nav" aria-label="주요 메뉴">
         <ul class="nav-menu">
+          <li><a href="/map">상권분석</a></li>
+          <li><a href="/support">지원사업</a></li>
           <li><a href="#features">기능</a></li>
           <li><a href="#pricing">요금제</a></li>
-          <li><a href="#cases">고객사례</a></li>
-          <li><a href="#resources">자료실</a></li>
         </ul>
         <div class="nav-actions">
           <a class="link-login" href="/login">로그인</a>
@@ -63,7 +63,7 @@
           </p>
           <div class="hero-cta">
             <a class="btn btn-primary btn-lg" href="/signup">무료로 시작하기 →</a>
-            <a class="btn btn-ghost btn-lg" href="/demo">데모 보기</a>
+            <a class="btn btn-ghost btn-lg" href="/map">데모 보기</a>
           </div>
           <ul class="hero-trust">
             <li>✓ 신용카드 없이 시작</li>
@@ -174,5 +174,28 @@
     </div>
   </footer>
 
+  <script>
+    // 로그인 세션을 헤더 액션 영역에 반영
+    (function () {
+      var actions = document.querySelector('.nav-actions');
+      if (!actions) return;
+      function esc(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
+      fetch('/api/members/me', { credentials: 'include', headers: { Accept: 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (b) {
+          var me = b && b.data;
+          if (!me) return;
+          actions.innerHTML =
+            '<a class="link-login" href="/member/mypage">' + esc(me.nickname || me.loginId) + '님</a>' +
+            '<button type="button" class="btn btn-primary btn-sm" id="nav-logout">로그아웃</button>';
+          var btn = document.getElementById('nav-logout');
+          if (btn) btn.addEventListener('click', function () {
+            fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+              .then(function () { location.reload(); }, function () { location.reload(); });
+          });
+        })
+        .catch(function () {});
+    })();
+  </script>
 </body>
 </html>

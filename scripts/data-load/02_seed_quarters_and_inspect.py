@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import os, oracledb, urllib.request, json
 
-con = oracledb.connect(user="SANG", password="1234", dsn="localhost:1521/XEPDB1")
+con = oracledb.connect(user=os.environ.get("XE_DB_USER", "SANG"),
+                       password=os.environ["XE_DB_PASSWORD"],  # 커밋 금지: set XE_DB_PASSWORD=1234
+                       dsn="localhost:1521/XEPDB1")
 cur = con.cursor()
 
 # 1) DIM_QUARTER 시드 (2015~2026, 48분기)

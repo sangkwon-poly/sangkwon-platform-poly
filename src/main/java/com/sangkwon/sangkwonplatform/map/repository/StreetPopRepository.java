@@ -16,6 +16,7 @@ public interface StreetPopRepository extends JpaRepository<StreetPop, StreetPopI
             where (:stdrYyquCd is null or s.stdrYyquCd = :stdrYyquCd)
               and (:trdarCd is null or s.trdarCd = :trdarCd)
             order by s.trdarCd, s.stdrYyquCd
+            fetch first 20000 rows only
             """)
     List<StreetPop> search(@Param("stdrYyquCd") String stdrYyquCd,
                            @Param("trdarCd") String trdarCd);

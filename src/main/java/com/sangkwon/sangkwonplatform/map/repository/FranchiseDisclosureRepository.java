@@ -15,6 +15,7 @@ public interface FranchiseDisclosureRepository extends JpaRepository<FranchiseDi
             where (:brandNm is null or f.brandNm like concat('%', :brandNm, '%'))
               and (:corpNm is null or f.corpNm = :corpNm)
             order by f.brandNm, f.corpNm
+            fetch first 20000 rows only
             """)
     List<FranchiseDisclosure> search(@Param("brandNm") String brandNm,
                                      @Param("corpNm") String corpNm);

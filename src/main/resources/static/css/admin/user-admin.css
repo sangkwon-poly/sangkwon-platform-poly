@@ -1,58 +1,103 @@
-/* USER-ADM-01 사용자 관리 고유 스타일
-   공통 chrome·표는 shell.css. 여기서는 필터 칩·사용자 셀·플랜 태그만. */
+/* USER-ADM 관리자 계정 관리 고유 스타일
+   공통 chrome·표·배지는 shell.css / common.css. 여기서는 칩·셀·모달만. */
 
-/* 상단바 초대 버튼은 검색 오른쪽에 붙음 */
-.ua-invite { margin-left: 0; }
-
-/* 필터 칩 */
+/* 상태 필터 칩 */
 .ua-filters { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
 .ua-chip {
   font-size: 12px; font-weight: 600;
-  color: #7a6e66; background: #fff;
-  border: 1px solid #eae1db; border-radius: 20px;
-  padding: 6px 14px;
+  color: var(--muted-2); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 20px;
+  padding: 6px 14px; cursor: pointer;
 }
-.ua-chip-active {
+.ua-chip b { font-weight: 800; }
+.ua-chip:hover { border-color: var(--brand); color: var(--brand); }
+.ua-chip-active,
+.ua-chip-active:hover {
   font-weight: 700; color: #fff;
   background: var(--brand); border-color: var(--brand);
 }
 
-/* 사용자 셀 */
-.ua-table tbody td { padding: 13px 20px; }
+/* 관리자 셀 */
+.ua-table th, .ua-table td { white-space: nowrap; } /* 좁은 폭에서 세로로 쪼개지지 않게 (넘치면 표가 가로 스크롤) */
+.ua-table tbody td { padding: 13px 20px; vertical-align: middle; }
 .ua-user { display: flex; align-items: center; gap: 11px; }
 .ua-avatar {
   width: 32px; height: 32px; border-radius: 50%;
-  background: #f1e0d9; color: #8a5748;
+  background: var(--brand-icon-bg); color: var(--brand-dark);
   display: flex; align-items: center; justify-content: center;
   font-weight: 800; font-size: 12px; flex: 0 0 auto;
 }
 .ua-id { min-width: 0; display: flex; flex-direction: column; }
-.ua-name { font-size: 13px; font-weight: 700; color: var(--text); }
-.ua-email { font-size: 11px; color: var(--faint); }
-.ua-role { font-size: 12.5px; color: #5a5049; }
+.ua-name { font-size: 13px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px; }
+.ua-login { font-size: 11px; color: var(--faint); font-family: var(--mono); }
 .ua-muted { font-size: 12px; color: var(--faint); }
-
-/* 플랜 태그 */
-.ua-plan {
-  font-size: 11px; font-weight: 700;
-  border-radius: 6px; padding: 3px 9px;
+.ua-self {
+  font-size: 10px; font-weight: 800; letter-spacing: .02em;
+  color: var(--brand-dark); background: var(--brand-tint);
+  border-radius: 5px; padding: 1px 6px;
 }
-.ua-plan-ent { color: #8a5748; background: #f1e0d9; }
-.ua-plan-pro { color: #4e7a3e; background: #eaf3e6; }
-.ua-plan-free { color: var(--faint); background: #f1edea; }
 
-/* 휴면 상태 배지 (common 배지 밖 회색) */
-.ua-badge-dormant { color: #9a8e86; background: #f1edea; padding: 4px 10px; }
-.ua-dot-dormant { background: #b7aba2; }
+/* 실패 횟수 */
+.ua-fail { font-weight: 700; color: var(--faint); }
+.ua-fail.is-hot { color: var(--danger); }
+
+/* 권한 셀렉트 */
+.ua-role-select {
+  font-size: 12.5px; font-weight: 600; color: var(--text);
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 6px 26px 6px 10px;
+  cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239a8e86' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.ua-role-select:hover { border-color: var(--brand); }
+.ua-role-select:disabled { cursor: default; color: var(--muted); background-color: var(--surface); opacity: .8; }
 
 /* 상태 배지 안 점 */
 .ua-table .badge { gap: 6px; font-size: 11px; padding: 4px 10px; }
 .ua-table .dot { width: 6px; height: 6px; }
 
-/* 더보기 버튼 */
-.ua-more {
-  background: none; border: 0;
-  color: #c4b8b0; font-weight: 800; font-size: 15px;
-  line-height: 1; padding: 0;
+/* 작업 버튼 묶음 (잠금/해제 · 비번 재설정) */
+.ua-actions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+
+/* 작업 버튼 (잠금/해제) */
+.ua-act {
+  font-size: 12px; font-weight: 700;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--bg); color: var(--text-soft);
+  padding: 6px 12px; cursor: pointer; white-space: nowrap;
 }
-.ua-more:hover { color: var(--brand); }
+.ua-act:hover { border-color: var(--brand); color: var(--brand); }
+.ua-act.ua-act-lock:hover { border-color: var(--danger); color: var(--danger); }
+.ua-act:disabled { cursor: default; color: var(--faint); border-color: var(--line-soft); }
+
+.ua-empty { padding: 32px 16px; text-align: center; color: var(--faint); font-size: 14px; }
+
+/* 관리자 추가 모달 */
+.ua-modal { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; }
+.ua-modal[hidden] { display: none; }
+.ua-modal-backdrop { position: absolute; inset: 0; background: rgba(35, 29, 26, .5); }
+.ua-modal-card {
+  position: relative; width: min(420px, calc(100vw - 40px));
+  background: var(--bg); border-radius: var(--radius);
+  box-shadow: var(--shadow-card); padding: 26px 26px 22px;
+}
+.ua-modal-card h2 { font-size: 17px; font-weight: 800; color: var(--ink); margin: 0 0 18px; }
+.ua-reset-target { font-size: 13px; color: var(--muted); margin: -8px 0 16px; }
+.ua-form { display: flex; flex-direction: column; gap: 13px; }
+.ua-field { display: flex; flex-direction: column; gap: 6px; }
+.ua-field span { font-size: 12px; font-weight: 700; color: var(--text-soft); }
+.ua-field input, .ua-field select {
+  font-size: 13px; color: var(--text);
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  padding: 9px 11px; background: var(--bg); width: 100%;
+}
+.ua-field input:focus, .ua-field select:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-tint); }
+.ua-form-msg { font-size: 12px; font-weight: 600; color: var(--danger); margin: 0; }
+.ua-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+.ua-btn { font-size: 13px; font-weight: 700; border-radius: var(--radius-sm); padding: 9px 16px; cursor: pointer; border: 1px solid transparent; }
+.ua-btn-ghost { background: var(--bg); border-color: var(--line); color: var(--text-soft); }
+.ua-btn-ghost:hover { border-color: var(--brand); color: var(--brand); }
+.ua-btn-primary { background: var(--brand); color: #fff; }
+.ua-btn-primary:hover { background: var(--brand-dark); }
+.ua-btn-primary:disabled { opacity: .6; cursor: default; }

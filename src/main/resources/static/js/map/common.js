@@ -95,3 +95,32 @@ function distanceKm(lat1, lon1, lat2, lon2) {
         Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) ** 2;
     return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
+
+// 로그인 세션을 헤더 사용자 영역(.app-user)에 반영한다. 모든 지도 페이지 공통.
+(function () {
+    function esc(s) {
+        var d = document.createElement("div");
+        d.textContent = s == null ? "" : String(s);
+        return d.innerHTML;
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        var el = document.querySelector(".app-user");
+        if (!el) { return; }
+        fetch("/api/members/me", { credentials: "include", headers: { Accept: "application/json" } })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (body) {
+                var me = body && body.data;
+                if (me) {
+                    var initial = (me.nickname || me.loginId || "?").slice(0, 1);
+                    el.setAttribute("href", "/member/mypage");
+                    el.setAttribute("title", "마이페이지");
+                    el.innerHTML = '<span class="app-avatar" aria-hidden="true">' + esc(initial) + "</span>"
+                        + esc(me.nickname || me.loginId);
+                } else {
+                    el.setAttribute("href", "/member/login");
+                    el.innerHTML = '<span class="app-avatar" aria-hidden="true">?</span>로그인';
+                }
+            })
+            .catch(function () { /* 비로그인/오류 시 정적 마크업 유지 */ });
+    });
+})();

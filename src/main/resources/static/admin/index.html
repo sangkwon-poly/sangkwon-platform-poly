@@ -4,7 +4,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>관리자 개요 · 서울공화국</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
   <link rel="stylesheet" href="/css/common.css">
   <link rel="stylesheet" href="/css/admin/shell.css">
   <link rel="stylesheet" href="/css/admin/overview.css">
@@ -13,9 +12,8 @@
 
   <div class="admin">
 
-    <!-- 좌측 사이드바 -->
     <aside class="admin-side" aria-label="관리자 메뉴">
-      <a class="admin-brand" href="/admin/">
+      <a class="admin-brand" href="/admin">
         <span class="brand-mark" aria-hidden="true">서</span>
         <span class="admin-brand-text">
           <span class="admin-brand-name">서울공화국</span>
@@ -23,132 +21,109 @@
         </span>
       </a>
       <nav class="admin-nav" aria-label="관리자 내비게이션">
-        <a href="/admin/" aria-current="page">개요</a>
-        <a href="/admin/batch.html">데이터 적재</a>
-        <a href="/admin/trdar-admin.html">상권 데이터</a>
-        <a href="/admin/user-admin.html">사용자 관리</a>
+        <a href="/admin" aria-current="page">개요</a>
+        <a href="/admin/batch">데이터 적재</a>
+        <a href="/admin/trdar-admin">상권 데이터</a>
+        <a href="/admin/user-admin">관리자 계정</a>
         <hr class="admin-nav-sep">
         <span class="admin-nav-out">
-          <a href="/map/">지도로 이동</a>
+          <a href="/map">지도로 이동</a>
           <a href="/">랜딩으로</a>
         </span>
       </nav>
       <div class="admin-user">
-        <span class="admin-user-avatar" aria-hidden="true">이</span>
+        <span class="admin-user-avatar" aria-hidden="true">·</span>
         <span>
-          <span class="admin-user-name">이상혁</span>
-          <span class="admin-user-role">PM</span>
+          <span class="admin-user-name">—</span>
+          <span class="admin-user-role">—</span>
         </span>
       </div>
     </aside>
 
-    <!-- 본문 -->
     <div class="admin-main">
       <header class="admin-topbar">
         <h1>관리자 개요</h1>
-        <span class="admin-topbar-meta">2026-07-04 · 마지막 배치 04:30</span>
+        <span class="admin-topbar-meta" id="ov-meta">서울공화국 관리자 콘솔</span>
       </header>
 
       <main class="admin-content" aria-label="지표 및 상태 요약">
 
-        <!-- 지표 요약 -->
         <section class="stat-grid" aria-label="핵심 지표">
           <article class="stat-card">
-            <div class="stat-card-label">총 사용자</div>
-            <div class="stat-card-value ov-value">2,418</div>
-            <div class="stat-delta ov-up">+124 이번주</div>
+            <div class="stat-card-label">회원</div>
+            <div class="stat-card-value ov-value" id="ov-stat-member">—</div>
+            <div class="stat-delta ov-flat" id="ov-sub-member">가입 회원</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">리포트</div>
+            <div class="stat-card-value ov-value" id="ov-stat-report">—</div>
+            <div class="stat-delta ov-flat" id="ov-sub-report">AI 생성</div>
           </article>
           <article class="stat-card">
             <div class="stat-card-label">분석 상권</div>
-            <div class="stat-card-value ov-value">1,247</div>
-            <div class="stat-delta ov-flat">전체 커버</div>
+            <div class="stat-card-value ov-value" id="ov-stat-trdar">—</div>
+            <div class="stat-delta ov-flat" id="ov-sub-trdar">서울시 전체</div>
           </article>
           <article class="stat-card">
-            <div class="stat-card-label">오늘 리포트</div>
-            <div class="stat-card-value ov-value">316</div>
-            <div class="stat-delta ov-up">+18%</div>
+            <div class="stat-card-label">관리자</div>
+            <div class="stat-card-value ov-value" id="ov-stat-admin">—</div>
+            <div class="stat-delta ov-flat" id="ov-sub-admin">계정 수</div>
           </article>
           <article class="stat-card">
-            <div class="stat-card-label">연동 상태</div>
-            <div class="stat-card-value ov-value">정상</div>
-            <div class="stat-delta ov-warn">1건 지연</div>
+            <div class="stat-card-label">오늘 API 최고 사용</div>
+            <div class="stat-card-value ov-value" id="ov-stat-api">—</div>
+            <div class="stat-delta ov-flat" id="ov-sub-api">외부 API</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">최근 배치</div>
+            <div class="stat-card-value ov-value" id="ov-stat-batch">—</div>
+            <div class="stat-delta ov-flat" id="ov-sub-batch">적재 상태</div>
           </article>
         </section>
 
-        <div class="ov-cols">
+        <div class="ov-charts">
 
-          <!-- 데이터 적재 현황 -->
-          <section class="card" aria-label="데이터 적재 현황">
+          <section class="card" aria-label="오늘 외부 API 사용량">
             <div class="card-head">
-              <h2 class="card-title">데이터 적재 현황</h2>
-              <a class="card-link" href="/admin/batch.html">전체 보기 →</a>
+              <h2 class="card-title">오늘 API 사용량</h2>
+              <a class="card-link" href="/admin/api-usage">전체 보기 →</a>
             </div>
-            <ul class="load-list">
-              <li class="load-item">
-                <span class="dot dot-ok" aria-hidden="true"></span>
-                <span class="load-name mono">TRDAR_SALES</span>
-                <span class="load-time">04:12</span>
-                <span class="badge badge-ok">정상</span>
-              </li>
-              <li class="load-item">
-                <span class="dot dot-ok" aria-hidden="true"></span>
-                <span class="load-name mono">STREET_POP</span>
-                <span class="load-time">04:15</span>
-                <span class="badge badge-ok">정상</span>
-              </li>
-              <li class="load-item">
-                <span class="dot dot-warn" aria-hidden="true"></span>
-                <span class="load-name mono">STORE_STAT</span>
-                <span class="load-time">04:22</span>
-                <span class="badge badge-warn">지연</span>
-              </li>
-              <li class="load-item">
-                <span class="dot dot-ok" aria-hidden="true"></span>
-                <span class="load-name mono">COMMERCIAL_RENT</span>
-                <span class="load-time">04:30</span>
-                <span class="badge badge-ok">정상</span>
-              </li>
-              <li class="load-item">
-                <span class="dot dot-danger" aria-hidden="true"></span>
-                <span class="load-name mono">TRDAR_CHANGE</span>
-                <span class="load-time">-</span>
-                <span class="badge badge-danger">오류</span>
-              </li>
+            <ul class="bar-list" id="ov-api-bars">
+              <li class="ov-note">불러오는 중…</li>
             </ul>
           </section>
 
-          <!-- 최근 활동 -->
+          <section class="card" aria-label="최근 배치 결과">
+            <div class="card-head">
+              <h2 class="card-title">최근 배치 결과</h2>
+              <a class="card-link" href="/admin/batch">전체 보기 →</a>
+            </div>
+            <div class="donut-wrap" id="ov-batch-donut">
+              <p class="ov-note">불러오는 중…</p>
+            </div>
+          </section>
+
+        </div>
+
+        <div class="ov-cols">
+
+          <section class="card" aria-label="데이터 적재 현황">
+            <div class="card-head">
+              <h2 class="card-title">데이터 적재 현황</h2>
+              <a class="card-link" href="/admin/batch">전체 보기 →</a>
+            </div>
+            <ul class="load-list" id="ov-load">
+              <li class="load-item"><span class="load-name">불러오는 중…</span></li>
+            </ul>
+          </section>
+
           <section class="card" aria-label="최근 활동">
-            <h2 class="card-title ov-recent-title">최근 활동</h2>
-            <ul class="feed">
-              <li class="feed-item">
-                <span class="feed-dot feed-brand" aria-hidden="true"></span>
-                <div>
-                  <div class="feed-text"><b>김도연</b> · 역삼동 상권 리포트 생성</div>
-                  <div class="feed-time">3분 전</div>
-                </div>
-              </li>
-              <li class="feed-item">
-                <span class="feed-dot feed-warn" aria-hidden="true"></span>
-                <div>
-                  <div class="feed-text"><b>배치</b> · STORE_STAT 적재 지연 경고</div>
-                  <div class="feed-time">38분 전</div>
-                </div>
-              </li>
-              <li class="feed-item">
-                <span class="feed-dot feed-ok" aria-hidden="true"></span>
-                <div>
-                  <div class="feed-text"><b>박서준</b> · 신규 회원가입 · Free 플랜</div>
-                  <div class="feed-time">1시간 전</div>
-                </div>
-              </li>
-              <li class="feed-item">
-                <span class="feed-dot feed-brand" aria-hidden="true"></span>
-                <div>
-                  <div class="feed-text"><b>정하윤</b> · 강남구 5개 상권 비교</div>
-                  <div class="feed-time">2시간 전</div>
-                </div>
-              </li>
+            <div class="card-head">
+              <h2 class="card-title ov-recent-title">최근 활동</h2>
+              <a class="card-link" href="/admin/audit-log">감사 로그 →</a>
+            </div>
+            <ul class="feed" id="ov-feed">
+              <li class="feed-item"><div class="feed-text">불러오는 중…</div></li>
             </ul>
           </section>
 
@@ -157,5 +132,7 @@
     </div>
   </div>
 
+  <script src="/admin/js/admin-shell.js"></script>
+  <script src="/admin/js/overview.js"></script>
 </body>
 </html>

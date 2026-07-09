@@ -16,6 +16,7 @@ public interface ResidentPopRepository extends JpaRepository<ResidentPop, Reside
             where (:stdrYyquCd is null or r.stdrYyquCd = :stdrYyquCd)
               and (:trdarCd is null or r.trdarCd = :trdarCd)
             order by r.trdarCd, r.stdrYyquCd
+            fetch first 20000 rows only
             """)
     List<ResidentPop> search(@Param("stdrYyquCd") String stdrYyquCd,
                              @Param("trdarCd") String trdarCd);

@@ -42,7 +42,7 @@ function buildRow(d, rank, maxAmt) {
         '<td class="rt-num rt-plain">' + (d.storeCnt || 0).toLocaleString() + "</td>" +
         '<td class="rt-num ' + (ix ? (CHANGE_UP.has(ix) ? "rt-up" : "rt-down") : "rt-plain") + '">' + (d.changeIxNm || "-") + "</td>";
     tr.addEventListener("click", () => {
-        location.href = "/map/trdar-detail.html?trdarCd=" + d.trdarCd;
+        location.href = "/map/trdar-detail?trdarCd=" + d.trdarCd;
     });
     return tr;
 }
@@ -117,7 +117,7 @@ function bindControls() {
     cmp.innerHTML = "비교함 <b>" + cmpList().length + "</b>";
     cmp.style.cursor = "pointer";
     cmp.addEventListener("click", () => {
-        location.href = "/map/compare.html";
+        location.href = "/map/compare";
     });
 }
 

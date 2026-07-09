@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>마이페이지 · 서울공화국</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="css/member.css">
+</head>
+<body>
+  <div class="page">
+    <!-- 앱 헤더: MemberUI.renderHeader('mypage') 로 렌더 -->
+    <div id="app-header"></div>
+
+    <main class="container">
+      <div class="stack stack--loose">
+
+        <!-- 페이지 제목 -->
+        <div class="stack stack--tight">
+          <h1 class="page-title">마이페이지</h1>
+          <p class="page-subtitle">내 정보를 확인하고 관리할 수 있어요.</p>
+        </div>
+
+        <!-- 섹션1: 프로필 카드 -->
+        <section class="card" aria-labelledby="profile-title">
+          <div class="card__head">
+            <h2 class="card__title" id="profile-title">내 프로필</h2>
+          </div>
+          <div class="card__body" id="profile-body">
+            <div class="loading-block" id="profile-loading">
+              <span class="spinner" aria-hidden="true"></span>
+              <span>프로필을 불러오는 중…</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 섹션2: 정보 수정 폼 -->
+        <section class="card" aria-labelledby="edit-title">
+          <div class="card__head">
+            <h2 class="card__title" id="edit-title">정보 수정</h2>
+          </div>
+          <div class="card__body">
+            <form id="edit-form" class="stack" novalidate>
+              <div class="field">
+                <label class="label" for="edit-nickname">닉네임<span class="label__req" aria-hidden="true">*</span></label>
+                <input class="input" type="text" id="edit-nickname" name="nickname"
+                       autocomplete="nickname" maxlength="50" required
+                       aria-describedby="edit-nickname-error">
+                <p class="field__error" id="edit-nickname-error" role="alert"></p>
+              </div>
+
+              <div class="field">
+                <label class="label" for="edit-email">이메일<span class="label__req" aria-hidden="true">*</span></label>
+                <input class="input" type="email" id="edit-email" name="email"
+                       autocomplete="email" maxlength="255" required
+                       aria-describedby="edit-email-error">
+                <p class="field__error" id="edit-email-error" role="alert"></p>
+              </div>
+
+              <div class="field">
+                <label class="label" for="edit-loginid">로그인 아이디</label>
+                <input class="input" type="text" id="edit-loginid" name="loginId" disabled
+                       aria-describedby="edit-loginid-hint">
+                <p class="field__hint" id="edit-loginid-hint">로그인 아이디는 변경할 수 없어요.</p>
+              </div>
+
+              <div class="row row--end">
+                <button type="submit" class="btn btn--primary" id="edit-submit">변경사항 저장</button>
+              </div>
+            </form>
+          </div>
+        </section>
+
+        <!-- 섹션3: 최근 검색 -->
+        <section class="card" aria-labelledby="search-title">
+          <div class="card__head">
+            <h2 class="card__title" id="search-title">최근 검색</h2>
+          </div>
+          <div class="card__body" id="search-body">
+            <div class="loading-block" id="search-loading">
+              <span class="spinner" aria-hidden="true"></span>
+              <span>검색 기록을 불러오는 중…</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 섹션4: 위험 구역 -->
+        <section class="card" aria-labelledby="danger-title">
+          <div class="card__head">
+            <h2 class="card__title" id="danger-title">계정 관리</h2>
+          </div>
+          <div class="card__body">
+            <div class="stack">
+              <div class="row row--between row--wrap">
+                <div class="stack stack--tight">
+                  <strong>로그아웃</strong>
+                  <span class="text-muted">이 기기에서 로그아웃합니다.</span>
+                </div>
+                <button type="button" class="btn btn--ghost" id="logout-btn">로그아웃</button>
+              </div>
+
+              <div class="row row--between row--wrap">
+                <div class="stack stack--tight">
+                  <strong class="text-danger">회원 탈퇴</strong>
+                  <span class="text-muted">탈퇴하면 계정과 데이터를 되돌릴 수 없어요.</span>
+                </div>
+                <button type="button" class="btn btn--danger" id="withdraw-btn">회원 탈퇴</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- 회원 탈퇴 확인 모달 -->
+  <div class="modal-backdrop" id="withdraw-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="withdraw-modal-title" aria-describedby="withdraw-modal-desc">
+      <div class="modal__head">
+        <h3 class="modal__title" id="withdraw-modal-title">정말 탈퇴하시겠어요?</h3>
+      </div>
+      <div class="modal__body" id="withdraw-modal-desc">
+        회원 탈퇴 시 계정 상태가 <strong>탈퇴</strong>로 변경되고,
+        찜한 상권과 검색 기록을 포함한 모든 정보에 더 이상 접근할 수 없어요.
+        이 작업은 <strong class="text-danger">되돌릴 수 없습니다.</strong>
+      </div>
+      <div class="modal__foot">
+        <button type="button" class="btn btn--ghost" id="withdraw-cancel">취소</button>
+        <button type="button" class="btn btn--danger" id="withdraw-confirm">탈퇴하기</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/mypage.js"></script>
+</body>
+</html>

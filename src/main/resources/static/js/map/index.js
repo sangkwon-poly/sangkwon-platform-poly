@@ -395,7 +395,7 @@ async function selectTrdar(d) {
     fillDrawerMetrics(d.salesAmt, d.flpop, d.storeCnt, d.changeIxNm);
     const report = document.querySelector(".sel-report");
     report.style.display = "";
-    report.href = "/map/trdar-detail.html?trdarCd=" + d.trdarCd;
+    report.href = "/map/trdar-detail?trdarCd=" + d.trdarCd;
     document.querySelector(".sel-add").style.display = "";
     openDrawer();
 
@@ -564,7 +564,10 @@ async function init() {
     // 초기 로드는 요약 + 구 경계 두 개만
     const [districts, guGeo] = await Promise.all([
         apiData("/api/districts/summary"),
-        fetch("/geo/seoul-gu.json").then((r) => r.json()),
+        fetch("/geo/seoul-gu.json").then((r) => {
+            if (!r.ok) throw new Error("/geo/seoul-gu.json 응답 " + r.status);
+            return r.json();
+        }),
     ]);
     state.districts = districts || [];
     aggregateByGu();
@@ -656,7 +659,7 @@ async function init() {
         e.preventDefault();
         if (state.selected) {
             cmpAdd(state.selected.trdarCd);
-            location.href = "/map/compare.html";
+            location.href = "/map/compare";
         }
     });
     document.getElementById("app-status").textContent = "연동 정상";

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>공지사항 · 서울공화국</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/admin/shell.css">
+  <link rel="stylesheet" href="/css/admin/notice-admin.css">
+</head>
+<body>
+
+  <div class="admin">
+
+    <aside class="admin-side" aria-label="관리자 메뉴">
+      <a class="admin-brand" href="/admin">
+        <span class="brand-mark" aria-hidden="true">서</span>
+        <span class="admin-brand-text">
+          <span class="admin-brand-name">서울공화국</span>
+          <span class="admin-brand-sub">관리자 콘솔</span>
+        </span>
+      </a>
+      <nav class="admin-nav" aria-label="관리자 내비게이션">
+        <a href="/admin">개요</a>
+        <a href="/admin/batch">데이터 적재</a>
+        <a href="/admin/trdar-admin">상권 데이터</a>
+        <a href="/admin/user-admin">관리자 계정</a>
+        <hr class="admin-nav-sep">
+        <span class="admin-nav-out">
+          <a href="/map">지도로 이동</a>
+          <a href="/">랜딩으로</a>
+        </span>
+      </nav>
+      <div class="admin-user">
+        <span class="admin-user-avatar" aria-hidden="true">·</span>
+        <span>
+          <span class="admin-user-name">—</span>
+          <span class="admin-user-role">—</span>
+        </span>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <header class="admin-topbar">
+        <h1>공지사항</h1>
+        <span class="admin-topbar-meta" id="nt-meta">서비스 공지 작성 및 발행 관리</span>
+        <button type="button" class="btn-topbar" id="nt-add" hidden>＋ 공지 작성</button>
+      </header>
+
+      <main class="admin-content" aria-label="공지 목록">
+
+        <p class="nt-flash" id="nt-flash" role="status" hidden></p>
+
+        <section class="data-table-wrap" aria-label="공지 표">
+          <div class="table-scroll">
+            <table class="data-table nt-table">
+              <thead>
+                <tr>
+                  <th scope="col">제목</th>
+                  <th scope="col" class="col-center">상태</th>
+                  <th scope="col" class="col-num">조회</th>
+                  <th scope="col">작성자</th>
+                  <th scope="col">작성일</th>
+                  <th scope="col" class="col-center">작업</th>
+                </tr>
+              </thead>
+              <tbody id="nt-tbody">
+                <tr><td colspan="6" class="nt-empty">불러오는 중…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="nt-pager" id="nt-pager" hidden>
+          <button type="button" class="nt-page-btn" id="nt-prev">이전</button>
+          <span class="nt-page-info" id="nt-page-info"></span>
+          <button type="button" class="nt-page-btn" id="nt-next">다음</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- 공지 작성/수정 모달 -->
+  <div class="nt-modal" id="nt-modal" hidden>
+    <div class="nt-modal-backdrop" data-close></div>
+    <div class="nt-modal-card" role="dialog" aria-modal="true" aria-labelledby="nt-modal-title">
+      <h2 id="nt-modal-title">공지 작성</h2>
+      <form id="nt-form" class="nt-form" autocomplete="off">
+        <label class="nt-field">
+          <span>제목</span>
+          <input type="text" name="title" maxlength="200" required placeholder="공지 제목">
+        </label>
+        <label class="nt-field">
+          <span>내용</span>
+          <textarea name="content" rows="8" required placeholder="공지 내용"></textarea>
+        </label>
+        <label class="nt-check">
+          <input type="checkbox" name="isPinned"> 상단 고정
+        </label>
+        <p class="nt-form-msg" id="nt-form-msg" hidden></p>
+        <div class="nt-form-actions">
+          <button type="button" class="nt-btn nt-btn-ghost" data-close>취소</button>
+          <button type="submit" class="nt-btn nt-btn-primary" id="nt-submit">저장</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/admin/js/admin-shell.js"></script>
+  <script src="/admin/js/notice-admin.js"></script>
+</body>
+</html>

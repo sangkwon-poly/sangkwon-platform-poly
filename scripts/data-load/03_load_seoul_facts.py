@@ -54,7 +54,9 @@ def num(v):
     except (ValueError, TypeError):
         return v
 
-con = oracledb.connect(user="SANG", password="1234", dsn="localhost:1521/XEPDB1")
+con = oracledb.connect(user=os.environ.get("XE_DB_USER", "SANG"),
+                       password=os.environ["XE_DB_PASSWORD"],  # 커밋 금지: set XE_DB_PASSWORD=1234
+                       dsn="localhost:1521/XEPDB1")
 cur = con.cursor()
 
 # FK 잠깐 끄기 (적재 순서/고아행 대비)

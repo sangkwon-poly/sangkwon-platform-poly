@@ -3,8 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>상권 데이터 관리 · 서울공화국</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <title>상권 데이터 · 서울공화국</title>
   <link rel="stylesheet" href="/css/common.css">
   <link rel="stylesheet" href="/css/admin/shell.css">
   <link rel="stylesheet" href="/css/admin/trdar-admin.css">
@@ -13,9 +12,8 @@
 
   <div class="admin">
 
-    <!-- 좌측 사이드바 -->
     <aside class="admin-side" aria-label="관리자 메뉴">
-      <a class="admin-brand" href="/admin/">
+      <a class="admin-brand" href="/admin">
         <span class="brand-mark" aria-hidden="true">서</span>
         <span class="admin-brand-text">
           <span class="admin-brand-name">서울공화국</span>
@@ -23,160 +21,83 @@
         </span>
       </a>
       <nav class="admin-nav" aria-label="관리자 내비게이션">
-        <a href="/admin/">개요</a>
-        <a href="/admin/batch.html">데이터 적재</a>
-        <a href="/admin/trdar-admin.html" aria-current="page">상권 데이터</a>
-        <a href="/admin/user-admin.html">사용자 관리</a>
+        <a href="/admin">개요</a>
+        <a href="/admin/batch">데이터 적재</a>
+        <a href="/admin/trdar-admin" aria-current="page">상권 데이터</a>
+        <a href="/admin/user-admin">관리자 계정</a>
         <hr class="admin-nav-sep">
         <span class="admin-nav-out">
-          <a href="/map/">지도로 이동</a>
+          <a href="/map">지도로 이동</a>
           <a href="/">랜딩으로</a>
         </span>
       </nav>
       <div class="admin-user">
-        <span class="admin-user-avatar" aria-hidden="true">이</span>
+        <span class="admin-user-avatar" aria-hidden="true">·</span>
         <span>
-          <span class="admin-user-name">이상혁</span>
-          <span class="admin-user-role">PM</span>
+          <span class="admin-user-name">—</span>
+          <span class="admin-user-role">—</span>
         </span>
       </div>
     </aside>
 
-    <!-- 본문 -->
     <div class="admin-main">
       <header class="admin-topbar">
-        <h1>상권 데이터 관리</h1>
-        <span class="admin-topbar-meta">GeoJSON · EPSG:5181 → WGS84</span>
+        <h1>상권 데이터</h1>
+        <span class="admin-topbar-meta" id="trd-meta">서울시 상권</span>
       </header>
 
-      <div class="trd-body">
+      <main class="admin-content" aria-label="상권 데이터">
 
-        <!-- 좌: 자치구 목록 표 -->
-        <main class="trd-list" aria-label="자치구별 상권 데이터">
-          <div class="data-table-wrap">
-            <div class="table-scroll">
-              <table class="data-table trd-table">
-                <thead>
-                  <tr>
-                    <th scope="col">행정코드</th>
-                    <th scope="col">자치구</th>
-                    <th scope="col" class="col-num">상권 수</th>
-                    <th scope="col" class="col-center">검수 상태</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="mono trd-code">11680</td>
-                    <td>
-                      <span class="trd-gu">
-                        <span class="trd-swatch" style="background:#822c1d" aria-hidden="true"></span>
-                        <span class="trd-gu-name">강남구</span>
-                      </span>
-                    </td>
-                    <td class="col-num">98</td>
-                    <td class="col-center"><span class="trd-state trd-done">검수완료</span></td>
-                  </tr>
-                  <tr>
-                    <td class="mono trd-code">11650</td>
-                    <td>
-                      <span class="trd-gu">
-                        <span class="trd-swatch" style="background:#a03c29" aria-hidden="true"></span>
-                        <span class="trd-gu-name">서초구</span>
-                      </span>
-                    </td>
-                    <td class="col-num">84</td>
-                    <td class="col-center"><span class="trd-state trd-done">검수완료</span></td>
-                  </tr>
-                  <tr>
-                    <td class="mono trd-code">11440</td>
-                    <td>
-                      <span class="trd-gu">
-                        <span class="trd-swatch" style="background:#ad4833" aria-hidden="true"></span>
-                        <span class="trd-gu-name">마포구</span>
-                      </span>
-                    </td>
-                    <td class="col-num">76</td>
-                    <td class="col-center"><span class="trd-state trd-review">검토중</span></td>
-                  </tr>
-                  <tr>
-                    <td class="mono trd-code">11200</td>
-                    <td>
-                      <span class="trd-gu">
-                        <span class="trd-swatch" style="background:#bf644c" aria-hidden="true"></span>
-                        <span class="trd-gu-name">성동구</span>
-                      </span>
-                    </td>
-                    <td class="col-num">61</td>
-                    <td class="col-center"><span class="trd-state trd-review">검토중</span></td>
-                  </tr>
-                  <tr>
-                    <td class="mono trd-code">11110</td>
-                    <td>
-                      <span class="trd-gu">
-                        <span class="trd-swatch" style="background:#c36b53" aria-hidden="true"></span>
-                        <span class="trd-gu-name">종로구</span>
-                      </span>
-                    </td>
-                    <td class="col-num">58</td>
-                    <td class="col-center"><span class="trd-state trd-fix">수정필요</span></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+        <div class="trd-controls">
+          <label class="trd-ctrl">
+            <span>분기</span>
+            <select id="trd-quarter"></select>
+          </label>
+          <label class="trd-ctrl">
+            <span>자치구</span>
+            <select id="trd-gu"><option value="">전체</option></select>
+          </label>
+          <div class="trd-search" role="search">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <line x1="21" y1="21" x2="16.5" y2="16.5"></line>
+            </svg>
+            <input type="search" id="trd-keyword" placeholder="상권명·자치구 검색" autocomplete="off">
           </div>
-        </main>
+          <span class="trd-count" id="trd-count"></span>
+        </div>
 
-        <!-- 우: 상세 (폴리곤 미리보기 · 매핑 정보) -->
-        <aside class="trd-detail" aria-label="선택 자치구 상세">
-          <section class="trd-preview">
-            <h2 class="trd-detail-title">폴리곤 미리보기 · 강남구</h2>
-            <div class="trd-preview-box">
-              <div class="trd-grid" aria-hidden="true">
-                <span style="background:#e0a58f"></span><span style="background:#c36b53"></span><span style="background:#842d1e"></span><span style="background:#ebc6b6"></span>
-                <span style="background:#b95b44"></span><span style="background:#e9bead"></span><span style="background:#dd9d86"></span><span style="background:#ebc6b6"></span>
-                <span style="background:#842d1e"></span><span style="background:#b85942"></span><span style="background:#f2dbd1"></span><span style="background:#b95b44"></span>
-                <span style="background:#e7b9a7"></span><span style="background:#e9c1b0"></span><span style="background:#f2dbd1"></span><span style="background:#c8755d"></span>
-                <span style="background:#89301f"></span><span style="background:#973825"></span><span style="background:#a23e29"></span><span style="background:#e9c1b0"></span>
-                <span style="background:#ebc6b6"></span><span style="background:#af4c36"></span><span style="background:#842d1e"></span><span style="background:#ac4731"></span>
-                <span style="background:#ae4a35"></span><span style="background:#f4e4dc"></span><span style="background:#993926"></span><span style="background:#f3dfd5"></span>
-                <span style="background:#aa452f"></span><span style="background:#e0a58f"></span><span style="background:#e2ac98"></span><span style="background:#be624b"></span>
-                <span style="background:#f6ebe5"></span><span style="background:#f6eae3"></span><span style="background:#b04e38"></span><span style="background:#8d3221"></span>
-                <span style="background:#efd2c5"></span><span style="background:#d48c74"></span><span style="background:#8b3120"></span><span style="background:#b3523b"></span>
-              </div>
-            </div>
-          </section>
+        <section class="stat-grid trd-stats" aria-label="상권 요약">
+          <article class="stat-card"><div class="stat-card-label">상권 수</div><div class="stat-card-value" id="trd-stat-count">—</div></article>
+          <article class="stat-card"><div class="stat-card-label">총 추정매출</div><div class="stat-card-value" id="trd-stat-sales">—</div></article>
+          <article class="stat-card"><div class="stat-card-label">총 점포 수</div><div class="stat-card-value" id="trd-stat-store">—</div></article>
+        </section>
 
-          <section class="trd-mapping">
-            <h2 class="trd-detail-title">매핑 정보</h2>
-            <dl class="trd-info">
-              <div class="trd-info-row">
-                <dt>행정코드</dt>
-                <dd class="mono">11680</dd>
-              </div>
-              <div class="trd-info-row">
-                <dt>상권 수</dt>
-                <dd>98개</dd>
-              </div>
-              <div class="trd-info-row">
-                <dt>좌표계</dt>
-                <dd class="mono">EPSG:5181</dd>
-              </div>
-              <div class="trd-info-row trd-info-last">
-                <dt>최종 검수</dt>
-                <dd class="trd-done-text">완료 · 07-02</dd>
-              </div>
-            </dl>
-          </section>
-
-          <div class="trd-actions">
-            <button type="button" class="btn btn-primary trd-btn-edit">매핑 편집</button>
-            <button type="button" class="btn btn-ghost trd-btn-recheck">재검수</button>
+        <section class="data-table-wrap" aria-label="상권 목록 표">
+          <div class="table-scroll">
+            <table class="data-table trd-table">
+              <thead>
+                <tr>
+                  <th scope="col">상권명</th>
+                  <th scope="col">자치구</th>
+                  <th scope="col" class="col-center">상권 변화</th>
+                  <th scope="col" class="col-num trd-sort" data-sort="salesAmt" aria-sort="descending">추정매출<span class="trd-arrow">▾</span></th>
+                  <th scope="col" class="col-num trd-sort" data-sort="flpop">유동인구<span class="trd-arrow">▾</span></th>
+                  <th scope="col" class="col-num trd-sort" data-sort="storeCnt">점포 수<span class="trd-arrow">▾</span></th>
+                </tr>
+              </thead>
+              <tbody id="trd-tbody">
+                <tr><td colspan="6" class="trd-empty">불러오는 중…</td></tr>
+              </tbody>
+            </table>
           </div>
-        </aside>
-
-      </div>
+        </section>
+        <p class="trd-note" id="trd-note" hidden></p>
+      </main>
     </div>
   </div>
 
+  <script src="/admin/js/admin-shell.js"></script>
+  <script src="/admin/js/trdar-admin.js"></script>
 </body>
 </html>

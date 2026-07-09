@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>감사 로그 · 서울공화국</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/admin/shell.css">
+  <link rel="stylesheet" href="/admin/css/ops.css">
+</head>
+<body>
+
+  <div class="admin">
+
+    <aside class="admin-side" aria-label="관리자 메뉴">
+      <a class="admin-brand" href="/admin">
+        <span class="brand-mark" aria-hidden="true">서</span>
+        <span class="admin-brand-text">
+          <span class="admin-brand-name">서울공화국</span>
+          <span class="admin-brand-sub">관리자 콘솔</span>
+        </span>
+      </a>
+      <nav class="admin-nav" aria-label="관리자 내비게이션">
+        <a href="/admin">개요</a>
+        <a href="/admin/batch">데이터 적재</a>
+        <a href="/admin/trdar-admin">상권 데이터</a>
+        <a href="/admin/user-admin">관리자 계정</a>
+        <hr class="admin-nav-sep">
+        <span class="admin-nav-out">
+          <a href="/map">지도로 이동</a>
+          <a href="/">랜딩으로</a>
+        </span>
+      </nav>
+      <div class="admin-user">
+        <span class="admin-user-avatar" aria-hidden="true">·</span>
+        <span>
+          <span class="admin-user-name">—</span>
+          <span class="admin-user-role">—</span>
+        </span>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <header class="admin-topbar">
+        <h1>감사 로그</h1>
+        <span class="admin-topbar-meta">관리자 행위 기록</span>
+      </header>
+
+      <main class="admin-content" aria-label="관리자 감사 로그">
+        <div class="ops-toolbar">
+          <label class="ops-field">
+            <span class="sr-only">행위 필터</span>
+            <select id="ag-action" class="ops-select" aria-label="행위 필터">
+              <option value="">전체 행위</option>
+              <option value="LOGIN">로그인</option>
+              <option value="LOGIN_FAILED">로그인 실패</option>
+              <option value="LOGOUT">로그아웃</option>
+              <option value="ACCOUNT_LOCKED">계정 잠금</option>
+              <option value="ADMIN_CREATE">관리자 생성</option>
+              <option value="ADMIN_ROLE_UPDATE">역할 변경</option>
+              <option value="ADMIN_STATUS_UPDATE">관리자 상태 변경</option>
+              <option value="MEMBER_STATUS_UPDATE">회원 상태 변경</option>
+              <option value="PASSWORD_RESET">비밀번호 재설정</option>
+              <option value="OTP_ENABLE">2단계 인증 켬</option>
+              <option value="OTP_DISABLE">2단계 인증 끔</option>
+            </select>
+          </label>
+        </div>
+        <section class="data-table-wrap">
+          <div class="table-scroll">
+            <table class="data-table audit-table">
+              <thead>
+                <tr>
+                  <th scope="col">시각</th>
+                  <th scope="col">관리자</th>
+                  <th scope="col">행위</th>
+                  <th scope="col">대상</th>
+                  <th scope="col">상세</th>
+                  <th scope="col">IP</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td colspan="6" class="ops-empty">불러오는 중…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+        <div class="ops-pager" id="ag-pager" hidden>
+          <button type="button" class="ops-page-btn" id="ag-prev">이전</button>
+          <span class="ops-page-info" id="ag-page-info"></span>
+          <button type="button" class="ops-page-btn" id="ag-next">다음</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/admin/js/admin-shell.js"></script>
+  <script src="/admin/js/audit-log.js"></script>
+</body>
+</html>

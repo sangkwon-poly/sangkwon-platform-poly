@@ -15,6 +15,7 @@ public interface FranchiseBrandRepository extends JpaRepository<FranchiseBrand, 
             where (:brandNm is null or e.brandNm like concat('%', :brandNm, '%'))
               and (:indutyLclasNm is null or e.indutyLclasNm = :indutyLclasNm)
             order by e.brandNm, e.brandMgmtNo
+            fetch first 20000 rows only
             """)
     List<FranchiseBrand> search(@Param("brandNm") String brandNm,
                                 @Param("indutyLclasNm") String indutyLclasNm);

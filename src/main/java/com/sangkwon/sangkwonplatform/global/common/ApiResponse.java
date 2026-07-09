@@ -10,4 +10,9 @@ public record ApiResponse<T>(
     public static <T> ApiResponse<T> ok(T data) {
         return new ApiResponse<>(true, "OK", null, data);
     }
+
+    // 실패 응답도 같은 봉투로 내려 code/message가 의미를 갖도록 한다 (GlobalExceptionHandler에서 사용)
+    public static <T> ApiResponse<T> error(String code, String message) {
+        return new ApiResponse<>(false, code, message, null);
+    }
 }

@@ -122,3 +122,4 @@ button { font-family: inherit; cursor: pointer; }
 .badge-warn { color: var(--warn); background: var(--warn-bg); }
 .badge-danger { color: var(--danger); background: var(--danger-bg); }
 .badge-info { color: var(--info); background: var(--info-bg); }
+.badge-muted { color: var(--muted); background: var(--line-soft); }

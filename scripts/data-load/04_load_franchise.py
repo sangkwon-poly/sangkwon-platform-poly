@@ -50,7 +50,9 @@ def numf(v):
     try: return float(v)
     except (ValueError, TypeError): return None
 
-con = oracledb.connect(user="SANG", password="1234", dsn="localhost:1521/XEPDB1")
+con = oracledb.connect(user=os.environ.get("XE_DB_USER", "SANG"),
+                       password=os.environ["XE_DB_PASSWORD"],  # 커밋 금지: set XE_DB_PASSWORD=1234
+                       dsn="localhost:1521/XEPDB1")
 cur = con.cursor()
 
 # 1) 브랜드목록 (2023 스냅샷) -> FRANCHISE_BRAND

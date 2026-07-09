@@ -234,18 +234,18 @@ async function load() {
     }
 
     // 비교 담기
-    const cmpBtn = document.querySelector('a.detail-btn[href="/map/compare.html"]');
+    const cmpBtn = document.querySelector('a.detail-btn[href="/map/compare"]');
     if (cmpBtn) {
         cmpBtn.addEventListener("click", (e) => {
             e.preventDefault();
             cmpAdd(trdarCd);
-            location.href = "/map/compare.html";
+            location.href = "/map/compare";
         });
     }
     // 리포트로 상권 전달
     const reportBtn = document.querySelector(".detail-btn-primary");
     if (reportBtn) {
-        reportBtn.href = "/map/report.html?trdarCd=" + trdarCd;
+        reportBtn.href = "/map/report?trdarCd=" + trdarCd;
     }
 
     // 하나가 실패해도 나머지 지표는 채운다
@@ -319,7 +319,7 @@ async function load() {
         renderSalesParts(indutySel.value);
         // 선택 업종을 리포트 링크에 실어 업종 보고서로 연결한다
         if (reportBtn) {
-            reportBtn.href = "/map/report.html?trdarCd=" + trdarCd +
+            reportBtn.href = "/map/report?trdarCd=" + trdarCd +
                 (indutySel.value ? "&indutyCd=" + indutySel.value : "");
         }
     });
