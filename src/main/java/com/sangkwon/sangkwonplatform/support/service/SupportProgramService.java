@@ -96,7 +96,7 @@ public class SupportProgramService {
                 p.getSourceCd(), p.getProgramId(), p.getTitle(), tab.name(), tab.label(),
                 p.getRegion(), p.getTarget(), p.getDescription(),
                 p.getApplyBgngDe(), p.getApplyEndDe(), p.getApplyPeriodRaw(),
-                SupportStatus.of(p.getApplyBgngDe(), p.getApplyEndDe(), p.getApplyPeriodRaw(), today),
+                SupportStatus.of(p.getApplyBgngDe(), p.getApplyEndDe(), p.getApplyPeriodRaw(), p.getRecruitYn(), today),
                 SupportStatus.dday(p.getApplyEndDe(), today), p.getContact(), p.getDetailUrl(), kstartup);
     }
 
@@ -107,7 +107,7 @@ public class SupportProgramService {
         return new SupportProgramCardResponse(
                 r.getSourceCd(), r.getProgramId(), r.getTitle(), tab.name(), tab.label(),
                 r.getOrg(), r.getRegion(), bgn, end, r.getApplyPeriodRaw(),
-                SupportStatus.of(bgn, end, r.getApplyPeriodRaw(), today),
+                SupportStatus.of(bgn, end, r.getApplyPeriodRaw(), r.getRecruitYn(), today),
                 SupportStatus.dday(end, today), r.getDetailUrl());
     }
 

@@ -36,11 +36,12 @@ public class AdminSupportController {
                                                       @RequestParam(required = false) String visibility,
                                                       @RequestParam(required = false) String source,
                                                       @RequestParam(required = false) String type,
+                                                      @RequestParam(required = false) String status,
                                                       @RequestParam(required = false) String keyword,
                                                       @RequestParam(defaultValue = "0") int page,
                                                       @RequestParam(defaultValue = "20") int size) {
         requireSuperAdmin(admin);
-        return ApiResponse.ok(adminSupportService.search(visibility, source, type, keyword, page, size));
+        return ApiResponse.ok(adminSupportService.search(visibility, source, type, status, keyword, page, size));
     }
 
     @GetMapping("/counts")

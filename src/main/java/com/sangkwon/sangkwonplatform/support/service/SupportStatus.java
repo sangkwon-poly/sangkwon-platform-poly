@@ -12,17 +12,25 @@ public final class SupportStatus {
     private SupportStatus() {
     }
 
-    public static String of(LocalDate bgn, LocalDate end, String periodRaw, LocalDate today) {
-        if (end == null) {
-            return periodRaw != null ? "ALWAYS" : "RECRUITING";
+    public static String of(LocalDate bgn, LocalDate end, String periodRaw, String recruitYn, LocalDate today) {
+        if (end != null) {
+            if (bgn != null && bgn.isAfter(today)) {
+                return "UPCOMING";
+            }
+            if (end.isBefore(today)) {
+                return "CLOSED";
+            }
+            return ChronoUnit.DAYS.between(today, end) <= CLOSING_DAYS ? "CLOSING" : "RECRUITING";
         }
-        if (bgn != null && bgn.isAfter(today)) {
-            return "UPCOMING";
+        // 마감일이 없으면 모집 플래그(K-Startup)나 상시 원문(기업마당)으로 판단한다.
+        // 둘 다 없는 오래된 공고는 마감으로 본다(마감일 null이라고 진행중이 아니다).
+        if ("Y".equals(recruitYn)) {
+            return "RECRUITING";
         }
-        if (end.isBefore(today)) {
-            return "CLOSED";
+        if (periodRaw != null) {
+            return "ALWAYS";
         }
-        return ChronoUnit.DAYS.between(today, end) <= CLOSING_DAYS ? "CLOSING" : "RECRUITING";
+        return "CLOSED";
     }
 
     public static Integer dday(LocalDate end, LocalDate today) {

@@ -32,11 +32,12 @@ public class AdminSupportService {
     private final SupportProgramRepository programRepository;
 
     @Transactional(readOnly = true)
-    public AdminSupportPageResponse search(String visibility, String source, String type, String keyword,
-                                           int page, int size) {
+    public AdminSupportPageResponse search(String visibility, String source, String type, String status,
+                                           String keyword, int page, int size) {
         LocalDate today = LocalDate.now();
         String vis = oneOf(visibility, "Y", "N");
         String src = oneOf(source, "BIZINFO", "KSTARTUP");
+        String stat = oneOf(status, "OPEN", "CLOSED", "CLOSING");
         String qLike = like(keyword);
 
         SupportProgramTypeTab tab = SupportProgramTypeTab.fromCode(type);
@@ -47,7 +48,7 @@ public class AdminSupportService {
         int safeSize = Math.min(Math.max(size, 1), MAX_SIZE);
         PageRequest pageable = PageRequest.of(Math.max(page, 0), safeSize);
 
-        Page<AdminSupportListRow> rows = programRepository.adminSearch(vis, src, typeMode, typeRaws, qLike, pageable);
+        Page<AdminSupportListRow> rows = programRepository.adminSearch(vis, src, typeMode, typeRaws, qLike, stat, today, pageable);
         List<AdminSupportCardResponse> content = rows.getContent().stream()
                 .map(r -> toCard(r, today))
                 .toList();
@@ -57,7 +58,7 @@ public class AdminSupportService {
 
     @Transactional(readOnly = true)
     public AdminSupportCountsResponse counts() {
-        return AdminSupportCountsResponse.from(programRepository.adminCounts());
+        return AdminSupportCountsResponse.from(programRepository.adminCounts(LocalDate.now()));
     }
 
     public void setVisibility(String sourceCd, String programId, boolean visible) {
@@ -73,7 +74,7 @@ public class AdminSupportService {
         return new AdminSupportCardResponse(
                 r.getSourceCd(), r.getProgramId(), r.getTitle(), tab.label(), r.getRegion(),
                 bgn, end, r.getApplyPeriodRaw(),
-                SupportStatus.of(bgn, end, r.getApplyPeriodRaw(), today),
+                SupportStatus.of(bgn, end, r.getApplyPeriodRaw(), r.getRecruitYn(), today),
                 SupportStatus.dday(end, today),
                 "Y".equals(r.getIsVisible()), r.getDetailUrl());
     }

@@ -13,6 +13,7 @@
 .sa-stat-value { font-size: 22px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
 .sa-stat-value.sa-ok { color: var(--ok); }
 .sa-stat-value.sa-muted { color: var(--faint); }
+.sa-stat-accent { box-shadow: inset 3px 0 0 var(--ok); }
 
 /* 작업 결과 안내 */
 .sa-flash {
@@ -57,6 +58,15 @@ a.sa-title:hover { color: var(--brand); text-decoration: underline; }
 .sa-muted { font-size: 12px; color: var(--faint); }
 .sa-period { font-size: 11px; color: var(--faint); margin-top: 4px; }
 .sa-hidden-row td { opacity: .55; }
+
+/* 상태 셀: 배지 + D데이 */
+.sa-status { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.sa-dday { font-size: 10.5px; font-weight: 800; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sa-dday-danger { color: var(--danger); }
+
+/* 마감 행: 제목·유형을 눌러 진행중과 시각적으로 구분 */
+.sa-closed-row .sa-title { color: var(--muted); font-weight: 500; }
+.sa-closed-row .sa-type { color: var(--faint); }
 .sa-table .badge { gap: 6px; font-size: 11px; padding: 4px 10px; white-space: nowrap; }
 .sa-table .dot { width: 6px; height: 6px; }
 .badge-muted { color: var(--faint); background: var(--surface); }

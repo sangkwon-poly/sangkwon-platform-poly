@@ -4,12 +4,15 @@ import com.sangkwon.sangkwonplatform.support.repository.SupportProgramRepository
 
 public record AdminSupportCountsResponse(
         long total,
+        long open,
+        long closed,
         long visible,
         long hidden,
         long bizinfo,
         long kstartup
 ) {
     public static AdminSupportCountsResponse from(AdminSupportCounts c) {
-        return new AdminSupportCountsResponse(c.getTotal(), c.getVisible(), c.getHidden(), c.getBizinfo(), c.getKstartup());
+        return new AdminSupportCountsResponse(c.getTotal(), c.getOpen(), c.getClosed(),
+                c.getVisible(), c.getHidden(), c.getBizinfo(), c.getKstartup());
     }
 }

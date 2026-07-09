@@ -46,10 +46,10 @@ class AdminSupportServiceTest {
         when(row.getProgramType()).thenReturn("사업화");
         when(row.getApplyEndDe()).thenReturn(LocalDate.now().plusDays(3).atStartOfDay());
         when(row.getIsVisible()).thenReturn("N");
-        when(programRepository.adminSearch(any(), any(), anyInt(), any(), any(), any()))
+        when(programRepository.adminSearch(any(), any(), anyInt(), any(), any(), any(), any(), any()))
                 .thenReturn(new PageImpl<>(List.of(row), PageRequest.of(0, 20), 1));
 
-        AdminSupportPageResponse res = adminSupportService.search(null, null, null, null, 0, 20);
+        AdminSupportPageResponse res = adminSupportService.search(null, null, null, null, null, 0, 20);
 
         assertThat(res.content()).hasSize(1);
         AdminSupportCardResponse card = res.content().get(0);
@@ -67,7 +67,7 @@ class AdminSupportServiceTest {
         when(counts.getHidden()).thenReturn(10L);
         when(counts.getBizinfo()).thenReturn(5L);
         when(counts.getKstartup()).thenReturn(95L);
-        when(programRepository.adminCounts()).thenReturn(counts);
+        when(programRepository.adminCounts(any())).thenReturn(counts);
 
         AdminSupportCountsResponse res = adminSupportService.counts();
 
