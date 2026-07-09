@@ -71,4 +71,9 @@ public class SupportProgram extends BaseEntity {
 
     @Column(name = "SOURCE_REG_DT")
     private LocalDateTime sourceRegDt;
+
+    // 관리자 노출/숨김 전환. 배치는 이 값을 건드리지 않으므로 노출 통제는 이 메서드로만 한다
+    public void updateVisible(boolean visible) {
+        this.isVisible = visible ? "Y" : "N";
+    }
 }

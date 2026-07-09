@@ -152,6 +152,56 @@ public interface SupportProgramRepository extends JpaRepository<SupportProgram, 
                                 @Param("recruitingOnly") int recruitingOnly,
                                 @Param("today") LocalDate today);
 
+    // 관리자용 목록: 숨김(IS_VISIBLE='N') 포함 전체. 노출여부/출처/유형/제목 필터.
+    @Query(value = """
+            select p.source_cd       as "sourceCd",
+                   p.program_id      as "programId",
+                   p.title           as "title",
+                   p.program_type    as "programType",
+                   p.region          as "region",
+                   p.apply_bgng_de   as "applyBgngDe",
+                   p.apply_end_de    as "applyEndDe",
+                   p.apply_period_raw as "applyPeriodRaw",
+                   p.recruit_yn      as "recruitYn",
+                   p.is_visible      as "isVisible",
+                   p.detail_url      as "detailUrl"
+            from support_program p
+            where (:visibility is null or p.is_visible = :visibility)
+              and (:source is null or p.source_cd = :source)
+              and (:typeMode = 0
+                   or (:typeMode = 1 and p.program_type in (:typeRaws))
+                   or (:typeMode = 2 and (p.program_type is null or p.program_type not in (:typeRaws))))
+              and (:qLike is null or lower(p.title) like :qLike)
+            order by case when p.apply_end_de is null then 1 else 0 end, p.apply_end_de, p.program_id
+            """,
+            countQuery = """
+            select count(*)
+            from support_program p
+            where (:visibility is null or p.is_visible = :visibility)
+              and (:source is null or p.source_cd = :source)
+              and (:typeMode = 0
+                   or (:typeMode = 1 and p.program_type in (:typeRaws))
+                   or (:typeMode = 2 and (p.program_type is null or p.program_type not in (:typeRaws))))
+              and (:qLike is null or lower(p.title) like :qLike)
+            """, nativeQuery = true)
+    Page<AdminSupportListRow> adminSearch(@Param("visibility") String visibility,
+                                          @Param("source") String source,
+                                          @Param("typeMode") int typeMode,
+                                          @Param("typeRaws") List<String> typeRaws,
+                                          @Param("qLike") String qLike,
+                                          Pageable pageable);
+
+    // 관리자 요약: 전체·노출·숨김·출처별
+    @Query(value = """
+            select count(*) as "total",
+                   sum(case when is_visible = 'Y' then 1 else 0 end) as "visible",
+                   sum(case when is_visible = 'N' then 1 else 0 end) as "hidden",
+                   sum(case when source_cd = 'BIZINFO' then 1 else 0 end) as "bizinfo",
+                   sum(case when source_cd = 'KSTARTUP' then 1 else 0 end) as "kstartup"
+            from support_program
+            """, nativeQuery = true)
+    AdminSupportCounts adminCounts();
+
     // 목록 카드용 투영
     interface SupportProgramListRow {
         String getSourceCd();
@@ -182,5 +232,41 @@ public interface SupportProgramRepository extends JpaRepository<SupportProgram, 
         String getProgramType();
 
         long getCnt();
+    }
+
+    interface AdminSupportListRow {
+        String getSourceCd();
+
+        String getProgramId();
+
+        String getTitle();
+
+        String getProgramType();
+
+        String getRegion();
+
+        LocalDateTime getApplyBgngDe();
+
+        LocalDateTime getApplyEndDe();
+
+        String getApplyPeriodRaw();
+
+        String getRecruitYn();
+
+        String getIsVisible();
+
+        String getDetailUrl();
+    }
+
+    interface AdminSupportCounts {
+        long getTotal();
+
+        long getVisible();
+
+        long getHidden();
+
+        long getBizinfo();
+
+        long getKstartup();
     }
 }
