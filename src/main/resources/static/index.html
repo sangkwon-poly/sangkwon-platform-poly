@@ -63,7 +63,7 @@
         </p>
         <div class="hero-cta">
           <a class="btn btn-primary btn-lg" href="/signup" id="heroCta">무료로 시작하기 →</a>
-          <a class="btn btn-ghost btn-lg" href="/map">데모 보기</a>
+          <a class="btn btn-ghost btn-lg" href="/map" id="demoBtn">데모 보기</a>
         </div>
         <ul class="hero-trust">
           <li>✓ 신용카드 없이 시작</li>
@@ -368,6 +368,10 @@
               if (!me) return; // 비로그인 상태면 기존 /signup 유지
               cta.href = '/map';
               cta.textContent = '지도 보러가기 →';
+
+              /*if (demoBtn) {
+                demoBtn.classList.add('is-hidden');
+              }*/
             })
             .catch(function () {});
   })();

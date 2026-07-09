@@ -115,7 +115,7 @@
   grid-template-columns: 1.02fr .98fr;
   gap: 40px;
   align-items: center;
-  padding: 240px 24px 240px;
+  padding: 210px 24px 230px;
 }
 .eyebrow {
   display: inline-flex; align-items: center; gap: 7px;
