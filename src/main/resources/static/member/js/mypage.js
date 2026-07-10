@@ -176,14 +176,15 @@
     var start = searchPage * SEARCH_PAGE_SIZE;
 
     var items = searchLogs.slice(start, start + SEARCH_PAGE_SIZE).map(function (log) {
-      return '<div class="fav-item">' +
+      return '<div class="fav-item" data-kw="' + esc(log.keyword) + '" role="link" tabindex="0" ' +
+          'aria-label="' + esc(log.keyword) + ' 검색 결과 보기">' +
         '<span class="fav-item__avatar" aria-hidden="true">' + searchIcon() + '</span>' +
         '<div class="fav-item__body">' +
           '<span class="fav-item__name">' + esc(log.keyword) + '</span>' +
           '<span class="fav-item__meta">' + esc(fmt(log.searchedAt)) + '</span>' +
         '</div>' +
         '<div class="fav-item__actions">' +
-          '<button type="button" class="btn btn--danger btn--sm" data-action="del-search" data-kw="' + esc(log.keyword) + '" ' +
+          '<button type="button" class="btn btn--danger btn--sm" data-action="del-search" ' +
             'aria-label="' + esc(log.keyword) + ' 삭제">삭제</button>' +
         '</div>' +
       '</div>';
@@ -213,9 +214,19 @@
 
   function bindSearchEvents() {
     var body = $('search-body');
-    Array.prototype.forEach.call(body.querySelectorAll('[data-action="del-search"]'), function (btn) {
-      btn.addEventListener('click', function () {
-        onDeleteSearch(btn.getAttribute('data-kw'), btn);
+    Array.prototype.forEach.call(body.querySelectorAll('.fav-item'), function (card) {
+      var kw = card.getAttribute('data-kw');
+      var goSearch = function () { location.href = '/map/search?q=' + encodeURIComponent(kw); };
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', goSearch);
+      card.addEventListener('keydown', function (e) {
+        if (e.target !== card) return; // 삭제 버튼 등 내부 요소의 키 입력은 제외
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goSearch(); }
+      });
+      var del = card.querySelector('[data-action="del-search"]');
+      del.addEventListener('click', function (e) {
+        e.stopPropagation();
+        onDeleteSearch(kw, del);
       });
     });
     var clear = body.querySelector('[data-action="clear-search"]');
