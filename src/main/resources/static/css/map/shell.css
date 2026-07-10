@@ -28,8 +28,9 @@
 .app-brand {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 4px;
   flex: 0 0 auto;
+  font-size: 16px;
 }
 .app-brand-mark {
   width: 32px;
@@ -48,13 +49,6 @@
 .app-brand-name { font-weight: 800; font-size: 15px; letter-spacing: -.01em; }
 .app-brand-sub { font-size: 9.5px; color: rgba(255, 255, 255, .68); letter-spacing: .02em; }
 .app-header .brand-name-kok { color: #fff; }
-.app-header .brand-mark-tag {
-  background: #3f3a37;
-  color: #fff;
-}
-.app-header .brand-mark-tag::after {
-  border-top-color: #3f3a37;
-}
 
 /* 헤더 검색창 */
 .app-search-wrap {

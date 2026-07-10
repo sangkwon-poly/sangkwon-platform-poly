@@ -19,11 +19,12 @@
   padding: 18px 14px;
 }
 .admin-brand {
-  display: flex; align-items: center; gap: 9px;
+  display: flex; align-items: center; gap: 4px;
   padding: 6px 8px 22px;
+  font-size: 15px;
 }
 .admin-brand .brand-mark { width: 30px; height: 30px; }
-.admin-brand .brand-name-kok { color: #fff; font-size: 13.5px; }
+.admin-brand .brand-name-kok { color: #fff; }
 .admin-brand-text { line-height: 1.2; }
 .admin-brand-name { font-weight: 800; font-size: 13.5px; }
 .admin-brand-sub { font-size: 10px; color: rgba(255,255,255,.5); }

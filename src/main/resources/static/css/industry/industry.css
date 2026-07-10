@@ -32,10 +32,11 @@ body {
 .trend-title-wrap {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 4px;
     font-size: 14px;
     font-weight: 700;
 }
+.trend-title-wrap > span:last-child { margin-left: 8px; }
 
 .trend-header .brand-name-kok { color: #fff; }
 
