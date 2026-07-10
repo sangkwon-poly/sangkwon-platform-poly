@@ -75,6 +75,16 @@
 .paper-mix-bar span { display: block; height: 100%; }
 .paper-mix-pct { width: 26px; text-align: right; font-size: 10px; font-weight: 700; color: #3a322e; }
 
+/* AI 분석 생성 로딩 연출 */
+.ai-loading__cap { font-size: 13px; color: #862f1e; }
+.ai-loading__ell::after { content: ''; animation: ai-ell 1.4s steps(4) infinite; }
+@keyframes ai-ell { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
+.ai-loading__bar { height: 6px; margin: 16px 0 20px; background: #f2ebe6; border-radius: 4px; overflow: hidden; }
+.ai-loading__fill { width: 2%; height: 100%; background: var(--brand); border-radius: 4px; transition: width 9s cubic-bezier(.1, .7, .2, 1); }
+.ai-loading__sk { display: flex; flex-direction: column; gap: 9px; }
+.ai-loading__sk span { height: 11px; background: #f2ebe6; border-radius: 4px; animation: ai-pulse 1.5s ease-in-out infinite; }
+@keyframes ai-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+
 /* 우측 내보내기 옵션 */
 .export-side {
   width: 248px;

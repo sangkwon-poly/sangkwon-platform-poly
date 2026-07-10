@@ -83,6 +83,27 @@ function showAiReport(r) {
         (report.induty ? " · " + report.induty + " 업종" : "");
 }
 
+// AI 분석 생성 중 로딩 연출. 백엔드가 동기라 진행률이 없어 단계 문구·스켈레톤으로 진행을 보여준다
+function startAiLoading() {
+    const el = document.getElementById("ai-report");
+    const caps = ["상권 지표 불러오는 중", "매출·유동인구 흐름 분석", "업종 구성·점포 변화 파악", "리포트 작성 중"];
+    el.innerHTML =
+        '<div class="ai-loading__cap"><span id="ai-loading-cap">' + caps[0] + '</span><span class="ai-loading__ell"></span></div>' +
+        '<div class="ai-loading__bar"><div class="ai-loading__fill"></div></div>' +
+        '<div class="ai-loading__sk">' +
+            '<span style="width:97%"></span><span style="width:92%;animation-delay:.15s"></span>' +
+            '<span style="width:99%;animation-delay:.3s"></span><span style="width:56%;animation-delay:.45s"></span>' +
+            '<span style="width:95%;animation-delay:.6s"></span><span style="width:88%;animation-delay:.75s"></span>' +
+            '<span style="width:64%;animation-delay:.9s"></span>' +
+        '</div>';
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    requestAnimationFrame(() => requestAnimationFrame(() =>
+        el.querySelector(".ai-loading__fill").style.width = "92%"));
+    const capEl = document.getElementById("ai-loading-cap");
+    let i = 0;
+    return setInterval(() => { i = (i + 1) % caps.length; capEl.textContent = caps[i]; }, 2200);
+}
+
 function bindAiReport(trdarCd, indutyCd) {
     // 업종 리포트와 상권 전체 리포트는 서버에서 따로 관리한다
     const q = indutyCd ? "?indutyCd=" + indutyCd : "";
@@ -101,6 +122,7 @@ function bindAiReport(trdarCd, indutyCd) {
         staleGet = true;
         btn.disabled = true;
         btn.textContent = "생성 중...";
+        const loadingTimer = startAiLoading();
         try {
             const res = await fetch("/api/llm-reports/" + trdarCd + q, { method: "POST" });
             const body = await res.json();
@@ -113,6 +135,7 @@ function bindAiReport(trdarCd, indutyCd) {
         } catch (e) {
             document.getElementById("ai-report").textContent = "생성에 실패했습니다. 서버 연결을 확인해 주세요.";
         } finally {
+            clearInterval(loadingTimer);
             btn.disabled = false;
             btn.textContent = "AI 분석 생성";
         }
