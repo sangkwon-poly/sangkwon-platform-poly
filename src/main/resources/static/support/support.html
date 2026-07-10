@@ -6,6 +6,8 @@
   <title>지원사업 · 여기콕</title>
   <meta name="description" content="기업마당과 K-Startup 창업 지원사업을 유형·지역·조건으로 한 번에 조회하세요.">
 
+  <meta name="theme-color" content="#a8412c">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
   <link rel="stylesheet" href="/css/common.css">
   <link rel="stylesheet" href="/css/support/support.css">
@@ -13,15 +15,17 @@
 </head>
 <body>
 
+<a class="skip-link" href="#main">본문 바로가기</a>
+
   <header class="site-header">
     <div class="container header-inner">
-      <a class="brand" href="/">
+      <a class="brand" href="/" aria-label="여기콕 홈">
         <span class="brand-mark-tag" aria-hidden="true">여기</span>
         <span class="brand-name-kok">콕</span>
       </a>
 
-      <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
-      <label for="nav-toggle" class="nav-toggle-btn" aria-label="메뉴 열기">
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="주요 메뉴 열기/닫기">
+      <label for="nav-toggle" class="nav-toggle-btn" aria-hidden="true">
         <span></span><span></span><span></span>
       </label>
 
@@ -37,7 +41,7 @@
     </div>
   </header>
 
-  <main class="support-main" aria-label="지원사업 통합 조회">
+  <main id="main" class="support-main" aria-label="지원사업 통합 조회">
     <div class="container support-inner">
 
       <section class="sp-head">

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>지원사업 상세 · 여기콕</title>
 
+  <meta name="theme-color" content="#a8412c">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
   <link rel="stylesheet" href="/css/common.css">
   <link rel="stylesheet" href="/css/support/support.css">
@@ -12,14 +14,16 @@
 </head>
 <body>
 
+<a class="skip-link" href="#main">본문 바로가기</a>
+
   <header class="site-header">
     <div class="container header-inner">
-      <a class="brand" href="/">
+      <a class="brand" href="/" aria-label="여기콕 홈">
         <span class="brand-mark-tag" aria-hidden="true">여기</span>
         <span class="brand-name-kok">콕</span>
       </a>
-      <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
-      <label for="nav-toggle" class="nav-toggle-btn" aria-label="메뉴 열기">
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="주요 메뉴 열기/닫기">
+      <label for="nav-toggle" class="nav-toggle-btn" aria-hidden="true">
         <span></span><span></span><span></span>
       </label>
       <nav class="site-nav" aria-label="주요 메뉴">
@@ -34,7 +38,7 @@
     </div>
   </header>
 
-  <main class="support-main spd-main" aria-label="지원사업 상세">
+  <main id="main" class="support-main spd-main" aria-label="지원사업 상세">
     <div class="container spd-wrap">
       <a class="spd-back" href="/support">지원사업 목록</a>
       <article class="spd-card" id="spd-root">
