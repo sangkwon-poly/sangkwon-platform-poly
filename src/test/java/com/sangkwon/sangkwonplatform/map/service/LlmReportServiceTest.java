@@ -1,5 +1,7 @@
 package com.sangkwon.sangkwonplatform.map.service;
 
+import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
+import com.sangkwon.sangkwonplatform.admin.ops.service.ApiUsageService;
 import com.sangkwon.sangkwonplatform.map.entity.Trdar;
 import com.sangkwon.sangkwonplatform.map.repository.LlmReportRepository;
 import com.sangkwon.sangkwonplatform.map.repository.SalesRepository;
@@ -7,6 +9,7 @@ import com.sangkwon.sangkwonplatform.map.repository.StoreStatRepository;
 import com.sangkwon.sangkwonplatform.map.repository.StreetPopRepository;
 import com.sangkwon.sangkwonplatform.map.repository.TrdarRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -14,11 +17,12 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-// HTTP 호출 이전의 방어 분기(키 없음/상권 없음/업종 없음)를 검증한다. 이 경로들은 Gemini(RestClient)를 건드리지 않는다.
+// HTTP 호출 이전의 방어 분기(키 없음/상권 없음/업종 없음/한도 초과)를 검증한다. 이 경로들은 Gemini(RestClient)를 건드리지 않는다.
 class LlmReportServiceTest {
 
     private final TrdarRepository trdarRepository = mock(TrdarRepository.class);
@@ -26,11 +30,12 @@ class LlmReportServiceTest {
     private final StoreStatRepository storeStatRepository = mock(StoreStatRepository.class);
     private final StreetPopRepository streetPopRepository = mock(StreetPopRepository.class);
     private final LlmReportRepository llmReportRepository = mock(LlmReportRepository.class);
+    private final ApiUsageService apiUsageService = mock(ApiUsageService.class);
     private final RestClient restClient = mock(RestClient.class);
 
     private LlmReportService service(String apiKey) {
         return new LlmReportService(trdarRepository, salesRepository, storeStatRepository,
-                streetPopRepository, llmReportRepository, restClient, apiKey, "gemini-2.5-flash");
+                streetPopRepository, llmReportRepository, apiUsageService, restClient, apiKey, "gemini-2.5-flash");
     }
 
     private static int status(Throwable e) {
@@ -63,6 +68,18 @@ class LlmReportServiceTest {
         assertThatThrownBy(() -> service("test-key").generate("3110001", "CS999999"))
                 .isInstanceOf(ResponseStatusException.class)
                 .satisfies(e -> assertThat(status(e)).isEqualTo(404));
+        verifyNoInteractions(restClient);
+    }
+
+    @Test
+    void 일일_GEMINI_한도를_초과하면_429를_던지고_AI를_호출하지_않는다() {
+        when(trdarRepository.findById("3110001")).thenReturn(Optional.of(mock(Trdar.class)));
+        doThrow(new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "한도 초과"))
+                .when(apiUsageService).reserve(ExternalApi.GEMINI);
+
+        assertThatThrownBy(() -> service("test-key").generate("3110001", null))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(status(e)).isEqualTo(429));
         verifyNoInteractions(restClient);
     }
 }
