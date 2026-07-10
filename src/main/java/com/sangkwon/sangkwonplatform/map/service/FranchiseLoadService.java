@@ -1,5 +1,7 @@
 package com.sangkwon.sangkwonplatform.map.service;
 
+import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
+import com.sangkwon.sangkwonplatform.admin.ops.service.ApiUsageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,7 @@ public class FranchiseLoadService {
     private final RestTemplate rest = new RestTemplate();
     private final ObjectMapper mapper = new ObjectMapper();
     private final JdbcTemplate jt;
+    private final ApiUsageService apiUsageService;
 
     @Value("${datagokr.service-key:}")
     private String datagokrKey;
@@ -39,8 +42,9 @@ public class FranchiseLoadService {
     @Value("${ftc.franchise.service-key:}")
     private String ftcKey;
 
-    public FranchiseLoadService(JdbcTemplate jt) {
+    public FranchiseLoadService(JdbcTemplate jt, ApiUsageService apiUsageService) {
         this.jt = jt;
+        this.apiUsageService = apiUsageService;
     }
 
     @Transactional
@@ -140,6 +144,12 @@ public class FranchiseLoadService {
     private String getText(String url) {
         RuntimeException last = null;
         for (int attempt = 1; attempt <= 4; attempt++) {
+            // 재시도 포함 시도마다 집계한다. 집계 실패가 적재를 막으면 안 되므로 따로 삼킨다.
+            try {
+                apiUsageService.record(ExternalApi.FTC_FRANCHISE);
+            } catch (RuntimeException e) {
+                System.out.println("공정위 가맹사업 API 사용량 집계 실패(적재는 계속 진행): " + e.getMessage());
+            }
             try {
                 return rest.getForObject(URI.create(url), String.class);
             } catch (RuntimeException e) {

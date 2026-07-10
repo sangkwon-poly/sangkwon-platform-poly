@@ -1,5 +1,7 @@
 package com.sangkwon.sangkwonplatform.map.service;
 
+import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
+import com.sangkwon.sangkwonplatform.admin.ops.service.ApiUsageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -37,12 +39,14 @@ public class CommercialRentLoadService {
     private final RestTemplate rest = new RestTemplate();
     private final ObjectMapper mapper = new ObjectMapper();
     private final JdbcTemplate jt;
+    private final ApiUsageService apiUsageService;
 
     @Value("${reb.rone.key:}")
     private String rebKey;
 
-    public CommercialRentLoadService(JdbcTemplate jt) {
+    public CommercialRentLoadService(JdbcTemplate jt, ApiUsageService apiUsageService) {
         this.jt = jt;
+        this.apiUsageService = apiUsageService;
     }
 
     @Transactional
@@ -150,6 +154,12 @@ public class CommercialRentLoadService {
         String url = BASE + "/" + path + "?KEY=" + enc(rebKey) + "&Type=json&" + query;
         RuntimeException last = null;
         for (int attempt = 1; attempt <= 4; attempt++) {
+            // 재시도 포함 시도마다 집계한다. 집계 실패가 적재를 막으면 안 되므로 따로 삼킨다.
+            try {
+                apiUsageService.record(ExternalApi.REB_RONE);
+            } catch (RuntimeException e) {
+                System.out.println("R-ONE 사용량 집계 실패(적재는 계속 진행): " + e.getMessage());
+            }
             try {
                 HttpHeaders headers = new HttpHeaders();
                 headers.set("User-Agent", "Mozilla/5.0");

@@ -5,6 +5,7 @@ import com.sangkwon.sangkwonplatform.admin.ops.repository.ApiUsageLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -29,7 +30,9 @@ public class ApiUsageService {
     }
 
     // 집계만 하고 차단하지 않는다. 배치처럼 외부 429를 스스로 처리하는 호출부용.
-    @Transactional
+    // 호출부 트랜잭션과 분리한다(REQUIRES_NEW): 집계 실패가 적재 트랜잭션을 rollback-only로 오염시키지 않고,
+    // 적재가 롤백돼도 이미 나간 호출의 집계는 남으며, 적재가 긴 트랜잭션이어도 집계 행 잠금을 바로 푼다.
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void record(ExternalApi api) {
         apiUsageLogRepository.increaseTodayCall(api.name(), api.dailyLimit());
     }
