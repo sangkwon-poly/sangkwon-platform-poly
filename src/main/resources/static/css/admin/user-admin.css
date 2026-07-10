@@ -101,3 +101,35 @@
 .ua-btn-primary { background: var(--brand); color: #fff; }
 .ua-btn-primary:hover { background: var(--brand-dark); }
 .ua-btn-primary:disabled { opacity: .6; cursor: default; }
+
+/* 정렬 가능한 헤더 */
+.ua-th-sort {
+  display: inline-flex; align-items: center; gap: 4px;
+  font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer;
+}
+.col-center .ua-th-sort { justify-content: center; }
+.ua-th-sort:hover { color: var(--brand); }
+.ua-th-sort.is-sorted { color: var(--brand); }
+.ua-arrow { font-size: 10px; line-height: 1; }
+
+/* 번호 페이징 */
+.ua-pager { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 16px; }
+.ua-pager[hidden] { display: none; }
+.ua-page-btn {
+  font-size: 12.5px; font-weight: 700; color: var(--text-soft); background: var(--bg);
+  border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 7px 16px; cursor: pointer;
+}
+.ua-page-btn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
+.ua-page-btn:disabled { opacity: .5; cursor: default; }
+.ua-pages { display: flex; align-items: center; gap: 4px; }
+.ua-page-num {
+  min-width: 34px; height: 34px; padding: 0 8px;
+  font-size: 12.5px; font-weight: 700; color: var(--text-soft);
+  background: #fff; border: 1px solid var(--line); border-radius: 9px;
+  cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.ua-page-num:hover { border-color: var(--brand); color: var(--brand); }
+.ua-page-num.is-active, .ua-page-num.is-active:hover {
+  color: #fff; background: var(--brand); border-color: var(--brand); cursor: default;
+}
+.ua-page-gap { padding: 0 4px; color: var(--faint); font-weight: 700; }
