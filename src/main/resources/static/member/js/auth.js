@@ -10,6 +10,13 @@
   'use strict';
 
   document.addEventListener('DOMContentLoaded', function () {
+    // 이미 로그인한 사용자면 폼 대신 홈으로. 판정 전엔 폼을 숨겨 깜빡임을 막는다.
+    var card = document.querySelector('.auth-card');
+    if (card) card.style.visibility = 'hidden';
+    MemberAPI.me()
+      .then(function () { location.replace('/'); })
+      .catch(function () { if (card) card.style.visibility = ''; });
+
     var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab[data-tab]'));
     var panelLogin = document.getElementById('panel-login');
     var panelSignup = document.getElementById('panel-signup');
@@ -19,7 +26,7 @@
     var NICK_RE = /^[가-힣a-zA-Z0-9_-]{2,20}$/;
 
     /* ---------------------------------------------------------------
-     * 로그인 후 복귀 경로 (login?redirect=... 지원), 없으면 찜 목록.
+     * 로그인 후 복귀 경로 (login?redirect=... 지원), 없으면 홈.
      * ------------------------------------------------------------- */
     function redirectTarget() {
       var params = new URLSearchParams(location.search);
@@ -31,7 +38,7 @@
           return safe;
         }
       }
-      return 'favorites';
+      return '/';
     }
 
     /* ---------------------------------------------------------------
