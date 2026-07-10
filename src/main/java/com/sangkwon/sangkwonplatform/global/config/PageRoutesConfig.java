@@ -17,7 +17,7 @@ public class PageRoutesConfig implements WebMvcConfigurer {
             "support-admin", "support-detail"
     };
     private static final String[] MAP_PAGES = { "search", "trdar-detail", "compare", "report", "insight" };
-    private static final String[] MEMBER_PAGES = { "login", "mypage", "favorites" };
+    private static final String[] MEMBER_PAGES = { "login", "mypage", "favorites", "inquiries" };
 
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {

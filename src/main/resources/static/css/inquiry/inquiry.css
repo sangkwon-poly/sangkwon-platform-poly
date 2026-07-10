@@ -132,100 +132,13 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 .iq-login-sub { margin-top: 6px; font-size: 13px; color: var(--muted); }
 .iq-login .btn { margin-top: 18px; height: 44px; padding: 0 24px; font-size: 14px; }
 
-/* 내 문의 내역 */
-.iq-history { margin-top: 36px; }
-.iq-history-title {
-  font-size: 18px; font-weight: 800; color: var(--ink);
-  letter-spacing: -.02em;
-  margin-bottom: 12px;
-}
-.iq-count { font-size: 13px; font-weight: 700; color: var(--brand); margin-left: 4px; }
-.iq-list { display: flex; flex-direction: column; gap: 10px; }
-.iq-item {
-  background: #fff;
-  border: 1px solid var(--card-line);
-  border-radius: 12px;
-  overflow: hidden;
-  transition: border-color .12s ease;
-}
-.iq-item.is-open, .iq-item:hover { border-color: var(--brand); }
-.iq-item-head {
-  width: 100%;
-  display: flex; align-items: center; gap: 12px;
-  padding: 15px 18px;
-  border: 0; background: none;
-  font-family: inherit; text-align: left;
-}
-.iq-item-head .badge { flex: 0 0 auto; }
-.iq-item-title {
-  flex: 1 1 auto; min-width: 0;
-  font-size: 14px; font-weight: 700; color: var(--text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.iq-item-date { flex: 0 0 auto; font-size: 12.5px; color: var(--faint); }
-.iq-item-arrow {
-  flex: 0 0 auto;
-  width: 7px; height: 7px;
-  border-right: 2px solid var(--faint); border-bottom: 2px solid var(--faint);
-  transform: rotate(45deg);
-  transition: transform .15s ease;
-  margin-top: -3px;
-}
-.iq-item.is-open .iq-item-arrow { transform: rotate(-135deg); margin-top: 3px; }
-.iq-item-body { padding: 0 18px 18px; }
-.iq-loading { font-size: 13px; color: var(--muted); padding: 4px 0; }
-.iq-q {
-  font-size: 13.5px; line-height: 1.7; color: var(--text);
-  white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word;
-  background: var(--surface);
-  border: 1px solid var(--line-soft);
-  border-radius: 10px;
-  padding: 14px 16px;
-}
-.iq-answer {
-  margin-top: 10px;
-  background: var(--brand-tint);
-  border: 1px solid #eed8cd;
-  border-radius: 10px;
-  padding: 14px 16px;
-}
-.iq-answer-head {
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-  font-size: 12.5px; font-weight: 800; color: var(--brand-dark);
-}
-.iq-answer-meta { font-weight: 600; color: var(--muted); }
-.iq-answer-body {
-  margin-top: 8px;
-  font-size: 13.5px; line-height: 1.7; color: var(--text);
-  white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word;
-}
-.iq-wait { margin-top: 10px; font-size: 12.5px; color: var(--faint); padding: 0 2px; }
-
-/* 빈 내역 */
-.iq-empty {
-  text-align: center; padding: 40px 20px;
-  background: #fff;
-  border: 1px dashed var(--line);
-  border-radius: 12px;
-}
-.iq-empty-title { font-size: 14px; font-weight: 700; color: var(--text); }
-.iq-empty-sub { margin-top: 5px; font-size: 12.5px; color: var(--muted); }
-
-/* 내역 페이저 */
-.iq-pager {
-  display: flex; justify-content: center; align-items: center; gap: 12px;
+/* 내 문의 내역 보기 링크 (회원 영역의 내 문의 내역으로 이동) */
+.iq-history-link {
+  display: inline-block;
   margin-top: 16px;
+  font-size: 13px; font-weight: 700; color: var(--brand);
 }
-.iq-pager:empty { display: none; }
-.iq-page-btn {
-  height: 34px; padding: 0 16px;
-  border: 1px solid var(--line); background: #fff;
-  border-radius: 9px;
-  font-size: 13px; font-weight: 600; color: var(--text-soft);
-}
-.iq-page-btn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
-.iq-page-btn:disabled { opacity: .45; cursor: default; }
-.iq-page-now { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.iq-history-link:hover { text-decoration: underline; }
 
 /* 푸터 (랜딩과 동일 패턴) */
 .site-footer { border-top: 1px solid var(--line); background: #fff; }
@@ -248,9 +161,6 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
   .inquiry-main { padding: 30px 0 56px; }
   .iq-title { font-size: 24px; }
   .iq-form-card { padding: 22px 18px; }
-  .iq-item-head { flex-wrap: wrap; gap: 8px 12px; }
-  .iq-item-title { flex-basis: 100%; white-space: normal; order: -1; }
-  .iq-item-date { margin-left: auto; }
 }
 
 /* 반응형 · 모바일 (1열 · 햄버거) */
