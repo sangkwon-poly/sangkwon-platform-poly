@@ -6,6 +6,7 @@ import com.sangkwon.sangkwonplatform.admin.account.dto.session.AdminSession;
 import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminRole;
 import com.sangkwon.sangkwonplatform.admin.account.service.AdminUserService;
 import com.sangkwon.sangkwonplatform.admin.account.session.LoginAdmin;
+import com.sangkwon.sangkwonplatform.admin.account.session.SessionConst;
 import com.sangkwon.sangkwonplatform.admin.ops.AuditAction;
 import com.sangkwon.sangkwonplatform.admin.ops.service.AdminAuditService;
 import com.sangkwon.sangkwonplatform.global.common.ApiResponse;
@@ -61,7 +62,9 @@ public class AdminUserController {
                                             @Valid @RequestBody AdminPasswordUpdateRequest request,
                                             HttpServletRequest http) {
         requireSelf(admin, adminId);
-        adminUserService.updatePassword(admin.adminId(), request);
+        AdminSession updated = adminUserService.updatePassword(admin.adminId(), request);
+        // 방금 올라간 pwVersion으로 본인 세션 스냅샷을 갱신해, 다른 세션만 끊기고 본인은 로그아웃되지 않게 한다
+        http.getSession().setAttribute(SessionConst.LOGIN_ADMIN, updated);
         auditService.record(admin.adminId(), AuditAction.PASSWORD_CHANGE, "ADMIN",
                 String.valueOf(admin.adminId()), null, http);
         return ApiResponse.ok(null);
