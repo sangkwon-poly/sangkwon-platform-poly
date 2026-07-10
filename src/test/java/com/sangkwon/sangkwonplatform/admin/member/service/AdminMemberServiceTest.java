@@ -210,6 +210,18 @@ class AdminMemberServiceTest {
     }
 
     @Test
+    @DisplayName("구독 부여: 탈퇴 회원이면 400")
+    void extendPlan_withdrawn() {
+        Member m = member();
+        m.withdraw();
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(m));
+
+        assertThatThrownBy(() -> adminMemberService.extendPlan(1L, 1))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(t -> assertThat(statusOf(t)).isEqualTo(HttpStatus.BAD_REQUEST));
+    }
+
+    @Test
     @DisplayName("구독 회수: 구독이 없으면 400")
     void revokePlan_none() {
         Member m = member();

@@ -6,8 +6,9 @@ import jakarta.validation.constraints.NotNull;
 
 // 구독 수동 조작 요청. EXTEND는 months만큼 부여·연장(무료 회원이면 지금부터), REVOKE는 즉시 회수.
 public record MemberPlanUpdateRequest(
-        @NotNull PlanOp op,
-        @Min(1) @Max(12) Integer months
+        @NotNull(message = "구독 작업을 선택해 주세요!") PlanOp op,
+        @Min(value = 1, message = "개월 수는 1~12 사이로 입력해 주세요!")
+        @Max(value = 12, message = "개월 수는 1~12 사이로 입력해 주세요!") Integer months
 ) {
     public enum PlanOp { EXTEND, REVOKE }
 

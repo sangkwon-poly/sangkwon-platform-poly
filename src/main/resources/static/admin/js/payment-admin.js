@@ -123,6 +123,12 @@
                 return;
             }
             state.resp = r.body.data;
+            // 상태 필터 뒤 페이지를 보던 중 건수가 줄면 빈 페이지에 갇힌다. 마지막 유효 페이지로 당겨 재조회.
+            if (state.resp.content.length === 0 && state.resp.page > 0) {
+                state.page = Math.max(0, state.resp.totalPages - 1);
+                load();
+                return;
+            }
             renderTable();
         }, function () {
             if (seq !== reqSeq) { return; }

@@ -65,6 +65,10 @@ public class AdminMemberService {
     // 결제 승인 경로(PaymentService.activateSubscription)와 같은 규칙.
     public PlanChange extendPlan(Long memberId, int months) {
         Member member = find(memberId);
+        // 화면에서도 숨기지만 API 직접 호출까지 막아야 규칙이 성립한다
+        if (member.getStatus() == MemberStatus.WITHDRAWN) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "탈퇴한 회원에게는 구독을 부여할 수 없습니다.");
+        }
         LocalDateTime before = member.getPlanUntil();
         LocalDateTime base = member.isPro() ? member.getPlanUntil() : LocalDateTime.now();
         member.activatePro(base.plusMonths(months));
