@@ -67,7 +67,7 @@
     // 오늘 날짜 메타
     (function () {
         var d = new Date();
-        set("ov-meta", d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " · 서울공화국 관리자 콘솔");
+        set("ov-meta", d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " · 여기콕 관리자 콘솔");
     })();
 
     // 1) 회원·리포트 누적 (SUPER_ADMIN 전용)

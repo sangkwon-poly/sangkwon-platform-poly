@@ -18,9 +18,6 @@
   <link rel="stylesheet" href="/css/landing.css">
 
   <link rel="icon" href="/favicon/favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
-  <link rel="apple-touch-icon" href="/favicon/apple-touch-icon.png">
 </head>
 <body>
 
@@ -42,7 +39,7 @@
       <ul class="nav-menu">
         <li><a href="#features">기능</a></li>
         <li><a href="/support">지원사업</a></li>
-        <li><a href="/insight">업계동향</a></li>
+        <li><a href="/industry/industry.html">업계동향</a></li>
         <li><a>공지사항</a></li>
         <li><a>문의하기</a></li>
       </ul>
@@ -326,8 +323,12 @@
             .then(function (b) {
               var me = b && b.data;
               if (!me) return;
+              var initial = esc((me.nickname || me.loginId || '?').slice(0, 1));
               actions.innerHTML =
-                      '<a class="link-login" href="/member/mypage">' + esc(me.nickname || me.loginId) + '님</a>' +
+                      '<a class="nav-user" href="/member/mypage" title="마이페이지">' +
+                        '<span class="nav-avatar" aria-hidden="true">' + initial + '</span>' +
+                        '<span class="nav-user-name">' + esc(me.nickname || me.loginId) + '님</span>' +
+                      '</a>' +
                       '<button type="button" class="btn btn-primary btn-sm" id="nav-logout">로그아웃</button>';
               var btn = document.getElementById('nav-logout');
               if (btn) btn.addEventListener('click', function () {

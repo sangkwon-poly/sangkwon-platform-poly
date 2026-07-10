@@ -1,6 +1,6 @@
 /* =====================================================================
  * api.js: member 도메인 프론트 API 래퍼 + 공통 UI 헬퍼
- * 서울공화국 상권분석 플랫폼 · 김민혁(member)
+ * 여기콕 상권분석 플랫폼 · 김민혁(member)
  *
  * 노출: window.MemberAPI (엔드포인트 계약), window.MemberUI (UI 헬퍼)
  * 세션 인증: 브라우저가 JSESSIONID 쿠키를 자동 전송한다(credentials:'include').
@@ -219,8 +219,8 @@
         '<header class="app-header">' +
           '<div class="app-header__inner">' +
             '<a class="app-header__brand" href="/">' +
-              '<span class="app-header__logo" aria-hidden="true">서</span>' +
-              '<span>서울공화국</span>' +
+              '<span class="brand-mark-tag" aria-hidden="true">여기</span>' +
+              '<span class="brand-name-kok">콕</span>' +
             '</a>' +
             '<nav class="app-header__nav" aria-label="주요 메뉴">' +
               navHtml +

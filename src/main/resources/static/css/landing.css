@@ -27,35 +27,19 @@
 .link-login:hover { color: var(--brand); }
 .btn-ghost { padding: 0 24px; }
 
-/* 로고: "여기" 말풍선 뱃지(버건디) + "콕" 텍스트(검정) */
-.brand-mark-tag{
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--brand);
-  color: #fff;
-  font-weight: 800;
-  font-size: 13px;
-  letter-spacing: -.01em;
-  padding: 6px 11px 8px;
-  border-radius: 9px;
-  line-height: 1;
+/* 로그인 후: 아바타 버튼(마이페이지) + 닉네임 */
+.nav-user { display: inline-flex; align-items: center; gap: 8px; }
+.nav-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--brand); color: #fff;
+  font-size: 13px; font-weight: 800;
+  transition: filter .15s ease;
 }
-.brand-mark-tag::after{
-  content: '';
-  position: absolute;
-  left: 13px;
-  bottom: -6px;
-  width: 0; height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 6px solid var(--brand);
-}
-.brand-name-kok{
-  font-weight: 800;
-  color: var(--ink);
-}
+.nav-user:hover .nav-avatar { filter: brightness(1.08); }
+.nav-user-name { font-size: 13.5px; font-weight: 600; color: var(--text-soft); }
+.nav-user:hover .nav-user-name { color: var(--brand); }
 
 /* 서울 지도 코로플레스 데모 (히어로의 .hero-visual 안에서만 쓰임)
    ⚠ body, *{box-sizing} 같은 전역 규칙은 페이지 전체 레이아웃을 깨뜨리므로 넣지 않음.

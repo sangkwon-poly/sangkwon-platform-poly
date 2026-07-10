@@ -273,7 +273,7 @@ async function load() {
         apiData("/api/trdar-changes?trdarCd=" + trdarCd),
     ]);
 
-    document.title = d.trdarNm + " 상권 상세 · 서울공화국";
+    document.title = d.trdarNm + " 상권 상세 · 여기콕";
     document.querySelector(".app-search-text").textContent = (d.signguNm || "") + " " + d.trdarNm;
     document.getElementById("detail-crumb").textContent = "지도 › " + (d.signguNm || "") + " › " + d.trdarNm;
     document.getElementById("detail-title").innerHTML =

@@ -32,21 +32,13 @@ body {
 .trend-title-wrap {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 4px;
     font-size: 14px;
     font-weight: 700;
 }
+.trend-title-wrap > span:last-child { margin-left: 8px; }
 
-.trend-logo {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    border: 1px solid rgba(255,255,255,.35);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255,255,255,.12);
-}
+.trend-header .brand-name-kok { color: #fff; }
 
 .trend-user {
     width: 28px;

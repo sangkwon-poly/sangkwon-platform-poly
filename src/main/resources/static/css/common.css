@@ -1,4 +1,4 @@
-/* 서울공화국 · 공통 디자인 토큰 + 프리미티브
+/* 여기콕 · 공통 디자인 토큰 + 프리미티브
    모든 화면 CSS는 이 파일을 먼저 불러온 뒤, 화면별 CSS에서 차이만 정의한다.
    화면별 CSS에서 :root 토큰을 재정의하지 말 것 (여기서만 관리). */
 
@@ -47,6 +47,9 @@
   --shadow-soft: 0 10px 24px rgba(168, 65, 44, .28);
   --maxw: 1160px;
   --mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* 버건디 상단 헤더 위 말풍선 */
+  --brand-tag-on-header: #3f3a37;
 }
 
 /* 리셋 */
@@ -82,7 +85,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 /* 브랜드 로고 */
-.brand { display: inline-flex; align-items: center; gap: 10px; }
+.brand { display: inline-flex; align-items: center; gap: 4px; font-size: 17px; }
 .brand-mark {
   width: 30px; height: 30px;
   display: flex; align-items: center; justify-content: center;
@@ -92,6 +95,50 @@ button { font-family: inherit; cursor: pointer; }
   font-weight: 800; font-size: 13px;
 }
 .brand-name { font-weight: 800; font-size: 16px; letter-spacing: -.01em; }
+
+/* 로고: "여기" 말풍선 뱃지(버건디) + "콕" 텍스트(검정)
+   폰트 크기는 옆의 "콕" 텍스트를 그대로 상속받아 크기가 항상 맞고,
+   말풍선·꼬리 치수는 모두 em 기반이라 확대/축소해도 비율이 어긋나지 않음. */
+.brand-mark-tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  padding: .28em .42em .32em;
+  border-radius: .55em;
+  line-height: 1;
+}
+.brand-mark-tag::after {
+  content: '';
+  position: absolute;
+  left: .8em;
+  bottom: -.34em;
+  width: 0; height: 0;
+  border-left: .3em solid transparent;
+  border-right: .3em solid transparent;
+  border-top: .36em solid var(--brand);
+}
+.brand-name-kok {
+  font-weight: 800;
+  color: var(--ink);
+}
+
+/* 버건디 상단 헤더 위 말풍선: 진한 회색 */
+.app-header .brand-mark-tag,
+.auth-hero .brand-mark-tag,
+.trend-header .brand-mark-tag {
+  background: var(--brand-tag-on-header);
+  color: #fff;
+}
+.app-header .brand-mark-tag::after,
+.auth-hero .brand-mark-tag::after,
+.trend-header .brand-mark-tag::after {
+  border-top-color: var(--brand-tag-on-header);
+}
 
 /* 버튼 */
 .btn {

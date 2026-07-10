@@ -1,6 +1,6 @@
 /* =====================================================================
  * member.css: 회원·인증 도메인 디자인 시스템
- * 서울공화국 상권분석 플랫폼 · 김민혁(member)
+ * 여기콕 상권분석 플랫폼 · 김민혁(member)
  * 팀장 하이파이 목업에서 추출한 토큰 + 고정 컴포넌트 어휘 구현.
  * 페이지는 이 파일이 정의한 클래스만 사용한다(인라인 스타일 지양).
  * ===================================================================== */
@@ -48,6 +48,9 @@
   --shadow-card: 0 26px 70px rgba(90, 45, 28, .13);
   --shadow-pop: 0 12px 40px rgba(80, 40, 25, .18);
   --shadow-header: 0 6px 22px rgba(120, 42, 27, .22);
+
+  /* 버건디 상단 헤더 위 말풍선 */
+  --brand-tag-on-header: #3f3a37;
 
   /* 폰트 */
   --font: 'Pretendard', 'Apple SD Gothic Neo', system-ui, sans-serif;
@@ -199,12 +202,50 @@ p {
 .app-header__brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-weight: 800;
-  font-size: 16px;
-  letter-spacing: -.01em;
-  color: #fff;
+  gap: 4px;
   flex: 0 0 auto;
+  font-size: 16px;
+}
+.app-header__brand .brand-name-kok { color: #fff; }
+
+/* 로고: "여기" 말풍선 뱃지 + "콕" 텍스트
+   폰트 크기는 옆의 "콕" 텍스트를 상속받아 크기가 항상 맞고,
+   말풍선·꼬리 치수는 em 기반이라 확대/축소해도 비율이 어긋나지 않음. */
+.brand-mark-tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  padding: .28em .42em .32em;
+  border-radius: .55em;
+  line-height: 1;
+}
+.brand-mark-tag::after {
+  content: '';
+  position: absolute;
+  left: .8em;
+  bottom: -.34em;
+  width: 0; height: 0;
+  border-left: .3em solid transparent;
+  border-right: .3em solid transparent;
+  border-top: .36em solid var(--brand);
+}
+.brand-name-kok {
+  font-weight: 800;
+  color: var(--ink);
+}
+.app-header .brand-mark-tag,
+.auth-hero .brand-mark-tag {
+  background: var(--brand-tag-on-header);
+  color: #fff;
+}
+.app-header .brand-mark-tag::after,
+.auth-hero .brand-mark-tag::after {
+  border-top-color: var(--brand-tag-on-header);
 }
 
 .app-header__logo {
@@ -339,6 +380,17 @@ p {
 .btn--ghost:hover {
   background: var(--surface-2);
   border-color: var(--muted-3);
+}
+
+/* 헤더(버건디) 안의 로그아웃 버튼: 연한 크림 분홍 톤으로 분리 */
+.app-header__user .btn--ghost {
+  background: #f7e6e0;
+  border-color: #f2d8cf;
+  color: var(--brand-700);
+}
+.app-header__user .btn--ghost:hover {
+  background: #fbeee9;
+  border-color: #f7e6e0;
 }
 
 .btn--danger {
@@ -741,6 +793,16 @@ textarea.input {
   pointer-events: none;
 }
 
+/* 좌상단: 더 큰 반경의 레이더 모티프 */
+.auth-hero__deco--tl {
+  right: auto;
+  bottom: auto;
+  left: -110px;
+  top: -110px;
+  width: 480px;
+  height: 480px;
+}
+
 /* 상권 반경을 은유한 레이더 펄스: 안쪽에서 바깥으로 번지는 밝기 */
 .auth-hero__deco .ring {
   opacity: .1;
@@ -769,17 +831,11 @@ textarea.input {
 .auth-hero__brand {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 4px;
   align-self: flex-start;
-  padding: 7px 15px 7px 8px;
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, .14);
-  border: 1px solid rgba(255, 255, 255, .26);
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: -.01em;
-  color: #fff;
+  font-size: 17px;
 }
+.auth-hero__brand .brand-name-kok { color: #fff; }
 
 .auth-hero__logo {
   width: 24px;
@@ -814,9 +870,13 @@ textarea.input {
 }
 
 .auth-hero__list {
-  margin-top: 34px;
+  margin-top: auto;
+  margin-bottom: auto;
+  padding: 0;
+  list-style: none;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 13px;
 }
 
@@ -1473,7 +1533,7 @@ textarea.input {
 }
 
 @media (max-width: 420px) {
-  .app-header__brand span {
+  .app-header__brand .brand-name-kok {
     display: none;
   }
 }
