@@ -39,6 +39,18 @@ class PaymentServiceTest {
     }
 
     @Test
+    void 위젯_설정은_공개_clientKey만_돌려준다() {
+        assertThat(service("ck", "sk").config().clientKey()).isEqualTo("ck");
+    }
+
+    @Test
+    void 위젯_설정도_키가_없으면_M016을_던진다() {
+        assertThatThrownBy(() -> service("", "").config())
+                .isInstanceOf(BusinessException.class)
+                .satisfies(t -> assertThat(codeOf(t)).isEqualTo(ErrorCode.PAYMENT_NOT_CONFIGURED));
+    }
+
+    @Test
     void 비로그인이면_주문_생성에서_M005를_던진다() {
         assertThatThrownBy(() -> service("ck", "sk").createOrder(null, new PaymentOrderCreateRequest("PRO", "YEARLY")))
                 .isInstanceOf(BusinessException.class)

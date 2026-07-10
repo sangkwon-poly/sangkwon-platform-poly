@@ -36,7 +36,6 @@ public class PageRoutesConfig implements WebMvcConfigurer {
         forward(registry, "/inquiry/", "/inquiry/inquiry.html");
         forward(registry, "/pricing", "/pricing/pricing.html");
         forward(registry, "/pricing/", "/pricing/pricing.html");
-        forward(registry, "/pricing/checkout", "/pricing/checkout.html");
         forward(registry, "/pricing/success", "/pricing/success.html");
         forward(registry, "/pricing/fail", "/pricing/fail.html");
 

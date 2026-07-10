@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.member.service;
 
 import com.sangkwon.sangkwonplatform.member.dto.request.PaymentConfirmRequest;
 import com.sangkwon.sangkwonplatform.member.dto.request.PaymentOrderCreateRequest;
+import com.sangkwon.sangkwonplatform.member.dto.response.PaymentConfigResponse;
 import com.sangkwon.sangkwonplatform.member.dto.response.PaymentConfirmResponse;
 import com.sangkwon.sangkwonplatform.member.dto.response.PaymentOrderResponse;
 import com.sangkwon.sangkwonplatform.member.entity.BillingCycle;
@@ -44,6 +45,12 @@ public class PaymentService {
         this.restClient = restClient;
         this.clientKey = clientKey;
         this.secretKey = secretKey;
+    }
+
+    // 위젯 렌더용 공개 설정. 주문은 결제 버튼을 누를 때 만들어 빈 주문이 쌓이지 않게 한다.
+    public PaymentConfigResponse config() {
+        requireConfigured();
+        return new PaymentConfigResponse(clientKey);
     }
 
     // 주문 생성: PENDING으로 저장해 두고, 승인 단계에서 이 금액과 대조한다.

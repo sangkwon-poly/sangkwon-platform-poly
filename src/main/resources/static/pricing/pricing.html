@@ -162,6 +162,44 @@
     </div>
   </footer>
 
+  <!-- 결제 모달: 프로 시작하기에서 열린다. 주문은 결제하기를 누르는 순간 생성(빈 주문 방지) -->
+  <div class="pm-backdrop" id="pm-backdrop" hidden>
+    <div class="pm-modal" role="dialog" aria-modal="true" aria-labelledby="pm-title">
+      <div class="pm-head">
+        <div>
+          <h2 class="pm-title" id="pm-title">여기콕 Pro 시작하기</h2>
+          <p class="pm-sub">테스트 결제 환경이라 실제로 청구되지 않아요.</p>
+        </div>
+        <button type="button" class="pm-close" id="pm-close" aria-label="닫기">×</button>
+      </div>
+
+      <div class="pm-cycle" role="group" aria-label="결제 주기">
+        <button type="button" class="pm-cycle-btn" data-cycle="MONTHLY">월간</button>
+        <button type="button" class="pm-cycle-btn is-active" data-cycle="YEARLY">연간 <span class="pm-cycle-tag">2개월 무료</span></button>
+      </div>
+
+      <div class="pm-summary">
+        <div class="pm-summary-row">
+          <span class="pm-summary-name">여기콕 Pro <em id="pm-cycle-label">연간</em></span>
+          <strong class="pm-summary-amount" id="pm-amount">₩468,000</strong>
+        </div>
+        <p class="pm-summary-calc" id="pm-calc">월 ₩39,000 × 12개월 <span class="pm-save">₩120,000 절약</span></p>
+      </div>
+
+      <div class="pm-widget">
+        <div class="pm-widget-loading" id="pm-loading">
+          <span class="pm-spinner" aria-hidden="true"></span>결제 수단을 불러오는 중
+        </div>
+        <div id="payment-method"></div>
+        <div id="agreement"></div>
+      </div>
+
+      <p class="pm-error" id="pm-error" hidden></p>
+      <button type="button" class="btn btn-primary pm-pay" id="pm-pay" disabled>₩468,000 결제하기</button>
+      <p class="pm-note">결제 완료 후 언제든 해지할 수 있어요. 남은 기간은 일할 계산으로 환불됩니다.</p>
+    </div>
+  </div>
+
   <script>
     // 로그인 세션을 헤더 액션 영역에 반영
     (function () {
@@ -189,6 +227,7 @@
         .catch(function () {});
     })();
   </script>
+  <script src="https://js.tosspayments.com/v2/standard"></script>
   <script src="/pricing/pricing.js"></script>
 </body>
 </html>
