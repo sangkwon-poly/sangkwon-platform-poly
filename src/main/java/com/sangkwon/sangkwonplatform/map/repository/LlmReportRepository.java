@@ -14,6 +14,9 @@ public interface LlmReportRepository extends JpaRepository<LlmReport, Long> {
 
     long countByCreatedAtGreaterThanEqual(LocalDateTime from);
 
+    // 무료 플랜 월 한도 판정용: 회원이 이번 달 생성한 리포트 수
+    long countByMemberIdAndCreatedAtGreaterThanEqual(Long memberId, LocalDateTime from);
+
     // 최근 생성순. 업종 리포트는 업종 코드로, 상권 전체 리포트는 NULL로 구분한다.
     // 최신 한 건만 필요하므로 Pageable로 조회 행을 제한한다(CLOB까지 전체 이력을 읽지 않게).
     @Query("""

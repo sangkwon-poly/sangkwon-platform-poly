@@ -63,6 +63,40 @@
   }
 
   /* -----------------------------------------------------------------
+   * 섹션2: 내 구독
+   * pro/planUntil은 서버가 만료 시각으로 판정해 내려준다(등급 컬럼과 별개).
+   * --------------------------------------------------------------- */
+  function renderSubscription(me) {
+    var body = $('plan-body');
+    if (me.pro) {
+      body.innerHTML =
+        '<div class="row row--between row--wrap" style="gap:16px">' +
+          '<div class="stack stack--tight">' +
+            '<div class="row row--wrap stack--tight">' +
+              '<strong class="profile-name">Pro 플랜</strong>' +
+              '<span class="badge badge--brand">이용 중</span>' +
+            '</div>' +
+            '<span class="text-muted">AI 리포트 무제한, 모든 분석 기능을 제한 없이 쓸 수 있어요.</span>' +
+            '<span class="text-muted" style="font-size:13px">만료일 ' + esc(fmt(me.planUntil)) + '</span>' +
+          '</div>' +
+          '<a class="btn btn--ghost" href="/pricing">구독 연장</a>' +
+        '</div>';
+    } else {
+      body.innerHTML =
+        '<div class="row row--between row--wrap" style="gap:16px">' +
+          '<div class="stack stack--tight">' +
+            '<div class="row row--wrap stack--tight">' +
+              '<strong class="profile-name">무료 플랜</strong>' +
+              '<span class="badge badge--muted">FREE</span>' +
+            '</div>' +
+            '<span class="text-muted">AI 리포트는 매월 3회까지 생성할 수 있어요. Pro로 올리면 무제한이에요.</span>' +
+          '</div>' +
+          '<a class="btn btn--primary" href="/pricing">Pro로 업그레이드</a>' +
+        '</div>';
+    }
+  }
+
+  /* -----------------------------------------------------------------
    * 섹션2: 정보 수정 폼
    * --------------------------------------------------------------- */
   function fillEditForm(me) {
@@ -393,8 +427,9 @@
     bindLogout();
     bindWithdraw();
 
-    // 프로필/폼 채우기.
+    // 프로필/구독/폼 채우기.
     renderProfile(me);
+    renderSubscription(me);
     fillEditForm(me);
 
     // 최근 검색 로드.

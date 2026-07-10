@@ -6,10 +6,12 @@ import com.sangkwon.sangkwonplatform.member.dto.response.PaymentConfigResponse;
 import com.sangkwon.sangkwonplatform.member.dto.response.PaymentConfirmResponse;
 import com.sangkwon.sangkwonplatform.member.dto.response.PaymentOrderResponse;
 import com.sangkwon.sangkwonplatform.member.entity.BillingCycle;
+import com.sangkwon.sangkwonplatform.member.entity.Member;
 import com.sangkwon.sangkwonplatform.member.entity.PaymentOrder;
 import com.sangkwon.sangkwonplatform.member.entity.PaymentStatus;
 import com.sangkwon.sangkwonplatform.member.exception.BusinessException;
 import com.sangkwon.sangkwonplatform.member.exception.ErrorCode;
+import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
 import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -34,15 +36,18 @@ public class PaymentService {
     private static final long PRO_YEARLY_AMOUNT = 240_000L;
 
     private final PaymentOrderRepository paymentOrderRepository;
+    private final MemberRepository memberRepository;
     private final RestClient restClient;
     private final String clientKey;
     private final String secretKey;
 
     public PaymentService(PaymentOrderRepository paymentOrderRepository,
+                          MemberRepository memberRepository,
                           RestClient restClient,
                           @Value("${toss.client-key}") String clientKey,
                           @Value("${toss.secret-key}") String secretKey) {
         this.paymentOrderRepository = paymentOrderRepository;
+        this.memberRepository = memberRepository;
         this.restClient = restClient;
         this.clientKey = clientKey;
         this.secretKey = secretKey;
@@ -107,7 +112,19 @@ public class PaymentService {
 
         order.paid(req.paymentKey(), parseApprovedAt(res.path("approvedAt").asText(null)));
         paymentOrderRepository.save(order);
+        activateSubscription(memberId, order.getBillingCycle());
         return PaymentConfirmResponse.from(order);
+    }
+
+    // 결제 확정과 동시에 구독을 켠다. 만료 전 재구독이면 남은 기간에 이어붙여 손해가 없게 한다.
+    // confirm은 외부 HTTP 때문에 트랜잭션으로 묶지 않으므로, 회원 변경은 save로 명시 반영한다.
+    private void activateSubscription(Long memberId, BillingCycle cycle) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        LocalDateTime base = member.isPro() ? member.getPlanUntil() : LocalDateTime.now();
+        LocalDateTime until = cycle == BillingCycle.YEARLY ? base.plusYears(1) : base.plusMonths(1);
+        member.activatePro(until);
+        memberRepository.save(member);
     }
 
     private void markFailed(PaymentOrder order) {

@@ -5,13 +5,17 @@ import com.sangkwon.sangkwonplatform.member.dto.request.PaymentOrderCreateReques
 import com.sangkwon.sangkwonplatform.member.dto.response.PaymentConfirmResponse;
 import com.sangkwon.sangkwonplatform.member.dto.response.PaymentOrderResponse;
 import com.sangkwon.sangkwonplatform.member.entity.BillingCycle;
+import com.sangkwon.sangkwonplatform.member.entity.Member;
 import com.sangkwon.sangkwonplatform.member.entity.PaymentOrder;
 import com.sangkwon.sangkwonplatform.member.entity.PaymentStatus;
 import com.sangkwon.sangkwonplatform.member.exception.BusinessException;
 import com.sangkwon.sangkwonplatform.member.exception.ErrorCode;
+import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
 import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -19,6 +23,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -28,10 +33,11 @@ import static org.mockito.Mockito.when;
 class PaymentServiceTest {
 
     private final PaymentOrderRepository paymentOrderRepository = mock(PaymentOrderRepository.class);
+    private final MemberRepository memberRepository = mock(MemberRepository.class);
     private final RestClient restClient = mock(RestClient.class);
 
     private PaymentService service(String clientKey, String secretKey) {
-        return new PaymentService(paymentOrderRepository, restClient, clientKey, secretKey);
+        return new PaymentService(paymentOrderRepository, memberRepository, restClient, clientKey, secretKey);
     }
 
     private static ErrorCode codeOf(Throwable t) {
@@ -116,5 +122,37 @@ class PaymentServiceTest {
 
         assertThat(res.status()).isEqualTo(PaymentStatus.PAID);
         verifyNoInteractions(restClient);
+    }
+
+    @Test
+    void 승인에_성공하면_주문을_PAID로_바꾸고_회원을_Pro로_전환한다() {
+        PaymentOrder order = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
+        when(paymentOrderRepository.findByOrderIdAndMemberId("o1", 1L)).thenReturn(Optional.of(order));
+        Member member = Member.create("user", "hash", "user@test.com", "회원");
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        stubTossConfirm("{\"approvedAt\":\"2026-07-11T00:00:00+09:00\"}");
+
+        PaymentConfirmResponse res = service("ck", "sk").confirm(1L, new PaymentConfirmRequest("pk-1", "o1", 240_000L));
+
+        assertThat(res.status()).isEqualTo(PaymentStatus.PAID);
+        assertThat(member.isPro()).isTrue();
+        // 연간 결제라 만료가 대략 1년 뒤여야 한다(최소 11개월 이후로 넉넉히 확인)
+        assertThat(member.getPlanUntil()).isAfter(LocalDateTime.now().plusMonths(11));
+        verify(memberRepository).save(member);
+    }
+
+    // 토스 승인 응답을 흉내 낸다. 승인 성공 경로(주문 PAID + 구독 활성화)를 검증하기 위한 최소 스텁.
+    private void stubTossConfirm(String json) {
+        JsonNode node = new ObjectMapper().readTree(json);
+        RestClient.RequestBodyUriSpec uriSpec = mock(RestClient.RequestBodyUriSpec.class);
+        RestClient.RequestBodySpec bodySpec = mock(RestClient.RequestBodySpec.class);
+        RestClient.ResponseSpec respSpec = mock(RestClient.ResponseSpec.class);
+        when(restClient.post()).thenReturn(uriSpec);
+        when(uriSpec.uri(anyString())).thenReturn(bodySpec);
+        when(bodySpec.header(anyString(), any(String[].class))).thenReturn(bodySpec);
+        when(bodySpec.contentType(any())).thenReturn(bodySpec);
+        when(bodySpec.body(any(Object.class))).thenReturn(bodySpec);
+        when(bodySpec.retrieve()).thenReturn(respSpec);
+        when(respSpec.body(JsonNode.class)).thenReturn(node);
     }
 }

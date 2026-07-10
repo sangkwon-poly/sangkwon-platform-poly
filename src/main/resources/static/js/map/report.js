@@ -128,6 +128,14 @@ function bindAiReport(trdarCd, indutyCd) {
             const body = await res.json();
             if (res.ok) {
                 showAiReport(body.data);
+            } else if (res.status === 402) {
+                // 무료 월 한도 초과: 안내 문구에 요금제 링크를 붙여 업그레이드로 이어준다
+                const el = document.getElementById("ai-report");
+                el.textContent = (body.message || "이번 달 무료 생성 한도를 모두 사용했어요.") + " ";
+                const link = document.createElement("a");
+                link.href = "/pricing";
+                link.textContent = "요금제 보기";
+                el.appendChild(link);
             } else {
                 document.getElementById("ai-report").textContent =
                     body.message || "생성에 실패했습니다. Gemini API 키 설정을 확인해 주세요.";

@@ -13,6 +13,8 @@ public record MemberResponse(
         String nickname,
         Role role,
         MemberStatus status,
+        boolean pro,
+        LocalDateTime planUntil,
         LocalDateTime lastLoginAt,
         LocalDateTime createdAt
 ) {
@@ -24,6 +26,8 @@ public record MemberResponse(
                 m.getNickname(),
                 m.getRole(),
                 m.getStatus(),
+                m.isPro(),
+                m.getPlanUntil(),
                 m.getLastLoginAt(),
                 m.getCreatedAt()
         );
