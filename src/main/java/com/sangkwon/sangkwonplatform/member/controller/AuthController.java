@@ -67,12 +67,10 @@ public class AuthController {
         return ApiResponse.<Void>ok(null);
     }
 
-    // 프록시 뒤에 있으면 X-Forwarded-For의 첫 IP, 아니면 원격 주소
+    // 레이트리밋 키라 클라이언트가 조작 가능한 X-Forwarded-For는 신뢰하지 않는다.
+    // (헤더를 매 요청 바꾸면 키가 달라져 무차별 대입 카운터가 안 쌓인다)
+    // 프록시 뒤에 배포하면 server.forward-headers-strategy로 플랫폼에서 원격 주소를 보정한다.
     private static String clientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
-        }
         return request.getRemoteAddr();
     }
 }
