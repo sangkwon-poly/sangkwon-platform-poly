@@ -188,6 +188,7 @@
 .dot-ok { background: var(--ok); }
 .dot-warn { background: var(--warn); }
 .dot-danger { background: var(--brand); }
+.dot-muted { background: var(--faint); }
 
 /* 표 안 재실행/작업 링크 */
 .row-action {

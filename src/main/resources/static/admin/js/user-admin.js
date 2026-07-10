@@ -70,9 +70,19 @@
     }
 
     function counts() {
-        var c = { ALL: state.admins.length, ACTIVE: 0, LOCKED: 0 };
-        state.admins.forEach(function (a) { if (a.status === "ACTIVE") { c.ACTIVE++; } else if (a.status === "LOCKED") { c.LOCKED++; } });
+        var c = { ALL: state.admins.length, ACTIVE: 0, LOCKED: 0, DISABLED: 0 };
+        state.admins.forEach(function (a) { if (c[a.status] != null) { c[a.status]++; } });
         return c;
+    }
+
+    // 활성 최고관리자 수. 마지막 1명이면 강등·잠금·비활성 버튼을 막는다(서버도 거부).
+    function activeSuperAdminCount() {
+        return state.admins.filter(function (a) { return a.role === "SUPER_ADMIN" && a.status === "ACTIVE"; }).length;
+    }
+    function statusBadge(status) {
+        if (status === "ACTIVE") { return '<span class="badge badge-ok"><span class="dot dot-ok" aria-hidden="true"></span>활성</span>'; }
+        if (status === "LOCKED") { return '<span class="badge badge-danger"><span class="dot dot-danger" aria-hidden="true"></span>잠김</span>'; }
+        return '<span class="badge badge-muted"><span class="dot dot-muted" aria-hidden="true"></span>비활성</span>';
     }
 
     function render() {
@@ -91,11 +101,11 @@
 
     function rowHtml(a) {
         var isSelf = state.me && a.adminId === state.me.adminId;
-        var badge = a.status === "ACTIVE"
-            ? '<span class="badge badge-ok"><span class="dot dot-ok" aria-hidden="true"></span>활성</span>'
-            : '<span class="badge badge-danger"><span class="dot dot-danger" aria-hidden="true"></span>잠김</span>';
+        // 마지막 활성 최고관리자면 강등·잠금·비활성을 UI에서 먼저 막는다(서버도 이중으로 거부)
+        var lastSA = a.role === "SUPER_ADMIN" && a.status === "ACTIVE" && activeSuperAdminCount() <= 1;
+        var badge = statusBadge(a.status);
 
-        var roleSelect = '<select class="ua-role-select" data-id="' + a.adminId + '"' + (isSelf ? " disabled" : "") + ' aria-label="권한 변경">'
+        var roleSelect = '<select class="ua-role-select" data-id="' + a.adminId + '"' + (isSelf || lastSA ? " disabled" : "") + ' aria-label="권한 변경">'
             + ROLES.map(function (r) {
                 return '<option value="' + r.value + '"' + (r.value === a.role ? " selected" : "") + ">" + esc(r.label) + "</option>";
             }).join("")
@@ -105,11 +115,18 @@
         if (isSelf) {
             act = '<button type="button" class="ua-act" disabled>본인</button>';
         } else {
-            var lock = a.status === "ACTIVE"
-                ? '<button type="button" class="ua-act ua-act-lock" data-act="lock" data-id="' + a.adminId + '">잠금</button>'
-                : '<button type="button" class="ua-act" data-act="unlock" data-id="' + a.adminId + '">해제</button>';
-            var reset = '<button type="button" class="ua-act" data-act="reset" data-id="' + a.adminId + '">비번 재설정</button>';
-            act = '<div class="ua-actions">' + lock + reset + "</div>";
+            var btns = "";
+            if (a.status === "ACTIVE") {
+                btns += '<button type="button" class="ua-act ua-act-lock" data-act="lock" data-id="' + a.adminId + '"' + (lastSA ? " disabled" : "") + ">잠금</button>";
+                btns += '<button type="button" class="ua-act" data-act="disable" data-id="' + a.adminId + '"' + (lastSA ? " disabled" : "") + ">비활성화</button>";
+            } else if (a.status === "LOCKED") {
+                btns += '<button type="button" class="ua-act" data-act="unlock" data-id="' + a.adminId + '">해제</button>';
+                btns += '<button type="button" class="ua-act" data-act="disable" data-id="' + a.adminId + '">비활성화</button>';
+            } else {
+                btns += '<button type="button" class="ua-act" data-act="enable" data-id="' + a.adminId + '">재활성화</button>';
+            }
+            btns += '<button type="button" class="ua-act" data-act="reset" data-id="' + a.adminId + '">비번 재설정</button>';
+            act = '<div class="ua-actions">' + btns + "</div>";
         }
 
         var failCls = a.failedLoginCnt >= 3 ? " is-hot" : "";
@@ -135,8 +152,9 @@
             var act = btn.getAttribute("data-act");
             btn.addEventListener("click", function () {
                 var id = Number(btn.getAttribute("data-id"));
-                if (act === "reset") { openReset(id); }
-                else { changeStatus(id, act === "lock" ? "LOCKED" : "ACTIVE", btn); }
+                if (act === "reset") { openReset(id); return; }
+                var next = act === "lock" ? "LOCKED" : (act === "disable" ? "DISABLED" : "ACTIVE");
+                changeStatus(id, next, btn);
             });
         });
     }
