@@ -4,6 +4,8 @@ public record OverviewResponse(
         long memberCount,
         long todaySignups,
         long reportCount,
-        long todayReports
+        long todayReports,
+        long monthRevenue,
+        long activeProCount
 ) {
 }

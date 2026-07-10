@@ -13,6 +13,8 @@ public record AdminMemberResponse(
         String email,
         Role role,
         MemberStatus status,
+        boolean pro,
+        LocalDateTime planUntil,
         LocalDateTime lastLoginAt,
         LocalDateTime withdrawnAt,
         LocalDateTime createdAt
@@ -25,6 +27,8 @@ public record AdminMemberResponse(
                 m.getEmail(),
                 m.getRole(),
                 m.getStatus(),
+                m.isPro(),
+                m.getPlanUntil(),
                 m.getLastLoginAt(),
                 m.getWithdrawnAt(),
                 m.getCreatedAt());

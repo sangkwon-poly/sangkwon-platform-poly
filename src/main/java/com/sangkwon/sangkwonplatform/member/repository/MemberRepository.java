@@ -22,6 +22,19 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     long countByCreatedAtGreaterThanEqual(LocalDateTime from);
 
+    // 유효 Pro 구독자 수. Member.isPro()와 같은 기준(만료 시각이 아직 안 지남).
+    long countByPlanUntilAfter(LocalDateTime at);
+
+    // 결제 목록의 회원 검색용: 검색어에 걸리는 회원 ID만 뽑아 주문 조회의 IN 조건으로 쓴다.
+    // kw 규칙은 searchForAdmin과 동일. Pageable로 상한을 걸어 IN 절이 무한정 커지지 않게 한다.
+    @Query("""
+            select m.memberId from Member m
+            where lower(m.loginId) like :kw escape '\\'
+               or lower(m.email) like :kw escape '\\'
+               or lower(m.nickname) like :kw escape '\\'
+            """)
+    List<Long> findIdsByKeyword(@Param("kw") String kw, Pageable pageable);
+
     // 상태 필터 칩 카운트: 상태별 count 4번 대신 group by 한 번으로 집계한다. 없는 상태는 행이 안 나오므로 서비스에서 0으로 채운다.
     @Query("select m.status as status, count(m) as cnt from Member m group by m.status")
     List<MemberStatusCount> countGroupByStatus();

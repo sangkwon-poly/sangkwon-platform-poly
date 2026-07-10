@@ -23,9 +23,19 @@
       </a>
       <nav class="admin-nav" aria-label="관리자 내비게이션">
         <a href="/admin">개요</a>
+        <span class="admin-nav-label">데이터</span>
         <a href="/admin/batch">데이터 적재</a>
         <a href="/admin/trdar-admin">상권 데이터</a>
+        <a href="/admin/support-admin">지원사업</a>
+        <span class="admin-nav-label">서비스 운영</span>
+        <a href="/admin/member-admin" aria-current="page">회원 관리</a>
+        <a href="/admin/payment-admin">결제·구독</a>
+        <a href="/admin/notice-admin">공지사항</a>
+        <a href="/admin/inquiry-admin">1:1 문의</a>
+        <span class="admin-nav-label">시스템</span>
         <a href="/admin/user-admin">관리자 계정</a>
+        <a href="/admin/audit-log">감사 로그</a>
+        <a href="/admin/api-usage">API 사용</a>
         <hr class="admin-nav-sep">
         <span class="admin-nav-out">
           <a href="/map">지도로 이동</a>
@@ -67,13 +77,14 @@
                   <th scope="col">회원</th>
                   <th scope="col">이메일</th>
                   <th scope="col" class="col-center">상태</th>
+                  <th scope="col" class="col-center">구독</th>
                   <th scope="col"><button type="button" class="ma-th-sort" data-sort="createdAt">가입일<span class="ma-arrow" aria-hidden="true"></span></button></th>
                   <th scope="col"><button type="button" class="ma-th-sort" data-sort="lastLoginAt">최근 로그인<span class="ma-arrow" aria-hidden="true"></span></button></th>
-                  <th scope="col" class="col-center">상태 변경</th>
+                  <th scope="col" class="col-center">관리</th>
                 </tr>
               </thead>
               <tbody id="ma-tbody">
-                <tr><td colspan="6" class="ma-empty">불러오는 중…</td></tr>
+                <tr><td colspan="7" class="ma-empty">불러오는 중…</td></tr>
               </tbody>
             </table>
           </div>

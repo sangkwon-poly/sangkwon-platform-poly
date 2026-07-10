@@ -1,0 +1,97 @@
+/* 결제·구독 고유 스타일
+   공통 chrome·지표 카드·표·배지는 shell.css / common.css. 여기서는 툴바·셀·페이지네이션만. */
+
+/* 툴바: 상태 칩 + 주기 셀렉트 + 검색 */
+.pa-toolbar {
+  display: flex; align-items: center; gap: 12px;
+  margin: 18px 0 16px; flex-wrap: wrap;
+}
+.pa-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.pa-chip {
+  font-size: 12px; font-weight: 600;
+  color: var(--muted-2); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 20px;
+  padding: 6px 14px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.pa-chip b { font-weight: 800; font-variant-numeric: tabular-nums; }
+.pa-chip:hover { border-color: var(--brand); color: var(--brand); }
+.pa-chip.is-active,
+.pa-chip.is-active:hover {
+  font-weight: 700; color: #fff;
+  background: var(--brand); border-color: var(--brand);
+}
+
+.pa-cycle {
+  height: 36px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: 9px;
+  background: var(--bg); color: var(--text-soft);
+  font-size: 12.5px; font-weight: 600; cursor: pointer;
+}
+.pa-cycle:focus {
+  outline: none; border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-tint);
+}
+
+.pa-search { margin-left: auto; }
+.pa-search input {
+  width: 240px; max-width: 100%; height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line); border-radius: 9px;
+  background: var(--bg); color: var(--text); font-size: 12.5px;
+}
+.pa-search input:focus {
+  outline: none; border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-tint);
+}
+
+/* 주문·회원 셀 */
+.pa-table th, .pa-table td { white-space: nowrap; }
+.pa-oid { font-size: 11px; color: var(--faint); font-family: var(--mono); }
+.pa-member { display: flex; flex-direction: column; }
+.pa-name { font-size: 13px; font-weight: 700; color: var(--text); }
+.pa-login { font-size: 11px; color: var(--faint); font-family: var(--mono); }
+.pa-orphan { font-size: 12px; color: var(--faint); }
+.pa-product { font-size: 12.5px; color: var(--text-soft); }
+.pa-amount { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 12.5px; }
+.pa-muted { font-size: 12px; color: var(--faint); }
+
+.pa-table .badge { gap: 6px; font-size: 11px; padding: 4px 10px; }
+.pa-table .dot { width: 6px; height: 6px; }
+.dot-muted { background: var(--faint); }
+
+/* 갱신 중에는 표를 로딩 문구로 무너뜨리지 않고 기존 행을 흐리게만 */
+#pa-tbody.is-busy { opacity: .5; transition: opacity .12s ease; }
+
+.pa-empty { padding: 32px 16px; text-align: center; color: var(--faint); font-size: 14px; }
+
+/* 페이지네이션(번호 + 이전/다음) */
+.pa-pager {
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  margin-top: 16px;
+}
+.pa-pager[hidden] { display: none; }
+.pa-page-btn {
+  font-size: 12.5px; font-weight: 700; color: var(--text-soft);
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 7px 16px; cursor: pointer;
+}
+.pa-page-btn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
+.pa-page-btn:disabled { opacity: .5; cursor: default; }
+.pa-pages { display: flex; align-items: center; gap: 4px; }
+.pa-page-num {
+  min-width: 34px; height: 34px; padding: 0 8px;
+  font-size: 12.5px; font-weight: 700; color: var(--text-soft);
+  background: #fff; border: 1px solid var(--line); border-radius: 9px;
+  cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.pa-page-num:hover { border-color: var(--brand); color: var(--brand); }
+.pa-page-num.is-active, .pa-page-num.is-active:hover {
+  color: #fff; background: var(--brand); border-color: var(--brand); cursor: default;
+}
+.pa-page-gap { padding: 0 4px; color: var(--faint); font-weight: 700; }
+
+@media (max-width: 640px) {
+  .pa-search { margin-left: 0; width: 100%; }
+  .pa-search input { width: 100%; }
+}

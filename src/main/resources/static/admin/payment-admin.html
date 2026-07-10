@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>결제·구독 · 여기콕</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/admin/shell.css">
+  <link rel="stylesheet" href="/css/admin/payment-admin.css">
+  <link rel="icon" href="/favicon/favicon.ico" sizes="any">
+</head>
+<body>
+
+  <div class="admin">
+
+    <aside class="admin-side" aria-label="관리자 메뉴">
+      <a class="admin-brand" href="/admin">
+        <span class="brand-mark-tag" aria-hidden="true">여기</span>
+        <span class="admin-brand-text">
+          <span class="brand-name-kok">콕</span>
+          <span class="admin-brand-sub">관리자 콘솔</span>
+        </span>
+      </a>
+      <nav class="admin-nav" aria-label="관리자 내비게이션">
+        <a href="/admin">개요</a>
+        <span class="admin-nav-label">데이터</span>
+        <a href="/admin/batch">데이터 적재</a>
+        <a href="/admin/trdar-admin">상권 데이터</a>
+        <a href="/admin/support-admin">지원사업</a>
+        <span class="admin-nav-label">서비스 운영</span>
+        <a href="/admin/member-admin">회원 관리</a>
+        <a href="/admin/payment-admin" aria-current="page">결제·구독</a>
+        <a href="/admin/notice-admin">공지사항</a>
+        <a href="/admin/inquiry-admin">1:1 문의</a>
+        <span class="admin-nav-label">시스템</span>
+        <a href="/admin/user-admin">관리자 계정</a>
+        <a href="/admin/audit-log">감사 로그</a>
+        <a href="/admin/api-usage">API 사용</a>
+        <hr class="admin-nav-sep">
+        <span class="admin-nav-out">
+          <a href="/map">지도로 이동</a>
+          <a href="/">랜딩으로</a>
+        </span>
+      </nav>
+      <div class="admin-user">
+        <span class="admin-user-avatar" aria-hidden="true">·</span>
+        <span>
+          <span class="admin-user-name">—</span>
+          <span class="admin-user-role">—</span>
+        </span>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <header class="admin-topbar">
+        <h1>결제·구독</h1>
+        <span class="admin-topbar-meta" id="pa-meta">요금제 주문 조회 및 구독 현황</span>
+      </header>
+
+      <main class="admin-content" aria-label="결제 주문 목록">
+
+        <section class="stat-grid" aria-label="결제 지표">
+          <article class="stat-card">
+            <div class="stat-card-label">이번 달 매출</div>
+            <div class="stat-card-value" id="pa-stat-revenue">—</div>
+            <div class="stat-delta" id="pa-sub-revenue">승인 완료 기준</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">이번 달 결제</div>
+            <div class="stat-card-value" id="pa-stat-paid">—</div>
+            <div class="stat-delta" id="pa-sub-paid">승인 건수</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">Pro 구독</div>
+            <div class="stat-card-value" id="pa-stat-pro">—</div>
+            <div class="stat-delta" id="pa-sub-pro">유효 구독 회원</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">결제 실패</div>
+            <div class="stat-card-value" id="pa-stat-failed">—</div>
+            <div class="stat-delta" id="pa-sub-failed">전체 기간</div>
+          </article>
+        </section>
+
+        <div class="pa-toolbar">
+          <div class="pa-chips" id="pa-chips" aria-label="상태 필터"></div>
+          <select class="pa-cycle" id="pa-cycle" aria-label="결제 주기 필터">
+            <option value="">전체 주기</option>
+            <option value="MONTHLY">월간</option>
+            <option value="YEARLY">연간</option>
+          </select>
+          <div class="pa-search">
+            <input type="search" id="pa-search" placeholder="아이디·이메일·닉네임 검색"
+                   autocomplete="off" aria-label="주문 회원 검색">
+          </div>
+        </div>
+
+        <section class="data-table-wrap" aria-label="결제 주문 표">
+          <div class="table-scroll">
+            <table class="data-table pa-table">
+              <thead>
+                <tr>
+                  <th scope="col">주문</th>
+                  <th scope="col">회원</th>
+                  <th scope="col">상품</th>
+                  <th scope="col" class="col-num">금액</th>
+                  <th scope="col" class="col-center">상태</th>
+                  <th scope="col">신청</th>
+                  <th scope="col">승인</th>
+                </tr>
+              </thead>
+              <tbody id="pa-tbody">
+                <tr><td colspan="7" class="pa-empty">불러오는 중…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="pa-pager" id="pa-pager" hidden>
+          <button type="button" class="pa-page-btn" id="pa-prev" aria-label="이전 페이지">이전</button>
+          <div class="pa-pages" id="pa-pages" aria-label="페이지 번호"></div>
+          <button type="button" class="pa-page-btn" id="pa-next" aria-label="다음 페이지">다음</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/admin/js/admin-shell.js"></script>
+  <script src="/admin/js/payment-admin.js"></script>
+</body>
+</html>

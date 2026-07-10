@@ -14,6 +14,8 @@ import com.sangkwon.sangkwonplatform.admin.ops.repository.ApiUsageLogRepository;
 import com.sangkwon.sangkwonplatform.global.batch.BatchJobLogRepository;
 import com.sangkwon.sangkwonplatform.map.repository.LlmReportRepository;
 import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
+import com.sangkwon.sangkwonplatform.member.entity.PaymentStatus;
+import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
@@ -39,15 +41,19 @@ public class OpsService {
     private final AdminUserRepository adminUserRepository;
     private final MemberRepository memberRepository;
     private final LlmReportRepository llmReportRepository;
+    private final PaymentOrderRepository paymentOrderRepository;
 
-    // 회원·리포트 누적 수와 오늘 증가분. 개요 상단 지표 카드용
+    // 회원·리포트 누적 수와 오늘 증가분, 이번 달 매출과 유효 구독자. 개요 상단 지표 카드용
     public OverviewResponse overview() {
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
+        LocalDateTime monthStart = LocalDate.now().withDayOfMonth(1).atStartOfDay();
         return new OverviewResponse(
                 memberRepository.count(),
                 memberRepository.countByCreatedAtGreaterThanEqual(todayStart),
                 llmReportRepository.count(),
-                llmReportRepository.countByCreatedAtGreaterThanEqual(todayStart));
+                llmReportRepository.countByCreatedAtGreaterThanEqual(todayStart),
+                paymentOrderRepository.sumAmountByStatusSince(PaymentStatus.PAID, monthStart),
+                memberRepository.countByPlanUntilAfter(LocalDateTime.now()));
     }
 
     public List<BatchLogResponse> recentBatches(int limit) {

@@ -22,22 +22,7 @@
         if (roleEl) { roleEl.textContent = d.role; }
         if (avaEl) { avaEl.textContent = (d.adminName || "?").charAt(0); }
 
-        // 운영 대시보드 메뉴(감사 로그·API 사용)를 공통 주입
-        var nav = document.querySelector(".admin-nav");
-        var sep = nav ? nav.querySelector(".admin-nav-sep") : null;
-        if (nav && sep) {
-            // 구형 .html 주소로 들어와도 활성 표시가 맞도록 확장자를 떼고 비교
-            var path = window.location.pathname.replace(/\.html$/, "");
-            [["/admin/support-admin", "지원사업"], ["/admin/member-admin", "회원 관리"], ["/admin/notice-admin", "공지사항"], ["/admin/inquiry-admin", "1:1 문의"], ["/admin/audit-log", "감사 로그"], ["/admin/api-usage", "API 사용"]].forEach(function (item) {
-                if (nav.querySelector('a[href="' + item[0] + '"]')) { return; }
-                var link = document.createElement("a");
-                link.href = item[0];
-                link.textContent = item[1];
-                if (path === item[0]) { link.setAttribute("aria-current", "page"); }
-                nav.insertBefore(link, sep);
-            });
-        }
-
+        // 메뉴는 각 페이지 정적 마크업(그룹 포함)으로 통일했다. 여기서는 계정 영역만 붙인다.
         // 사이드바 하단에 "내 계정·보안"과 "로그아웃" 추가
         var out = document.querySelector(".admin-nav-out");
         if (out) {

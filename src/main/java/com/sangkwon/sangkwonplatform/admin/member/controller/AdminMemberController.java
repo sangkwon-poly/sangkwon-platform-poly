@@ -3,6 +3,7 @@ package com.sangkwon.sangkwonplatform.admin.member.controller;
 import com.sangkwon.sangkwonplatform.admin.account.dto.session.AdminSession;
 import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminRole;
 import com.sangkwon.sangkwonplatform.admin.account.session.LoginAdmin;
+import com.sangkwon.sangkwonplatform.admin.member.dto.request.MemberPlanUpdateRequest;
 import com.sangkwon.sangkwonplatform.admin.member.dto.request.MemberStatusUpdateRequest;
 import com.sangkwon.sangkwonplatform.admin.member.dto.response.AdminMemberResponse;
 import com.sangkwon.sangkwonplatform.admin.member.dto.response.MemberCountsResponse;
@@ -76,6 +77,26 @@ public class AdminMemberController {
         AdminMemberService.StatusChange change = adminMemberService.changeStatus(memberId, request.status());
         auditService.record(admin.adminId(), AuditAction.MEMBER_STATUS_UPDATE, "MEMBER",
                 String.valueOf(memberId), "from=" + change.from() + ",to=" + request.status(), http);
+        return ApiResponse.ok(change.member());
+    }
+
+    // 구독 수동 조작(부여·연장·회수). 돈과 직결되는 조치라 감사 로그에 만료 전이를 남긴다.
+    @PatchMapping("/{memberId}/plan")
+    public ApiResponse<AdminMemberResponse> updatePlan(@LoginAdmin AdminSession admin,
+                                                       @PathVariable Long memberId,
+                                                       @Valid @RequestBody MemberPlanUpdateRequest request,
+                                                       HttpServletRequest http) {
+        requireSuperAdmin(admin);
+        if (request.op() == MemberPlanUpdateRequest.PlanOp.EXTEND) {
+            int months = request.monthsOrDefault();
+            AdminMemberService.PlanChange change = adminMemberService.extendPlan(memberId, months);
+            auditService.record(admin.adminId(), AuditAction.MEMBER_PLAN_EXTEND, "MEMBER",
+                    String.valueOf(memberId), "months=" + months + ",until=" + change.member().planUntil(), http);
+            return ApiResponse.ok(change.member());
+        }
+        AdminMemberService.PlanChange change = adminMemberService.revokePlan(memberId);
+        auditService.record(admin.adminId(), AuditAction.MEMBER_PLAN_REVOKE, "MEMBER",
+                String.valueOf(memberId), "wasUntil=" + change.beforeUntil(), http);
         return ApiResponse.ok(change.member());
     }
 

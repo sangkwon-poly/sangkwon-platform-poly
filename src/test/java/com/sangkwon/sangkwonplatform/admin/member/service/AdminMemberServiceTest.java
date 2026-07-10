@@ -18,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -164,5 +165,70 @@ class AdminMemberServiceTest {
         assertThat(res.banned()).isEqualTo(1);
         assertThat(res.dormant()).isEqualTo(0);
         assertThat(res.withdrawn()).isEqualTo(0);
+    }
+
+    @Test
+    @DisplayName("구독 부여: 무료 회원이면 지금부터 개월 수만큼 만료를 잡고 PREMIUM으로 올린다")
+    void extendPlan_grant() {
+        Member m = member();
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(m));
+
+        AdminMemberService.PlanChange res = adminMemberService.extendPlan(1L, 1);
+
+        assertThat(res.beforeUntil()).isNull();
+        assertThat(m.isPro()).isTrue();
+        assertThat(m.getPlanUntil()).isAfter(LocalDateTime.now().plusDays(27));
+        assertThat(res.member().pro()).isTrue();
+    }
+
+    @Test
+    @DisplayName("구독 연장: 만료 전이면 남은 기간에 이어붙인다")
+    void extendPlan_extend() {
+        Member m = member();
+        LocalDateTime until = LocalDateTime.now().plusDays(10);
+        m.activatePro(until);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(m));
+
+        AdminMemberService.PlanChange res = adminMemberService.extendPlan(1L, 1);
+
+        assertThat(res.beforeUntil()).isEqualTo(until);
+        assertThat(m.getPlanUntil()).isEqualTo(until.plusMonths(1));
+    }
+
+    @Test
+    @DisplayName("구독 회수: 만료를 지우고 등급을 USER로 되돌린다")
+    void revokePlan() {
+        Member m = member();
+        m.activatePro(LocalDateTime.now().plusMonths(1));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(m));
+
+        AdminMemberService.PlanChange res = adminMemberService.revokePlan(1L);
+
+        assertThat(m.isPro()).isFalse();
+        assertThat(m.getPlanUntil()).isNull();
+        assertThat(res.beforeUntil()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("구독 부여: 탈퇴 회원이면 400")
+    void extendPlan_withdrawn() {
+        Member m = member();
+        m.withdraw();
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(m));
+
+        assertThatThrownBy(() -> adminMemberService.extendPlan(1L, 1))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(t -> assertThat(statusOf(t)).isEqualTo(HttpStatus.BAD_REQUEST));
+    }
+
+    @Test
+    @DisplayName("구독 회수: 구독이 없으면 400")
+    void revokePlan_none() {
+        Member m = member();
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(m));
+
+        assertThatThrownBy(() -> adminMemberService.revokePlan(1L))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(t -> assertThat(statusOf(t)).isEqualTo(HttpStatus.BAD_REQUEST));
     }
 }

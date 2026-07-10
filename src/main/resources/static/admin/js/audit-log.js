@@ -10,6 +10,8 @@
         ADMIN_ROLE_UPDATE:    { label: "역할 변경", cls: "act-update" },
         ADMIN_STATUS_UPDATE:  { label: "관리자 상태 변경", cls: "act-update" },
         MEMBER_STATUS_UPDATE: { label: "회원 상태 변경", cls: "act-update" },
+        MEMBER_PLAN_EXTEND:   { label: "구독 부여·연장", cls: "act-update" },
+        MEMBER_PLAN_REVOKE:   { label: "구독 회수", cls: "act-danger" },
         NOTICE_CREATE:        { label: "공지 작성", cls: "act-create" },
         NOTICE_UPDATE:        { label: "공지 수정", cls: "act-update" },
         NOTICE_DELETE:        { label: "공지 삭제", cls: "act-danger" },

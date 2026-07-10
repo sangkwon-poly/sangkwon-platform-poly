@@ -105,6 +105,12 @@ public class Member extends BaseEntity {
         this.planUntil = until;
     }
 
+    // 구독 회수(관리자 환불·보상 취소용). 등급과 만료를 함께 무료 상태로 되돌린다.
+    public void revokePro() {
+        this.role = Role.USER;
+        this.planUntil = null;
+    }
+
     // 지금 시점 기준 Pro 이용 자격. 만료가 지나면 등급이 PREMIUM이어도 무효로 본다.
     public boolean isPro() {
         return planUntil != null && planUntil.isAfter(LocalDateTime.now());
