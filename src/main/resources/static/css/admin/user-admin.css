@@ -133,3 +133,8 @@
   color: #fff; background: var(--brand); border-color: var(--brand); cursor: default;
 }
 .ua-page-gap { padding: 0 4px; color: var(--faint); font-weight: 700; }
+
+/* 감사 로그 드릴다운: 이 관리자 활동 / 이 계정 변경 이력 */
+.ua-audit { display: flex; gap: 10px; margin-top: 3px; }
+.ua-audit a { font-size: 11px; color: var(--faint); }
+.ua-audit a:hover { color: var(--brand); text-decoration: underline; }

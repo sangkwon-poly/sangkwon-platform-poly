@@ -98,3 +98,15 @@
 .usage-pct.usage-ok     { color: var(--ok); }
 .usage-pct.usage-warn   { color: var(--warn); }
 .usage-pct.usage-danger { color: var(--danger); }
+
+/* 계정 화면에서 넘어온 드릴다운 필터 컨텍스트 배너 */
+.ag-context {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 14px; padding: 10px 14px;
+  background: var(--brand-tint); border-radius: 10px;
+  font-size: 13px; color: var(--ink);
+}
+.ag-context[hidden] { display: none; }
+#ag-context-text { font-weight: 700; }
+.ag-context-clear { margin-left: auto; font-size: 12.5px; font-weight: 700; color: var(--brand); }
+.ag-context-clear:hover { text-decoration: underline; }

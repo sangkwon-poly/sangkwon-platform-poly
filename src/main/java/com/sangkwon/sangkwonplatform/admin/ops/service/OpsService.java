@@ -58,9 +58,10 @@ public class OpsService {
                 .stream().map(ApiUsageResponse::from).toList();
     }
 
-    // 감사 로그: 행위 필터(선택) + 페이징. 관리자 로그인 아이디는 한 번에 모아 매핑한다.
-    public AuditPageResponse searchAudits(String action, Pageable pageable) {
-        Page<AdminAuditLog> logs = adminAuditLogRepository.search(blankToNull(action), pageable);
+    // 감사 로그: 행위·행위자(adminId)·대상 필터(모두 선택) + 페이징. 관리자 로그인 아이디는 한 번에 모아 매핑한다.
+    public AuditPageResponse searchAudits(String action, Long adminId, String targetType, String targetId, Pageable pageable) {
+        Page<AdminAuditLog> logs = adminAuditLogRepository.search(
+                blankToNull(action), adminId, blankToNull(targetType), blankToNull(targetId), pageable);
         Map<Long, String> loginById = adminUserRepository.findAllById(
                         logs.getContent().stream().map(AdminAuditLog::getAdminId).distinct().toList())
                 .stream().collect(Collectors.toMap(AdminUser::getAdminId,
