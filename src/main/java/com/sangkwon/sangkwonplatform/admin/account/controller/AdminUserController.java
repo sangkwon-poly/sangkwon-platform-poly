@@ -46,18 +46,24 @@ public class AdminUserController {
     @PatchMapping("/{adminId}/name")
     public ApiResponse<Void> updateName(@LoginAdmin AdminSession admin,
                                         @PathVariable Long adminId,
-                                        @Valid @RequestBody AdminNameUpdateRequest request) {
+                                        @Valid @RequestBody AdminNameUpdateRequest request,
+                                        HttpServletRequest http) {
         requireSelf(admin, adminId);
         adminUserService.updateName(admin.adminId(), request);
+        auditService.record(admin.adminId(), AuditAction.NAME_UPDATE, "ADMIN",
+                String.valueOf(admin.adminId()), null, http);
         return ApiResponse.ok(null);
     }
 
     @PatchMapping("/{adminId}/password")
     public ApiResponse<Void> updatePassword(@LoginAdmin AdminSession admin,
                                             @PathVariable Long adminId,
-                                            @Valid @RequestBody AdminPasswordUpdateRequest request) {
+                                            @Valid @RequestBody AdminPasswordUpdateRequest request,
+                                            HttpServletRequest http) {
         requireSelf(admin, adminId);
         adminUserService.updatePassword(admin.adminId(), request);
+        auditService.record(admin.adminId(), AuditAction.PASSWORD_CHANGE, "ADMIN",
+                String.valueOf(admin.adminId()), null, http);
         return ApiResponse.ok(null);
     }
 

@@ -60,7 +60,7 @@ class AdminUserServiceTest {
 
     @Test
     void 로그인_성공하면_세션을_반환하고_실패기록을_남기지_않는다() {
-        when(adminUserRepository.findByLoginId("admin")).thenReturn(Optional.of(activeAdmin()));
+        when(adminUserRepository.findByLoginIdForUpdate("admin")).thenReturn(Optional.of(activeAdmin()));
         when(passwordEncoder.matches("pw", "hash")).thenReturn(true);
 
         AdminSession session = adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), null);
@@ -71,7 +71,7 @@ class AdminUserServiceTest {
 
     @Test
     void 비밀번호가_틀리면_401과_함께_실패기록을_남긴다() {
-        when(adminUserRepository.findByLoginId("admin")).thenReturn(Optional.of(activeAdmin()));
+        when(adminUserRepository.findByLoginIdForUpdate("admin")).thenReturn(Optional.of(activeAdmin()));
         when(passwordEncoder.matches("wrong", "hash")).thenReturn(false);
 
         assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "wrong", null, false), null))
@@ -82,7 +82,7 @@ class AdminUserServiceTest {
 
     @Test
     void 존재하지_않는_아이디도_같은_401_메시지로_응답하고_실패기록은_없다() {
-        when(adminUserRepository.findByLoginId("nope")).thenReturn(Optional.empty());
+        when(adminUserRepository.findByLoginIdForUpdate("nope")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("nope", "pw", null, false), null))
                 .isInstanceOf(ResponseStatusException.class)
@@ -94,7 +94,7 @@ class AdminUserServiceTest {
     void 잠긴_계정은_로그인이_차단된다() {
         AdminUser locked = activeAdmin();
         locked.updateStatus(AdminStatus.LOCKED);
-        when(adminUserRepository.findByLoginId("admin")).thenReturn(Optional.of(locked));
+        when(adminUserRepository.findByLoginIdForUpdate("admin")).thenReturn(Optional.of(locked));
 
         assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), null))
                 .isInstanceOf(ResponseStatusException.class)
@@ -103,7 +103,7 @@ class AdminUserServiceTest {
 
     @Test
     void OTP를_켠_계정은_비밀번호가_맞아도_코드가_없으면_OTP를_요구한다() {
-        when(adminUserRepository.findByLoginId("admin")).thenReturn(Optional.of(otpAdmin()));
+        when(adminUserRepository.findByLoginIdForUpdate("admin")).thenReturn(Optional.of(otpAdmin()));
         when(passwordEncoder.matches("pw", "hash")).thenReturn(true);
 
         assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), null))
@@ -112,7 +112,7 @@ class AdminUserServiceTest {
 
     @Test
     void 신뢰된_기기면_OTP_코드가_없어도_로그인된다() {
-        when(adminUserRepository.findByLoginId("admin")).thenReturn(Optional.of(otpAdmin()));
+        when(adminUserRepository.findByLoginIdForUpdate("admin")).thenReturn(Optional.of(otpAdmin()));
         when(passwordEncoder.matches("pw", "hash")).thenReturn(true);
         when(trustedDeviceService.verify(any(), any())).thenReturn(true);
 
@@ -148,7 +148,7 @@ class AdminUserServiceTest {
 
     @Test
     void 존재하지_않는_아이디도_더미해시_비교로_응답_시간을_맞춘다() {
-        when(adminUserRepository.findByLoginId("nope")).thenReturn(Optional.empty());
+        when(adminUserRepository.findByLoginIdForUpdate("nope")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("nope", "pw", null, false), null))
                 .isInstanceOf(ResponseStatusException.class)

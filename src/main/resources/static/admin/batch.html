@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>데이터 적재 현황 · 서울공화국</title>
+  <title>데이터 적재 · 서울공화국</title>
   <link rel="stylesheet" href="/css/common.css">
   <link rel="stylesheet" href="/css/admin/shell.css">
   <link rel="stylesheet" href="/css/admin/batch.css">
@@ -44,53 +44,119 @@
     <!-- 본문 -->
     <div class="admin-main">
       <header class="admin-topbar">
-        <h1>데이터 적재 현황</h1>
+        <h1>데이터 적재</h1>
         <button type="button" class="btn-topbar" id="batch-refresh">새로고침</button>
       </header>
 
-      <main class="admin-content" aria-label="배치 모니터링">
+      <main class="admin-content" aria-label="데이터 적재 관리">
 
-        <!-- 배치 지표 -->
-        <section class="stat-grid batch-stats" aria-label="배치 요약">
+        <!-- 요약 지표 -->
+        <section class="stat-grid batch-stats" aria-label="적재 요약">
           <article class="stat-card">
-            <div class="stat-card-label">마지막 배치</div>
-            <div class="stat-card-value">—</div>
+            <div class="stat-card-label">데이터셋</div>
+            <div class="stat-card-value" data-stat="total">—</div>
           </article>
           <article class="stat-card">
-            <div class="stat-card-label">성공</div>
-            <div class="stat-card-value bt-ok">—</div>
+            <div class="stat-card-label">적재됨</div>
+            <div class="stat-card-value bt-ok" data-stat="loaded">—</div>
           </article>
           <article class="stat-card">
-            <div class="stat-card-label">지연</div>
-            <div class="stat-card-value bt-warn">—</div>
+            <div class="stat-card-label">총 레코드</div>
+            <div class="stat-card-value" data-stat="records">—</div>
           </article>
           <article class="stat-card">
-            <div class="stat-card-label">오류</div>
-            <div class="stat-card-value bt-danger">—</div>
+            <div class="stat-card-label">진행 중</div>
+            <div class="stat-card-value bt-warn" data-stat="running">—</div>
           </article>
         </section>
 
-        <!-- 적재 테이블 -->
-        <section class="data-table-wrap" aria-label="테이블별 적재 결과">
+        <p class="bt-legend">
+          <span class="badge badge-info"><span class="dot dot-info" aria-hidden="true"></span>앱 적재</span>
+          앱에서 바로 적재할 수 있는 외부 API 데이터입니다.
+          <span class="badge badge-muted">오프라인</span>
+          상권·매출 등 대용량 데이터는 파이썬 스크립트로 적재하고 여기서는 상태만 봅니다.
+        </p>
+
+        <div class="bt-flash" role="status" hidden></div>
+
+        <!-- 데이터셋 카탈로그 -->
+        <section class="data-table-wrap" aria-label="데이터셋 목록">
           <div class="table-scroll">
-            <table class="data-table batch-table">
+            <table class="data-table bt-catalog">
               <thead>
                 <tr>
-                  <th scope="col">테이블</th>
+                  <th scope="col">데이터셋</th>
+                  <th scope="col" class="col-center">구분</th>
+                  <th scope="col" class="col-num">레코드 수</th>
+                  <th scope="col">데이터 최신</th>
                   <th scope="col">적재 시각</th>
-                  <th scope="col" class="col-num">행 수</th>
-                  <th scope="col" class="col-num">소요</th>
                   <th scope="col" class="col-center">상태</th>
-                  <th scope="col">트리거</th>
+                  <th scope="col" class="col-center">동작</th>
                 </tr>
               </thead>
               <tbody>
-                <tr><td colspan="6" class="ops-empty">불러오는 중…</td></tr>
+                <tr><td colspan="7" class="ops-empty">불러오는 중…</td></tr>
               </tbody>
             </table>
           </div>
         </section>
       </main>
+    </div>
+  </div>
+
+  <!-- 데이터셋 상세 / 적재 모달 -->
+  <div class="bt-modal" id="bt-modal" hidden>
+    <div class="bt-modal-backdrop" data-close></div>
+    <div class="bt-modal-card" role="dialog" aria-modal="true" aria-labelledby="bt-modal-title">
+      <header class="bt-modal-head">
+        <div>
+          <h2 id="bt-modal-title">—</h2>
+          <p class="bt-modal-sub" data-modal="note">—</p>
+        </div>
+        <button type="button" class="bt-modal-x" data-close aria-label="닫기">×</button>
+      </header>
+
+      <div class="bt-modal-body">
+        <dl class="bt-meta">
+          <div><dt>구분</dt><dd data-modal="tier">—</dd></div>
+          <div><dt>주기</dt><dd data-modal="cycle">—</dd></div>
+          <div><dt>대상 테이블</dt><dd class="mono" data-modal="table">—</dd></div>
+          <div><dt>레코드 수</dt><dd class="mono" data-modal="count">—</dd></div>
+          <div><dt>데이터 최신</dt><dd data-modal="period">—</dd></div>
+          <div><dt>적재 시각</dt><dd data-modal="loaded">—</dd></div>
+        </dl>
+
+        <a class="bt-source" data-modal="source" target="_blank" rel="noopener">원본 데이터 출처로 이동 →</a>
+
+        <!-- 앱 적재 액션 -->
+        <div class="bt-action" data-modal="app" hidden>
+          <p class="bt-caution">지금 적재하면 외부 API(기업마당·K-Startup 등)를 호출하며 수 분에서 수십 분이 걸릴 수 있습니다. 완료까지 백그라운드로 진행되고, 기존 데이터는 upsert로 갱신됩니다.</p>
+          <button type="button" class="bt-run-lg" data-modal="run">지금 적재</button>
+        </div>
+
+        <!-- 오프라인 안내 -->
+        <div class="bt-offline" data-modal="offline" hidden>
+          <p class="bt-caution">이 데이터는 대용량이라 파이썬 ETL로 적재합니다. 새 데이터가 나왔는지는 위 원본 출처에서 확인하세요.</p>
+        </div>
+
+        <h3 class="bt-hist-title">실행 이력</h3>
+        <div class="table-scroll">
+          <table class="data-table bt-hist">
+            <thead>
+              <tr>
+                <th scope="col">시작</th>
+                <th scope="col" class="col-num">처리</th>
+                <th scope="col" class="col-num">소요</th>
+                <th scope="col" class="col-center">상태</th>
+                <th scope="col">트리거</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="5" class="ops-empty">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 

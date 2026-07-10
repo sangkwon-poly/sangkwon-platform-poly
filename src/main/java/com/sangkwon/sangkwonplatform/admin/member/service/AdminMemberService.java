@@ -49,10 +49,15 @@ public class AdminMemberService {
     }
 
     // 검색어를 소문자화하고 LIKE 와일드카드로 감싼다. 비어 있으면 null(=필터 없음).
+    // 입력에 든 %, _ 는 리터럴로 취급하도록 이스케이프한다(쿼리는 escape '\' 사용).
     private String normalize(String keyword) {
         if (keyword == null || keyword.isBlank()) {
             return null;
         }
-        return "%" + keyword.trim().toLowerCase() + "%";
+        String escaped = keyword.trim().toLowerCase()
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
+        return "%" + escaped + "%";
     }
 }

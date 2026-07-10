@@ -1,20 +1,134 @@
-/* BATCH-01 데이터 적재 현황 고유 스타일
-   공통 chrome·표는 shell.css. 여기서는 배치 화면 차이만. */
+/* BATCH 데이터 적재: 데이터셋 카탈로그 + 적재 트리거 + 상세 모달
+   공통 chrome/표/배지는 common.css·shell.css. 여기서는 배치 화면 고유분만. */
 
-/* 배치 지표 카드 사이 간격 */
-.batch-stats { margin-bottom: 18px; }
+/* 요약 지표 */
+.batch-stats { margin-bottom: 16px; }
 .bt-ok { color: #4e7a3e; }
 .bt-warn { color: var(--warn); }
 .bt-danger { color: var(--brand); }
 
-/* 테이블 컬럼 미세 조정 */
-.batch-table thead th { padding: 12px 20px; }
-.bt-name { font-size: 12.5px; font-weight: 700; color: #3a322e; }
-.bt-muted { color: var(--faint); }
-.batch-table tbody td { font-size: 12px; }
-
-/* 상태 배지 안 점 포함 */
-.batch-table .badge {
-  gap: 6px; font-size: 11px; padding: 4px 11px;
+/* 티어 안내 문단 */
+.bt-legend {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  margin: 0 0 14px;
+  font-size: 12px; color: var(--muted);
 }
-.batch-table .dot { width: 6px; height: 6px; }
+
+/* 인라인 알림 (다른 관리자 화면의 flash 패턴) */
+.bt-flash {
+  margin: 0 0 14px;
+  padding: 10px 14px; border-radius: var(--radius-sm);
+  background: var(--brand-tint); color: var(--brand-dark);
+  font-size: 12.5px; font-weight: 600;
+}
+
+/* 빈/로딩 셀 (공통에 없어 여기서 정의) */
+.ops-empty {
+  text-align: center; color: var(--faint);
+  padding: 30px 20px !important; font-size: 12.5px;
+}
+
+/* 미정의 상태 점 보강 */
+.dot-info { background: var(--info); }
+.dot-muted { background: var(--faint); }
+.dot.is-live { animation: bt-pulse 1.1s ease-in-out infinite; }
+@keyframes bt-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .3; } }
+
+/* 헤더 정렬을 본문 컬럼 정렬과 맞춘다 (shell.css의 th 기본 left가 명시도로 col-* 를 덮는 걸 보정) */
+.data-table thead th.col-num { text-align: right; }
+.data-table thead th.col-center { text-align: center; }
+
+/* 카탈로그 표 */
+.bt-catalog tbody tr.bt-row { cursor: pointer; transition: background .12s ease; }
+.bt-catalog tbody tr.bt-row:hover { background: var(--surface); }
+.bt-catalog tbody tr.is-running { background: var(--warn-bg); }
+.bt-catalog tbody tr.is-running:hover { background: var(--warn-bg); }
+.bt-name { display: block; font-weight: 700; color: var(--ink); font-size: 13px; }
+.bt-note { display: block; margin-top: 2px; font-size: 11px; color: var(--faint); }
+.bt-muted { color: var(--faint); }
+.bt-act { white-space: nowrap; }
+
+/* 신선도: 마지막 적재 후 경과. 오래되면 경고색 */
+.bt-age { margin-left: 6px; font-size: 11px; color: var(--faint); }
+.bt-age.is-stale { color: var(--warn); font-weight: 700; }
+
+/* 표 안 동작 버튼 */
+.bt-run, .bt-detail {
+  height: 30px; padding: 0 15px; border-radius: var(--radius-sm);
+  font-size: 12px; font-weight: 700; border: 1px solid transparent;
+}
+.bt-run { background: var(--brand); color: #fff; }
+.bt-run:hover { filter: brightness(1.07); }
+.bt-run:disabled { background: var(--warn-bg); color: var(--warn); cursor: default; filter: none; }
+.bt-detail { background: #fff; color: var(--text-soft); border-color: var(--line); }
+.bt-detail:hover { background: var(--surface); }
+
+/* ── 상세 / 적재 모달 ───────────────────────────────── */
+.bt-modal {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; background: rgba(35, 29, 26, .42);
+}
+.bt-modal[hidden] { display: none; }
+.bt-modal-backdrop { position: absolute; inset: 0; }
+.bt-modal-card {
+  position: relative;
+  width: 100%; max-width: 560px; max-height: 86vh; overflow: auto;
+  background: #fff; border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+}
+.bt-modal-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  padding: 20px 22px 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.bt-modal-head h2 { font-size: 16px; font-weight: 800; color: var(--ink); }
+.bt-modal-sub { margin-top: 4px; font-size: 12px; color: var(--muted); }
+.bt-modal-x {
+  flex: 0 0 auto; width: 30px; height: 30px; border: 0; border-radius: 8px;
+  background: var(--surface); color: var(--muted); font-size: 18px; line-height: 1;
+}
+.bt-modal-x:hover { background: var(--line-soft); color: var(--ink); }
+.bt-modal-body { padding: 18px 22px 22px; }
+
+/* 메타 정보 */
+.bt-meta {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  margin: 0 0 16px;
+}
+.bt-meta dt { font-size: 10px; font-weight: 700; letter-spacing: .05em; color: var(--faint); font-family: var(--mono); text-transform: uppercase; }
+.bt-meta dd { margin: 5px 0 0; font-size: 13px; color: var(--text); }
+
+.bt-caution { font-size: 12px; color: var(--muted); line-height: 1.55; margin: 0 0 12px; }
+
+/* 앱 적재 액션 */
+.bt-action {
+  padding: 14px 16px; margin-bottom: 18px;
+  background: var(--brand-tint); border-radius: var(--radius-sm);
+}
+.bt-action[hidden] { display: none; }
+.bt-run-lg {
+  height: 44px; width: 100%; border: 0; border-radius: var(--radius-sm);
+  background: var(--brand); color: #fff; font-size: 14px; font-weight: 800;
+  box-shadow: var(--shadow-soft);
+}
+.bt-run-lg:hover { filter: brightness(1.06); }
+.bt-run-lg:disabled { background: var(--warn-bg); color: var(--warn); box-shadow: none; cursor: default; filter: none; }
+
+/* 원본 출처 링크 */
+.bt-source {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin: 0 0 16px;
+  font-size: 12.5px; font-weight: 700; color: var(--brand);
+}
+.bt-source:hover { text-decoration: underline; }
+
+/* 오프라인 안내 */
+.bt-offline { margin-bottom: 6px; }
+.bt-offline[hidden] { display: none; }
+
+/* 실행 이력 */
+.bt-hist-title { font-size: 12px; font-weight: 700; color: var(--text-soft); margin: 0 0 8px; }
+.bt-hist { border: 1px solid var(--card-line); border-radius: 10px; overflow: hidden; }
+.bt-hist thead th { padding: 9px 14px; }
+.bt-hist tbody td { padding: 10px 14px; font-size: 12px; }

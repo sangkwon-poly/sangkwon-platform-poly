@@ -19,12 +19,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 @Service
 public class LlmReportService {
+
+    // 유료 Gemini 호출을 트리거하므로 하루 생성 건수를 제한해 비용 폭주와 남용을 막는다
+    private static final long DAILY_LIMIT = 500;
 
     private final TrdarRepository trdarRepository;
     private final SalesRepository salesRepository;
@@ -58,6 +62,9 @@ public class LlmReportService {
     public LlmReportResponse generate(String trdarCd, String indutyCd) {
         if (apiKey == null || apiKey.isBlank()) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Gemini API 키가 설정되지 않았습니다");
+        }
+        if (llmReportRepository.countByCreatedAtGreaterThanEqual(LocalDate.now().atStartOfDay()) >= DAILY_LIMIT) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "오늘 리포트 생성 한도를 초과했습니다");
         }
         Trdar trdar = trdarRepository.findById(trdarCd)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "상권을 찾을 수 없습니다"));

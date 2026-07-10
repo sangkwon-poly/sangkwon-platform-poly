@@ -1,43 +1,171 @@
-/* =====================================================================
- * favorites.js: 내 찜 상권 페이지 로직
- * 서울공화국 상권분석 플랫폼 · 김민혁(member)
- *
- * 담당: 앱 헤더 렌더 / 로그인 가드 / 찜 목록 로드·렌더 / 찜 해제.
- * MemberAPI · MemberUI(api.js 제공)만 사용한다. 새 CSS 클래스는 만들지 않는다.
- * ===================================================================== */
 (function () {
   'use strict';
 
-  // 지도 페이지 경로. 실제 map 도메인 자리표시자.
-  // TODO: map(이상혁) 도메인 확정 시 조정. 현재는 03-map 참고. ../map/index.html.
-  var MAP_HREF = '../map/index.html';
+  const region = document.getElementById('fav-region');
+  const countChip = document.getElementById('fav-count');
 
-  var region = document.getElementById('fav-region');
-  var countChip = document.getElementById('fav-count');
+  // 카드 한 칸 높이(.fav-item + .list gap) 대략치. 화면 높이에 맞춰 페이지당 개수를 잡는다.
+  const CARD_H = 96;
+  const MIN_PER_PAGE = 3;
+
+  let all = [];
+  let page = 0;
+  let perPage = 10;
+  let resizeTimer = null;
+  let renderToken = 0;
+  const districtCache = {};
 
   document.addEventListener('DOMContentLoaded', init);
+  window.addEventListener('resize', onResize);
 
   async function init() {
-    // 헤더 렌더(찜 탭 활성).
     MemberUI.renderHeader('favorites');
-
-    // 비로그인 시 로그인으로 유도하고 중단.
-    var me = await MemberUI.requireAuth();
+    const me = await MemberUI.requireAuth();
     if (!me) return;
-
     loadFavorites();
   }
 
-  /* 찜 목록을 불러와 렌더한다. */
   async function loadFavorites() {
     showLoading();
     try {
-      var list = await MemberAPI.favorites();
-      renderList(list || []);
+      all = (await MemberAPI.favorites()) || [];
+      updateCount(all.length);
+      if (!all.length) { renderEmpty(); return; }
+      perPage = perPageForViewport();
+      if (page > lastPage()) page = lastPage();
+      await renderPage();
     } catch (err) {
       MemberUI.handleError(err, '찜 목록을 불러오지 못했습니다.');
       renderError();
     }
+  }
+
+  function lastPage() {
+    return Math.max(0, Math.ceil(all.length / perPage) - 1);
+  }
+
+  // region 위쪽(헤더·제목)을 뺀 나머지 높이에 카드가 몇 개 들어가는지
+  function perPageForViewport() {
+    const top = region.getBoundingClientRect().top;
+    const avail = window.innerHeight - top - 96; // 96 = 페이저 + 여백
+    return Math.max(MIN_PER_PAGE, Math.floor(avail / CARD_H));
+  }
+
+  async function renderPage() {
+    const token = ++renderToken;
+    const start = page * perPage;
+    const enriched = await Promise.all(all.slice(start, start + perPage).map(withDistrict));
+    if (token !== renderToken) return; // 더 최신 렌더가 있으면 버린다
+    region.innerHTML = '<div class="list">' + enriched.map(favItemHtml).join('') + '</div>' + pagerHtml();
+    bindRows();
+    bindPager();
+  }
+
+  function onResize() {
+    if (!all.length) return;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const first = page * perPage; // 현재 페이지 첫 항목을 유지
+      perPage = perPageForViewport();
+      page = Math.min(Math.floor(first / perPage), lastPage());
+      renderPage();
+    }, 150);
+  }
+
+  // 상권명은 찜 응답에 없어 map districts API로 채운다. 보이는 페이지만 조회하고 캐시한다.
+  async function withDistrict(fav) {
+    if (!(fav.trdarCd in districtCache)) {
+      const d = await districtName(fav.trdarCd);
+      districtCache[fav.trdarCd] = d ? { trdarNm: d.trdarNm, signguNm: d.signguNm } : null;
+    }
+    const c = districtCache[fav.trdarCd];
+    return c ? { ...fav, trdarNm: c.trdarNm, signguNm: c.signguNm } : fav;
+  }
+
+  function districtName(trdarCd) {
+    return fetch('/api/districts/' + encodeURIComponent(trdarCd), { credentials: 'include' })
+      .then((res) => res.json())
+      .then((body) => (body && body.success ? body.data : null))
+      .catch(() => null);
+  }
+
+  function bindRows() {
+    region.querySelectorAll('.fav-item').forEach((card) => {
+      const trdarCd = card.getAttribute('data-trdar');
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', () => {
+        location.href = '/map/trdar-detail?trdarCd=' + encodeURIComponent(trdarCd);
+      });
+      const removeBtn = card.querySelector('[data-action="remove"]');
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        onRemove(trdarCd, removeBtn);
+      });
+    });
+  }
+
+  function pagerHtml() {
+    const total = lastPage() + 1;
+    if (total <= 1) return '';
+    const prevDis = page === 0 ? ' disabled' : '';
+    const nextDis = page >= lastPage() ? ' disabled' : '';
+    return '' +
+      '<div class="pager" style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:18px">' +
+        '<button type="button" class="btn btn--ghost btn--sm" data-page="prev"' + prevDis + '>이전</button>' +
+        '<span class="text-muted" style="font-size:13px">' + (page + 1) + ' / ' + total + '</span>' +
+        '<button type="button" class="btn btn--ghost btn--sm" data-page="next"' + nextDis + '>다음</button>' +
+      '</div>';
+  }
+
+  function bindPager() {
+    const prev = region.querySelector('[data-page="prev"]');
+    const next = region.querySelector('[data-page="next"]');
+    if (prev) prev.addEventListener('click', () => { if (page > 0) { page--; renderPage(); } });
+    if (next) next.addEventListener('click', () => { if (page < lastPage()) { page++; renderPage(); } });
+  }
+
+  function favItemHtml(fav) {
+    const esc = MemberUI.escapeHtml;
+    const name = fav.trdarNm || ('상권 ' + (fav.trdarCd || ''));
+    const initial = fav.trdarNm ? fav.trdarNm.slice(0, 1) : (fav.signguNm ? fav.signguNm.slice(0, 1) : '찜');
+
+    const meta = [];
+    if (fav.signguNm) meta.push('<span>' + esc(fav.signguNm) + '</span>');
+    if (fav.createdAt) meta.push('<span>' + esc(MemberUI.formatDate(fav.createdAt)) + ' 찜</span>');
+
+    return '' +
+      '<div class="fav-item" data-trdar="' + esc(fav.trdarCd) + '">' +
+        '<span class="fav-item__avatar" aria-hidden="true">' + esc(initial) + '</span>' +
+        '<div class="fav-item__body">' +
+          '<span class="fav-item__name">' + esc(name) + '</span>' +
+          '<span class="fav-item__meta">' + meta.join('') + '</span>' +
+        '</div>' +
+        '<div class="fav-item__actions">' +
+          '<button type="button" class="btn btn--danger btn--sm" data-action="remove" ' +
+            'aria-label="' + esc(name) + ' 찜 해제">찜 해제</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  async function onRemove(trdarCd, btn) {
+    if (!trdarCd) return;
+    btn.classList.add('is-loading');
+    btn.setAttribute('disabled', 'disabled');
+    try {
+      await MemberAPI.removeFavorite(trdarCd);
+      MemberUI.toast('찜을 해제했습니다.', 'ok');
+      loadFavorites();
+    } catch (err) {
+      MemberUI.handleError(err, '찜 해제에 실패했습니다.');
+      btn.classList.remove('is-loading');
+      btn.removeAttribute('disabled');
+    }
+  }
+
+  function updateCount(n) {
+    if (!countChip) return;
+    countChip.hidden = false;
+    countChip.textContent = '찜 ' + n + '곳';
   }
 
   function showLoading() {
@@ -45,6 +173,17 @@
       '<div class="loading-block">' +
         '<span class="spinner spinner--lg" aria-hidden="true"></span>' +
         '<span>찜한 상권을 불러오는 중입니다…</span>' +
+      '</div>';
+  }
+
+  function renderEmpty() {
+    if (countChip) countChip.hidden = true;
+    region.innerHTML =
+      '<div class="empty">' +
+        emptyIcon() +
+        '<div class="empty__title">아직 찜한 상권이 없어요</div>' +
+        '<p class="empty__desc">지도에서 상권을 열어 찜하면 여기에 모여요.</p>' +
+        '<a class="btn btn--primary" href="/map">지도 보기</a>' +
       '</div>';
   }
 
@@ -57,112 +196,10 @@
         '<p class="empty__desc">잠시 후 다시 시도해 주세요.</p>' +
         '<button type="button" class="btn btn--ghost" data-action="retry">다시 시도</button>' +
       '</div>';
-    var retry = region.querySelector('[data-action="retry"]');
+    const retry = region.querySelector('[data-action="retry"]');
     if (retry) retry.addEventListener('click', loadFavorites);
   }
 
-  /* 목록 렌더: 비었으면 빈 상태, 아니면 찜 카드 리스트. */
-  function renderList(list) {
-    updateCount(list.length);
-
-    if (!list.length) {
-      renderEmpty();
-      return;
-    }
-
-    var itemsHtml = list.map(favItemHtml).join('');
-    region.innerHTML = '<div class="list">' + itemsHtml + '</div>';
-
-    // 찜 해제 버튼 바인딩.
-    var buttons = region.querySelectorAll('[data-action="remove"]');
-    Array.prototype.forEach.call(buttons, function (btn) {
-      btn.addEventListener('click', function () {
-        onRemove(btn.getAttribute('data-trdar'), btn);
-      });
-    });
-  }
-
-  function updateCount(n) {
-    if (!countChip) return;
-    countChip.hidden = false;
-    countChip.textContent = '찜 ' + n + '곳';
-  }
-
-  /* 아바타 이니셜: 상권명 > 자치구 > 상권코드 마지막 숫자 순. */
-  function initialFor(fav) {
-    if (fav.trdarNm) return String(fav.trdarNm).slice(0, 1);
-    if (fav.signguNm) return String(fav.signguNm).slice(0, 1);
-    if (fav.trdarCd) {
-      var digits = String(fav.trdarCd).replace(/\D/g, '');
-      if (digits) return digits.slice(-1);
-    }
-    return '?';
-  }
-
-  /* 찜 카드 한 개의 HTML. */
-  function favItemHtml(fav) {
-    var esc = MemberUI.escapeHtml;
-    var name = fav.trdarNm || ('상권 ' + (fav.trdarCd || ''));
-    // 이니셜: 상권명 첫 글자 > 자치구 첫 글자 > 상권코드 마지막 숫자 > '?'.
-    // (fallback name 이 '상권 XXXX'라 항상 '상'이 되던 문제 개선)
-    var initial = initialFor(fav);
-
-    // 메타: 자치구 + 찜한 날짜 + 상권코드.
-    var metaParts = [];
-    if (fav.signguNm) {
-      metaParts.push('<span>' + esc(fav.signguNm) + '</span>');
-    }
-    if (fav.createdAt) {
-      metaParts.push('<span>' + esc(MemberUI.formatDate(fav.createdAt)) + ' 찜</span>');
-    }
-    if (fav.trdarCd) {
-      metaParts.push('<span class="text-mono">' + esc(fav.trdarCd) + '</span>');
-    }
-
-    return '' +
-      '<div class="fav-item">' +
-        '<span class="fav-item__avatar" aria-hidden="true">' + esc(initial) + '</span>' +
-        '<div class="fav-item__body">' +
-          '<span class="fav-item__name">' + esc(name) + '</span>' +
-          '<span class="fav-item__meta">' + metaParts.join('') + '</span>' +
-        '</div>' +
-        '<div class="fav-item__actions">' +
-          '<button type="button" class="btn btn--danger btn--sm" ' +
-            'data-action="remove" data-trdar="' + esc(fav.trdarCd) + '" ' +
-            'aria-label="' + esc(name) + ' 찜 해제">찜 해제</button>' +
-        '</div>' +
-      '</div>';
-  }
-
-  /* 찜 해제 처리: API 호출 → 목록 갱신 → 토스트. */
-  async function onRemove(trdarCd, btn) {
-    if (!trdarCd) return;
-    btn.classList.add('is-loading');
-    btn.setAttribute('disabled', 'disabled');
-    try {
-      await MemberAPI.removeFavorite(trdarCd);
-      MemberUI.toast('찜을 해제했습니다.', 'ok');
-      // 최신 상태로 다시 로드(개수/빈 상태 동기화).
-      await loadFavorites();
-    } catch (err) {
-      MemberUI.handleError(err, '찜 해제에 실패했습니다.');
-      btn.classList.remove('is-loading');
-      btn.removeAttribute('disabled');
-    }
-  }
-
-  /* 빈 상태: 지도로 가서 상권을 찜하라는 안내. */
-  function renderEmpty() {
-    region.innerHTML =
-      '<div class="empty">' +
-        emptyIcon() +
-        '<div class="empty__title">아직 찜한 상권이 없어요</div>' +
-        '<p class="empty__desc">지도에서 관심 있는 상권을 찾아 하트를 누르면 여기에 모여요.</p>' +
-        '<a class="btn btn--primary" href="' + MemberUI.escapeHtml(MAP_HREF) + '">지도 보기</a>' +
-      '</div>';
-  }
-
-  /* 빈 상태/에러 공용 아이콘(인라인 SVG, 외부 아이콘폰트 금지). */
   function emptyIcon() {
     return '' +
       '<span class="empty__icon" aria-hidden="true">' +

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>지원사업 관리 · 서울공화국</title>
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/admin/shell.css">
+  <link rel="stylesheet" href="/css/admin/support-admin.css">
+</head>
+<body>
+
+  <div class="admin">
+
+    <aside class="admin-side" aria-label="관리자 메뉴">
+      <a class="admin-brand" href="/admin">
+        <span class="brand-mark" aria-hidden="true">서</span>
+        <span class="admin-brand-text">
+          <span class="admin-brand-name">서울공화국</span>
+          <span class="admin-brand-sub">관리자 콘솔</span>
+        </span>
+      </a>
+      <nav class="admin-nav" aria-label="관리자 내비게이션">
+        <a href="/admin">개요</a>
+        <a href="/admin/batch">데이터 적재</a>
+        <a href="/admin/trdar-admin">상권 데이터</a>
+        <a href="/admin/user-admin">관리자 계정</a>
+        <hr class="admin-nav-sep">
+        <span class="admin-nav-out">
+          <a href="/map">지도로 이동</a>
+          <a href="/">랜딩으로</a>
+        </span>
+      </nav>
+      <div class="admin-user">
+        <span class="admin-user-avatar" aria-hidden="true">·</span>
+        <span>
+          <span class="admin-user-name">—</span>
+          <span class="admin-user-role">—</span>
+        </span>
+      </div>
+    </aside>
+
+    <div class="admin-main">
+      <header class="admin-topbar">
+        <h1>지원사업 관리</h1>
+        <span class="admin-topbar-meta" id="sa-meta">배치로 들어온 공고의 노출을 관리합니다</span>
+      </header>
+
+      <main class="admin-content" aria-label="지원사업 관리">
+
+        <section class="sa-summary" aria-label="요약">
+          <article class="sa-stat"><span class="sa-stat-label">전체</span><span class="sa-stat-value" id="sa-c-total">—</span></article>
+          <article class="sa-stat sa-stat-accent"><span class="sa-stat-label">진행중</span><span class="sa-stat-value sa-ok" id="sa-c-open">—</span></article>
+          <article class="sa-stat"><span class="sa-stat-label">마감</span><span class="sa-stat-value sa-muted" id="sa-c-closed">—</span></article>
+          <article class="sa-stat"><span class="sa-stat-label">노출</span><span class="sa-stat-value" id="sa-c-visible">—</span></article>
+          <article class="sa-stat"><span class="sa-stat-label">숨김</span><span class="sa-stat-value sa-muted" id="sa-c-hidden">—</span></article>
+        </section>
+
+        <p class="sa-flash" id="sa-flash" role="status" hidden></p>
+
+        <div class="sa-toolbar">
+          <div class="sa-chips" id="sa-chips" aria-label="상태 필터">
+            <button type="button" class="sa-chip is-active" data-status="OPEN">진행중</button>
+            <button type="button" class="sa-chip" data-status="CLOSING">마감 임박</button>
+            <button type="button" class="sa-chip" data-status="CLOSED">마감</button>
+            <button type="button" class="sa-chip" data-status="ALL">전체</button>
+          </div>
+          <select class="sa-select" id="sa-visibility" aria-label="노출여부">
+            <option value="">노출여부 전체</option>
+            <option value="Y">노출만</option>
+            <option value="N">숨김만</option>
+          </select>
+          <select class="sa-select" id="sa-source" aria-label="출처">
+            <option value="">출처 전체</option>
+            <option value="BIZINFO">기업마당</option>
+            <option value="KSTARTUP">K-Startup</option>
+          </select>
+          <select class="sa-select" id="sa-type" aria-label="유형">
+            <option value="">유형 전체</option>
+            <option value="FUND">자금·융자</option>
+            <option value="RND">기술·R&D</option>
+            <option value="HR">인력</option>
+            <option value="SALES">판로·수출·글로벌</option>
+            <option value="STARTUP">창업·사업화</option>
+            <option value="EDU">경영·멘토링·교육</option>
+            <option value="FACILITY">시설·공간·보육</option>
+            <option value="EVENT">행사·네트워크</option>
+            <option value="ETC">기타</option>
+          </select>
+          <div class="sa-search">
+            <input type="search" id="sa-search" placeholder="공고명 검색" autocomplete="off" aria-label="공고명 검색">
+          </div>
+        </div>
+
+        <section class="data-table-wrap" aria-label="지원사업 표">
+          <div class="table-scroll">
+            <table class="data-table sa-table">
+              <thead>
+                <tr>
+                  <th scope="col" class="col-center">출처</th>
+                  <th scope="col">유형</th>
+                  <th scope="col">공고명</th>
+                  <th scope="col">지역</th>
+                  <th scope="col">신청기간</th>
+                  <th scope="col" class="col-center">노출</th>
+                </tr>
+              </thead>
+              <tbody id="sa-tbody">
+                <tr><td colspan="6" class="sa-empty">불러오는 중…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <div class="sa-pager" id="sa-pager" hidden>
+          <button type="button" class="sa-page-btn sa-page-nav" id="sa-prev" aria-label="이전 페이지">이전</button>
+          <div class="sa-pages" id="sa-pages" aria-label="페이지 번호"></div>
+          <button type="button" class="sa-page-btn sa-page-nav" id="sa-next" aria-label="다음 페이지">다음</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/admin/js/admin-shell.js"></script>
+  <script src="/admin/js/support-admin.js"></script>
+</body>
+</html>

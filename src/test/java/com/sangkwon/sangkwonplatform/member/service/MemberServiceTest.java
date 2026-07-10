@@ -93,32 +93,32 @@ class MemberServiceTest {
         when(memberRepository.findByLoginId("minhyuk")).thenReturn(Optional.of(m));
         when(passwordEncoder.matches("password1", "hashed-pw")).thenReturn(true);
 
-        MemberResponse res = memberService.login(req);
+        MemberResponse res = memberService.login(req, "1.1.1.1");
 
         assertThat(res.loginId()).isEqualTo("minhyuk");
         assertThat(m.getLastLoginAt()).isNotNull();
     }
 
     @Test
-    @DisplayName("로그인: 없는 아이디 → M011")
+    @DisplayName("로그인: 없는 아이디 → M004 (아이디/비번 구분 없이)")
     void login_noSuchId() {
         var req = new MemberLoginRequest("nope", "password1", false);
         when(memberRepository.findByLoginId("nope")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> memberService.login(req))
-                .satisfies(t -> assertThat(errorCodeOf(t)).isEqualTo(ErrorCode.LOGIN_ID_NOT_FOUND));
+        assertThatThrownBy(() -> memberService.login(req, "1.1.1.1"))
+                .satisfies(t -> assertThat(errorCodeOf(t)).isEqualTo(ErrorCode.INVALID_CREDENTIALS));
     }
 
     @Test
-    @DisplayName("로그인: 비밀번호 불일치 → M012 (상태보다 먼저 검증)")
+    @DisplayName("로그인: 비밀번호 불일치 → M004 (상태보다 먼저 검증)")
     void login_wrongPassword() {
         Member m = activeMember();
         var req = new MemberLoginRequest("minhyuk", "wrong", false);
         when(memberRepository.findByLoginId("minhyuk")).thenReturn(Optional.of(m));
         when(passwordEncoder.matches("wrong", "hashed-pw")).thenReturn(false);
 
-        assertThatThrownBy(() -> memberService.login(req))
-                .satisfies(t -> assertThat(errorCodeOf(t)).isEqualTo(ErrorCode.INVALID_PASSWORD));
+        assertThatThrownBy(() -> memberService.login(req, "1.1.1.1"))
+                .satisfies(t -> assertThat(errorCodeOf(t)).isEqualTo(ErrorCode.INVALID_CREDENTIALS));
     }
 
     @Test
@@ -130,7 +130,7 @@ class MemberServiceTest {
         when(memberRepository.findByLoginId("minhyuk")).thenReturn(Optional.of(m));
         when(passwordEncoder.matches("password1", "hashed-pw")).thenReturn(true);
 
-        assertThatThrownBy(() -> memberService.login(req))
+        assertThatThrownBy(() -> memberService.login(req, "1.1.1.1"))
                 .satisfies(t -> assertThat(errorCodeOf(t)).isEqualTo(ErrorCode.WITHDRAWN_MEMBER));
     }
 
@@ -143,7 +143,7 @@ class MemberServiceTest {
         when(memberRepository.findByLoginId("minhyuk")).thenReturn(Optional.of(m));
         when(passwordEncoder.matches("password1", "hashed-pw")).thenReturn(true);
 
-        assertThatThrownBy(() -> memberService.login(req))
+        assertThatThrownBy(() -> memberService.login(req, "1.1.1.1"))
                 .satisfies(t -> assertThat(errorCodeOf(t)).isEqualTo(ErrorCode.BANNED_MEMBER));
     }
 
@@ -156,7 +156,7 @@ class MemberServiceTest {
         when(memberRepository.findByLoginId("minhyuk")).thenReturn(Optional.of(m));
         when(passwordEncoder.matches("password1", "hashed-pw")).thenReturn(true);
 
-        assertThatThrownBy(() -> memberService.login(req))
+        assertThatThrownBy(() -> memberService.login(req, "1.1.1.1"))
                 .satisfies(t -> assertThat(errorCodeOf(t)).isEqualTo(ErrorCode.DORMANT_MEMBER));
     }
 

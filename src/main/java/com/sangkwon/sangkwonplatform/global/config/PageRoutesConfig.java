@@ -13,7 +13,8 @@ public class PageRoutesConfig implements WebMvcConfigurer {
 
     private static final String[] ADMIN_PAGES = {
             "login", "dashboard", "batch", "trdar-admin", "user-admin",
-            "member-admin", "notice-admin", "inquiry-admin", "audit-log", "api-usage"
+            "member-admin", "notice-admin", "inquiry-admin", "audit-log", "api-usage",
+            "support-admin", "support-detail"
     };
     private static final String[] MAP_PAGES = { "search", "trdar-detail", "compare", "report", "insight" };
     private static final String[] MEMBER_PAGES = { "login", "mypage", "favorites" };
@@ -27,6 +28,7 @@ public class PageRoutesConfig implements WebMvcConfigurer {
         forward(registry, "/map/", "/map/index.html");
         forward(registry, "/support", "/support/support.html");
         forward(registry, "/support/", "/support/support.html");
+        forward(registry, "/support/detail", "/support/support-detail.html");
 
         for (String page : ADMIN_PAGES) {
             forward(registry, "/admin/" + page, "/admin/" + page + ".html");

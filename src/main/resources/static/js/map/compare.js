@@ -77,12 +77,19 @@ function mixCard() {
     return card("업종 구성 TOP3", "최근 분기 매출 비중", rows);
 }
 
+// 문자열을 속성값에 안전하게 넣기 위한 이스케이프
+function escAttr(s) {
+    return String(s == null ? "" : s)
+        .replace(/&/g, "&amp;").replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
 // 상권 검색으로 비교함에 바로 담는다
 function searchBox() {
     const full = cmp.picked.length >= 4;
     return '<div style="position:relative;max-width:340px;margin-bottom:14px">' +
         '<input type="search" id="cmp-search" placeholder="' + (full ? "최대 4개까지 비교할 수 있습니다" : "상권 이름으로 추가") + '" ' +
-        (full ? "disabled " : "") + 'value="' + cmp.query + '" ' +
+        (full ? "disabled " : "") + 'value="' + escAttr(cmp.query) + '" ' +
         'style="width:100%;padding:9px 13px;border:1px solid #e2d6cf;border-radius:10px;font:inherit;background:#fff">' +
         '<div id="cmp-suggest" style="position:absolute;top:100%;left:0;right:0;z-index:10;background:#fff;' +
         'border:1px solid #e2d6cf;border-radius:10px;margin-top:4px;box-shadow:0 6px 18px rgba(94,30,17,.12);display:none"></div></div>';
