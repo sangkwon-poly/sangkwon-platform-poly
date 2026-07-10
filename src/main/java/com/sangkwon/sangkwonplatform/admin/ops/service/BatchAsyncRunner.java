@@ -26,10 +26,15 @@ public class BatchAsyncRunner {
     private final SeoulFactsLoadService seoulFactsLoadService;
 
     @Async("batchExecutor")
-    public void run(Dataset dataset, String triggeredBy) {
-        batchJobExecutor.run(
-                new BatchJobSpec(dataset.jobName(), dataset.code(), null, triggeredBy),
-                () -> loader(dataset));
+    public void run(Dataset dataset, String triggeredBy, Runnable onComplete) {
+        try {
+            batchJobExecutor.run(
+                    new BatchJobSpec(dataset.jobName(), dataset.code(), null, triggeredBy),
+                    () -> loader(dataset));
+        } finally {
+            // 실행이 끝나면(성공/실패 무관) 중복실행 예약을 반드시 푼다
+            onComplete.run();
+        }
     }
 
     // APP 티어 데이터셋만 여기 도달한다(BatchAdminService에서 검증). 그 외는 방어적으로 막는다.

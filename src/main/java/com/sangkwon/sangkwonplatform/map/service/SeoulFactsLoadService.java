@@ -206,7 +206,9 @@ public class SeoulFactsLoadService {
                 sleep(2000);
             }
         }
-        throw (last != null) ? last : new IllegalStateException("응답 없음: " + url);
+        // 예외 메시지가 배치 로그에 저장되므로 URL에 박힌 API 키를 가린다
+        String masked = (seoulKey == null || seoulKey.isBlank()) ? url : url.replace(seoulKey, "***");
+        throw new IllegalStateException("서울 오픈API 응답 실패: " + masked, last);
     }
 
     // 숫자 컬럼이면 Double(빈값 null), 아니면 문자열 그대로
