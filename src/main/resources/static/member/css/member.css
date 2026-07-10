@@ -382,6 +382,17 @@ p {
   border-color: var(--muted-3);
 }
 
+/* 헤더(버건디) 안의 로그아웃 버튼: 연한 크림 분홍 톤으로 분리 */
+.app-header__user .btn--ghost {
+  background: #f7e6e0;
+  border-color: #f2d8cf;
+  color: var(--brand-700);
+}
+.app-header__user .btn--ghost:hover {
+  background: #fbeee9;
+  border-color: #f7e6e0;
+}
+
 .btn--danger {
   background: transparent;
   border-color: rgba(192, 57, 43, .4);
