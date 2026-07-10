@@ -72,4 +72,16 @@ public enum SupportProgramTypeTab {
                 .flatMap(t -> t.rawValues.stream())
                 .toList();
     }
+
+    // 목록 필터(program_type IN rawValues)와 같은 기준으로 원본값을 탭에 넣는다.
+    // of()는 정규화로 폭넓게 잡아 배지 카운트가 필터 결과와 어긋나므로, 배지 카운트에는 이 exact 매칭을 쓴다.
+    public static SupportProgramTypeTab fromRawValue(String rawType) {
+        if (rawType == null) {
+            return ETC;
+        }
+        return Arrays.stream(values())
+                .filter(t -> t != ETC && t.rawValues.contains(rawType))
+                .findFirst()
+                .orElse(ETC);
+    }
 }

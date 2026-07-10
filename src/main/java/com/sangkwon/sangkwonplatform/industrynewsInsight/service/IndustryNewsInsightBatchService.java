@@ -5,6 +5,7 @@ import com.sangkwon.sangkwonplatform.industrynewsInsight.repository.IndustryNews
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -14,6 +15,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
@@ -23,7 +25,15 @@ import java.util.*;
 public class IndustryNewsInsightBatchService {
 
     private final IndustryNewsInsightRepository repository;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = timeoutRestTemplate();
+
+    // 외부 호출이 무한 대기하지 않도록 연결/읽기 타임아웃을 건다(소켓 hang 시 배치 스레드가 묶이는 것 방지)
+    private static RestTemplate timeoutRestTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Duration.ofSeconds(5));
+        factory.setReadTimeout(Duration.ofSeconds(15));
+        return new RestTemplate(factory);
+    }
 
     @Value("${naver.client-id}")
     private String naverClientId;
@@ -347,6 +357,9 @@ public class IndustryNewsInsightBatchService {
                     System.out.printf("네이버 429 발생: %s / %d초 대기 후 재시도 (%d/%d)%n",
                             query, NAVER_RETRY_WAIT_MS / 1000, attempt, NAVER_MAX_RETRY);
                     sleep(NAVER_RETRY_WAIT_MS);
+                } catch (HttpClientErrorException.Unauthorized | HttpClientErrorException.Forbidden e) {
+                    // 인증 실패는 '뉴스 없음'이 아니라 키 설정 오류다. 폴백을 전 업종에 저장하지 않도록 배치를 중단시킨다
+                    throw new IllegalStateException("네이버 뉴스 API 인증 실패(키 확인 필요): " + e.getStatusCode(), e);
                 } catch (Exception e) {
                     System.out.println("네이버 뉴스 호출 실패: " + query + " / " + e.getMessage());
                     return;
@@ -464,10 +477,12 @@ public class IndustryNewsInsightBatchService {
                 ObjectMapper mapper = new ObjectMapper();
                 JsonNode root = mapper.readTree(response.getBody());
 
-                return root.path("candidates").get(0)
-                        .path("content").path("parts").get(0)
-                        .path("text").asText()
+                // get(0) 대신 path()로 탐색해 candidates/parts가 비어도(안전차단 등) NPE 없이 빈 값으로 떨어지게 한다
+                String text = root.path("candidates").path(0)
+                        .path("content").path("parts").path(0)
+                        .path("text").asText("")
                         .trim();
+                return text.isBlank() ? null : text;
 
             } catch (HttpClientErrorException.TooManyRequests e) {
                 System.out.printf("Gemini 429(Too Many Requests) 발생, %d초 대기 후 재시도 (%d/%d)%n",

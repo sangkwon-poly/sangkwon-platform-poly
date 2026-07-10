@@ -18,6 +18,12 @@
     d.textContent = (s == null) ? "" : String(s);
     return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
+  // href에는 http/https만 허용해 javascript: 등 스킴 주입(저장형 XSS)을 막는다
+  function safeUrl(u) {
+    if (!u) { return ""; }
+    var s = String(u).trim();
+    return /^https?:\/\//i.test(s) ? s : "";
+  }
   function $(id) { return document.getElementById(id); }
 
   function api(path) {
@@ -63,7 +69,7 @@
       + '<div class="sp-card-side">'
       + '<span class="sp-status sp-status-' + st.cls + '">' + esc(st.text) + "</span>"
       + '<span class="sp-src sp-src-' + esc(c.sourceCd) + '">' + esc(SOURCE_LABEL[c.sourceCd] || c.sourceCd) + "</span>"
-      + (c.detailUrl ? '<a class="sp-origin" href="' + esc(c.detailUrl) + '" target="_blank" rel="noopener">원문 공고 보기 ↗</a>' : "")
+      + (safeUrl(c.detailUrl) ? '<a class="sp-origin" href="' + esc(safeUrl(c.detailUrl)) + '" target="_blank" rel="noopener">원문 공고 보기 ↗</a>' : "")
       + "</div>"
       + "</li>";
   }

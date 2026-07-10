@@ -64,6 +64,9 @@ public class AdminUserService {
                 .toList();
     }
 
+    // 실패 카운트/OTP 소비는 이 트랜잭션에서 확정한다. 자격 실패 예외로는 롤백하지 않아(noRollbackFor)
+    // 행 락을 쥔 채 별도 트랜잭션(REQUIRES_NEW)으로 같은 행을 갱신하다 생기던 자기 교착을 피한다.
+    @Transactional(noRollbackFor = {ResponseStatusException.class, OtpRequiredException.class})
     public AdminSession login(AdminLoginRequest request, String trustToken) {
         // 행 잠금으로 조회해 같은 계정의 동시 로그인을 직렬화한다(OTP 리플레이 방지)
         AdminUser adminUser = adminUserRepository.findByLoginIdForUpdate(request.loginId())
@@ -83,7 +86,7 @@ public class AdminUserService {
         }
 
         if (!passwordEncoder.matches(request.password(), adminUser.getPasswordHash())) {
-            // 이 트랜잭션은 예외로 롤백되므로 실패 카운트는 별도 트랜잭션에서 확정한다
+            // 실패 카운트는 이 트랜잭션에서 올리고 커밋한다(noRollbackFor로 자격 실패에도 유지)
             loginAttemptService.recordFailure(adminUser.getAdminId());
             throw invalidCredentials();
         }
@@ -147,12 +150,14 @@ public class AdminUserService {
         findAdminUser(adminId).updateName(request.adminName());
     }
 
-    public void updatePassword(Long adminId, AdminPasswordUpdateRequest request) {
+    // 비밀번호를 바꾸면 pwVersion이 올라 다른 세션은 무효화된다. 본인 세션은 갱신하도록 새 스냅샷을 돌려준다.
+    public AdminSession updatePassword(Long adminId, AdminPasswordUpdateRequest request) {
         AdminUser adminUser = findAdminUser(adminId);
         if (!passwordEncoder.matches(request.currentPassword(), adminUser.getPasswordHash())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다.");
         }
         adminUser.updatePassword(passwordEncoder.encode(request.newPassword()));
+        return AdminSession.from(adminUser);
     }
 
     // 최고관리자가 다른 관리자의 비밀번호를 재설정한다(현재 비밀번호 확인 없이). 잠금도 함께 해제한다.

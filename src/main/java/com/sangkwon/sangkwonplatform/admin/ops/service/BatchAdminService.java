@@ -17,6 +17,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 // 적재 카탈로그 조회 + 앱 네이티브 적재 트리거. 실제 실행은 비동기(BatchAsyncRunner)로 넘긴다.
 @Service
@@ -27,6 +29,9 @@ public class BatchAdminService {
     private final BatchAsyncRunner batchAsyncRunner;
     private final AdminAuditService adminAuditService;
     private final DatasetStatsReader datasetStatsReader;
+
+    // 실행 중인 데이터셋 코드. DB의 RUNNING 기록이 비동기로 늦게 남는 사이의 중복 트리거를 인프로세스에서 원자적으로 막는다.
+    private final Set<String> inFlight = ConcurrentHashMap.newKeySet();
 
     // 데이터셋 카탈로그: 레지스트리 전체 + 실테이블 현황(건수/적재시각/데이터 최신) + 앱 적재 실행 상태
     @Transactional(readOnly = true)
@@ -57,9 +62,18 @@ public class BatchAdminService {
         if (batchJobLogRepository.existsByDatasetCdAndStatus(dataset.code(), BatchStatus.RUNNING)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 적재가 진행 중입니다.");
         }
-        adminAuditService.record(admin.adminId(), AuditAction.BATCH_RUN,
-                "BATCH_JOB", dataset.code(), dataset.jobName() + " 수동 실행", request);
-        batchAsyncRunner.run(dataset, admin.loginId());
+        // DB 검사와 비동기 RUNNING 기록 사이의 경쟁을 막기 위해 실행 슬롯을 원자적으로 선점한다
+        if (!inFlight.add(dataset.code())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 적재가 진행 중입니다.");
+        }
+        try {
+            adminAuditService.record(admin.adminId(), AuditAction.BATCH_RUN,
+                    "BATCH_JOB", dataset.code(), dataset.jobName() + " 수동 실행", request);
+            batchAsyncRunner.run(dataset, admin.loginId(), () -> inFlight.remove(dataset.code()));
+        } catch (RuntimeException e) {
+            inFlight.remove(dataset.code()); // 트리거 실패 시 예약 해제(성공 시엔 실행 종료 후 해제)
+            throw e;
+        }
     }
 
     private Dataset require(String code) {

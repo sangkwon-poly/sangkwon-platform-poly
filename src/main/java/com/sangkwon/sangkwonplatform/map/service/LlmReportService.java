@@ -13,6 +13,7 @@ import com.sangkwon.sangkwonplatform.map.repository.StoreStatRepository;
 import com.sangkwon.sangkwonplatform.map.repository.StreetPopRepository;
 import com.sangkwon.sangkwonplatform.map.repository.TrdarRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,12 @@ public class LlmReportService {
     private final String apiKey;
     private final String model;
 
+    // 일일 한도는 외부 호출 전에 슬롯을 선점해 원자적으로 지킨다(동시 요청이 같은 카운트를 읽고 모두 통과하는 것 방지).
+    // 단일 인스턴스 기준이라, 다중 인스턴스로 늘리면 DB 원자 카운터로 바꿔야 한다.
+    private final Object limitLock = new Object();
+    private LocalDate limitDay;
+    private int reservedToday;
+
     public LlmReportService(TrdarRepository trdarRepository,
                             SalesRepository salesRepository,
                             StoreStatRepository storeStatRepository,
@@ -63,9 +70,6 @@ public class LlmReportService {
         if (apiKey == null || apiKey.isBlank()) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Gemini API 키가 설정되지 않았습니다");
         }
-        if (llmReportRepository.countByCreatedAtGreaterThanEqual(LocalDate.now().atStartOfDay()) >= DAILY_LIMIT) {
-            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "오늘 리포트 생성 한도를 초과했습니다");
-        }
         Trdar trdar = trdarRepository.findById(trdarCd)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "상권을 찾을 수 없습니다"));
         String indutyNm = indutyCd == null ? null
@@ -74,42 +78,74 @@ public class LlmReportService {
 
         PromptData promptData = buildPrompt(trdar, indutyCd, indutyNm);
 
-        JsonNode res;
+        // 유료 호출 전에 오늘 한도 슬롯을 선점한다. 저장까지 못 가면 되돌린다.
+        reserveDailySlot();
         try {
-            res = restClient.post()
-                    .uri("https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent", model)
-                    .header("x-goog-api-key", apiKey)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(Map.of("contents", List.of(Map.of("parts", List.of(Map.of("text", promptData.prompt()))))))
-                    .retrieve()
-                    .body(JsonNode.class);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI 호출에 실패했습니다");
-        }
-        // 본문 없는 200 응답이면 body(JsonNode)가 null을 돌려줄 수 있어, 역참조 전에 막는다
-        if (res == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI 응답이 비어 있습니다");
-        }
-        String text = res.path("candidates").path(0).path("content").path("parts").path(0).path("text").asText("");
-        if (text.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI 응답이 비어 있습니다");
-        }
+            JsonNode res;
+            try {
+                res = restClient.post()
+                        .uri("https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent", model)
+                        .header("x-goog-api-key", apiKey)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(Map.of("contents", List.of(Map.of("parts", List.of(Map.of("text", promptData.prompt()))))))
+                        .retrieve()
+                        .body(JsonNode.class);
+            } catch (Exception e) {
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI 호출에 실패했습니다");
+            }
+            // 본문 없는 200 응답이면 body(JsonNode)가 null을 돌려줄 수 있어, 역참조 전에 막는다
+            if (res == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI 응답이 비어 있습니다");
+            }
+            String text = res.path("candidates").path(0).path("content").path("parts").path(0).path("text").asText("");
+            if (text.isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI 응답이 비어 있습니다");
+            }
 
-        LlmReport saved = llmReportRepository.save(LlmReport.builder()
-                .trdarCd(trdarCd)
-                .stdrYyquCd(promptData.quarter())
-                .indutyCd(indutyCd)
-                .prompt(promptData.prompt())
-                .resultText(text)
-                .modelName(model)
-                .tokenCnt(res.path("usageMetadata").path("totalTokenCount").asLong(0))
-                .build());
-        return LlmReportResponse.from(saved);
+            LlmReport saved = llmReportRepository.save(LlmReport.builder()
+                    .trdarCd(trdarCd)
+                    .stdrYyquCd(promptData.quarter())
+                    .indutyCd(indutyCd)
+                    .prompt(promptData.prompt())
+                    .resultText(text)
+                    .modelName(model)
+                    .tokenCnt(res.path("usageMetadata").path("totalTokenCount").asLong(0))
+                    .build());
+            return LlmReportResponse.from(saved);
+        } catch (RuntimeException e) {
+            releaseDailySlot(); // 저장 전에 실패했으면 선점한 슬롯을 반납한다
+            throw e;
+        }
+    }
+
+    // 오늘 한도 슬롯 선점. 카운트는 날짜가 바뀔 때만 DB에서 다시 읽고, 그 뒤로는 선점 카운터로 센다.
+    private void reserveDailySlot() {
+        synchronized (limitLock) {
+            LocalDate today = LocalDate.now();
+            if (!today.equals(limitDay)) {
+                // 카운트가 성공한 뒤에 기준일을 확정한다. 조회가 일시 실패하면 기준일을 안 바꿔 다음 요청이 다시 읽게 한다.
+                int base = (int) llmReportRepository.countByCreatedAtGreaterThanEqual(today.atStartOfDay());
+                reservedToday = base;
+                limitDay = today;
+            }
+            if (reservedToday >= DAILY_LIMIT) {
+                throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "오늘 리포트 생성 한도를 초과했습니다");
+            }
+            reservedToday++;
+        }
+    }
+
+    private void releaseDailySlot() {
+        synchronized (limitLock) {
+            if (reservedToday > 0) {
+                reservedToday--;
+            }
+        }
     }
 
     // 가장 최근 생성한 리포트. 업종 리포트와 상권 전체 리포트는 따로 관리한다
     public LlmReportResponse latest(String trdarCd, String indutyCd) {
-        return llmReportRepository.findLatest(trdarCd, indutyCd).stream().findFirst()
+        return llmReportRepository.findLatest(trdarCd, indutyCd, PageRequest.of(0, 1)).stream().findFirst()
                 .map(LlmReportResponse::from)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "생성된 리포트가 없습니다"));
     }

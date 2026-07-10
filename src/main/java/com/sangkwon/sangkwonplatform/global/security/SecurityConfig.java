@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.global.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
@@ -21,6 +22,8 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        // 유료 Gemini 호출을 트리거하는 리포트 생성은 로그인 회원만(비용 남용·예산 소진 방지)
+                        .requestMatchers(HttpMethod.POST, "/api/llm-reports/**").authenticated()
                         .anyRequest().permitAll()
                 );
         return http.build();

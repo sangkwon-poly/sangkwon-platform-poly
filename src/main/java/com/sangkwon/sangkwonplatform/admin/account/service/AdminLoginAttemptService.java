@@ -7,12 +7,12 @@ import com.sangkwon.sangkwonplatform.admin.ops.service.AdminAuditService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-// 로그인 실패 기록은 로그인 트랜잭션과 분리(REQUIRES_NEW)해, 로그인 메서드가 예외로 롤백돼도 실패 카운트/잠금/감사가 확정되게 한다.
+// 로그인 실패 기록은 로그인 트랜잭션에 참여해 같은 커넥션에서 실패 카운트/잠금/감사를 확정한다.
+// 로그인 메서드가 자격 실패 예외로 롤백하지 않게(noRollbackFor) 해 이 기록이 커밋된다.
 @Service
 @RequiredArgsConstructor
 public class AdminLoginAttemptService {
@@ -23,7 +23,7 @@ public class AdminLoginAttemptService {
     private final AdminUserRepository adminUserRepository;
     private final AdminAuditService auditService;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void recordFailure(Long adminId) {
         if (adminId == null) {
             return;

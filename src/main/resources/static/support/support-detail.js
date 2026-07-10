@@ -8,6 +8,12 @@
     d.textContent = (s == null) ? "" : String(s);
     return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
+  // href에는 http/https만 허용해 javascript: 등 스킴 주입(저장형 XSS)을 막는다
+  function safeUrl(u) {
+    if (!u) { return ""; }
+    var s = String(u).trim();
+    return /^https?:\/\//i.test(s) ? s : "";
+  }
   function $(id) { return document.getElementById(id); }
   function param(name) {
     var m = new RegExp("[?&]" + name + "=([^&]*)").exec(location.search);
@@ -117,8 +123,9 @@
     var note = c.applyEndDe ? "신청은 원문 공고 사이트에서 진행됩니다. 마감 " + c.applyEndDe : "신청은 원문 공고 사이트에서 진행됩니다.";
     $("spd-cta-note").textContent = note;
     var link = $("spd-cta-link");
-    if (c.detailUrl) {
-      link.href = c.detailUrl;
+    var origin = safeUrl(c.detailUrl);
+    if (origin) {
+      link.href = origin;
       cta.hidden = false;
     } else {
       link.hidden = true;

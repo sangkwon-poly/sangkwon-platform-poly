@@ -67,12 +67,7 @@ public class MemberService {
         }
         rateLimiter.reset(key); // 비밀번호가 맞았으므로 실패 카운터 초기화
 
-        switch (m.getStatus()) {           // 상태별로 정확히 구분 (탈퇴/정지/휴면)
-            case ACTIVE -> { }             // 정상 → 통과
-            case WITHDRAWN -> throw new BusinessException(ErrorCode.WITHDRAWN_MEMBER); // 탈퇴
-            case BANNED -> throw new BusinessException(ErrorCode.BANNED_MEMBER); // 정지
-            case DORMANT -> throw new BusinessException(ErrorCode.DORMANT_MEMBER); //휴면
-        }
+        requireActive(m);
         m.recordLogin(); // 마지막 로그인 시간 기록.
         return MemberResponse.from(m);
     }
@@ -103,7 +98,20 @@ public class MemberService {
         if (memberId == null) {   // 비인증 요청이면 memberId가 null → 500 대신 401
             throw new BusinessException(ErrorCode.UNAUTHENTICATED);
         }
-        return memberRepository.findById(memberId)
+        Member m = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        // 로그인 이후 상태가 바뀌어도(정지·탈퇴·휴면) 남은 세션으로 접근하지 못하게 요청마다 다시 확인한다
+        requireActive(m);
+        return m;
+    }
+
+    // 상태별로 정확히 구분 (탈퇴/정지/휴면). 로그인과 인증된 요청에서 공용으로 쓴다
+    private static void requireActive(Member m) {
+        switch (m.getStatus()) {
+            case ACTIVE -> { }
+            case WITHDRAWN -> throw new BusinessException(ErrorCode.WITHDRAWN_MEMBER);
+            case BANNED -> throw new BusinessException(ErrorCode.BANNED_MEMBER);
+            case DORMANT -> throw new BusinessException(ErrorCode.DORMANT_MEMBER);
+        }
     }
 }
