@@ -112,6 +112,13 @@
     var form = $('edit-form');
     var submitBtn = $('edit-submit');
 
+    // 값을 고치는 즉시 해당 필드의 오류 표시를 지운다(제출 때까지 붙어 있지 않게).
+    ['edit-nickname', 'edit-email'].forEach(function (fid) {
+      $(fid).addEventListener('input', function () {
+        setFieldError(fid, fid + '-error', '');
+      });
+    });
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var nickname = $('edit-nickname').value.trim();
@@ -131,10 +138,11 @@
           UI.renderHeader('mypage');
         })
         .catch(function (err) {
-          UI.handleError(err, '정보를 저장하지 못했어요.');
-          // 서버가 이메일 중복(M003)을 돌려주면 해당 필드에 표시.
+          // 이메일 중복(M003)은 필드에만 표시하고, 같은 내용을 토스트로 또 띄우지 않는다.
           if (err && err.code === 'M003') {
             setFieldError('edit-email', 'edit-email-error', err.message || '이미 사용 중인 이메일입니다.');
+          } else {
+            UI.handleError(err, '정보를 저장하지 못했어요.');
           }
         })
         .finally(function () {
@@ -209,21 +217,40 @@
   function bindWithdraw() {
     var openBtn = $('withdraw-btn');
     var modal = $('withdraw-modal');
+    var dialog = modal.querySelector('.modal');
     var cancelBtn = $('withdraw-cancel');
     var confirmBtn = $('withdraw-confirm');
+    var pageEl = document.querySelector('.page');
 
     function openModal() {
       modal.hidden = false;
-      confirmBtn.focus();
+      // 배경을 비활성화해 포커스와 스크린리더가 모달 밖으로 새지 않게 한다.
+      if (pageEl) pageEl.setAttribute('inert', '');
+      // 되돌릴 수 없는 동작이라 기본 포커스는 확인이 아니라 취소에 둔다.
+      cancelBtn.focus();
       document.addEventListener('keydown', onKeydown);
     }
     function closeModal() {
       modal.hidden = true;
+      if (pageEl) pageEl.removeAttribute('inert');
       document.removeEventListener('keydown', onKeydown);
       openBtn.focus();
     }
     function onKeydown(e) {
-      if (e.key === 'Escape') closeModal();
+      if (e.key === 'Escape') { closeModal(); return; }
+      if (e.key !== 'Tab') return;
+      // Tab 이동을 모달 안에 가둔다(활성 버튼만 대상).
+      var items = dialog.querySelectorAll('button:not([disabled])');
+      if (!items.length) return;
+      var first = items[0];
+      var last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     }
 
     openBtn.addEventListener('click', openModal);

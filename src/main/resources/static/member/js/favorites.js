@@ -92,9 +92,18 @@
   function bindRows() {
     region.querySelectorAll('.fav-item').forEach((card) => {
       const trdarCd = card.getAttribute('data-trdar');
-      card.style.cursor = 'pointer';
-      card.addEventListener('click', () => {
+      const goDetail = () => {
         location.href = '/map/trdar-detail?trdarCd=' + encodeURIComponent(trdarCd);
+      };
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', goDetail);
+      card.addEventListener('keydown', (e) => {
+        // 내부 찜 해제 버튼의 키 입력은 그대로 두고, 카드 자체에서만 Enter/Space로 이동한다.
+        if (e.target !== card) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          goDetail();
+        }
       });
       const removeBtn = card.querySelector('[data-action="remove"]');
       removeBtn.addEventListener('click', (e) => {
@@ -134,7 +143,8 @@
     if (fav.createdAt) meta.push('<span>' + esc(MemberUI.formatDate(fav.createdAt)) + ' 찜</span>');
 
     return '' +
-      '<div class="fav-item" data-trdar="' + esc(fav.trdarCd) + '">' +
+      '<div class="fav-item" data-trdar="' + esc(fav.trdarCd) + '" ' +
+        'role="link" tabindex="0" aria-label="' + esc(name) + ' 상권 상세 보기">' +
         '<span class="fav-item__avatar" aria-hidden="true">' + esc(initial) + '</span>' +
         '<div class="fav-item__body">' +
           '<span class="fav-item__name">' + esc(name) + '</span>' +
@@ -149,16 +159,32 @@
 
   async function onRemove(trdarCd, btn) {
     if (!trdarCd) return;
+    var idx = all.findIndex((f) => String(f.trdarCd) === String(trdarCd));
+    if (idx < 0) return;
+
     btn.classList.add('is-loading');
     btn.setAttribute('disabled', 'disabled');
+
+    // 낙관적 갱신: 목록에서 먼저 지우고 바로 다시 그린다(전체 스피너로 돌아가지 않게).
+    var removed = all[idx];
+    all.splice(idx, 1);
+    updateCount(all.length);
+    if (!all.length) {
+      renderEmpty();
+    } else {
+      if (page > lastPage()) page = lastPage();
+      await renderPage();
+    }
+
     try {
       await MemberAPI.removeFavorite(trdarCd);
       MemberUI.toast('찜을 해제했습니다.', 'ok');
-      loadFavorites();
     } catch (err) {
+      // 실패하면 원래 자리로 되돌린다.
+      all.splice(idx, 0, removed);
+      updateCount(all.length);
       MemberUI.handleError(err, '찜 해제에 실패했습니다.');
-      btn.classList.remove('is-loading');
-      btn.removeAttribute('disabled');
+      await renderPage();
     }
   }
 

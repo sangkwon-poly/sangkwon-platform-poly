@@ -10,11 +10,11 @@
   'use strict';
 
   document.addEventListener('DOMContentLoaded', function () {
-    // 이미 로그인한 사용자면 폼 대신 홈으로. 판정 전엔 폼을 숨겨 깜빡임을 막는다.
+    // 이미 로그인한 사용자면 폼 대신 복귀 경로(redirect 파라미터)로. 판정 전엔 폼을 숨겨 깜빡임을 막는다.
     var card = document.querySelector('.auth-card');
     if (card) card.style.visibility = 'hidden';
     MemberAPI.me()
-      .then(function () { location.replace('/'); })
+      .then(function () { location.replace(redirectTarget()); })
       .catch(function () { if (card) card.style.visibility = ''; });
 
     var tabs = Array.prototype.slice.call(document.querySelectorAll('.tab[data-tab]'));
@@ -24,6 +24,12 @@
     var ID_RE = /^[a-zA-Z0-9]{4,50}$/;
     var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     var NICK_RE = /^[가-힣a-zA-Z0-9_-]{2,20}$/;
+
+    // 각 입력에 대응 에러 span을 aria-describedby로 연결해, 스크린리더가 인라인 오류(로그인 실패 안내 포함)를 읽게 한다.
+    ['login-id', 'login-pw', 'signup-id', 'signup-email', 'signup-nick', 'signup-pw', 'signup-pw2'].forEach(function (fid) {
+      var input = document.getElementById(fid);
+      if (input && document.getElementById(fid + '-error')) { input.setAttribute('aria-describedby', fid + '-error'); }
+    });
 
     /* ---------------------------------------------------------------
      * 로그인 후 복귀 경로 (login?redirect=... 지원), 없으면 홈.
@@ -108,18 +114,17 @@
     /* ---------------------------------------------------------------
      * 회원가입 실시간 검증 (디바운스 + 서버 중복확인)
      * ------------------------------------------------------------- */
-    // 같은 값은 다시 조회하지 않도록 결과를 캐시(오류 결과 null은 캐시하지 않음)
+    // 같은 값은 다시 조회하지 않도록 결과를 캐시(오류 결과 null은 캐시하지 않음). 공용 MemberAPI 헬퍼 경유.
     var availCache = { 'check-login-id': {}, 'check-email': {} };
-    function availability(path, param, value) {
-      var cache = availCache[path];
+    function availability(kind, value) {
+      var cache = availCache[kind];
       if (cache && Object.prototype.hasOwnProperty.call(cache, value)) {
         return Promise.resolve(cache[value]);
       }
-      return fetch('/api/members/' + path + '?' + param + '=' + encodeURIComponent(value),
-          { headers: { Accept: 'application/json' } })
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (b) {
-          var a = (b && b.data) ? b.data.available : null;
+      var call = kind === 'check-login-id' ? MemberAPI.checkLoginId(value) : MemberAPI.checkEmail(value);
+      return call
+        .then(function (data) {
+          var a = (data && typeof data.available === 'boolean') ? data.available : null;
           if (cache && a !== null) cache[value] = a;
           return a;
         })
@@ -142,24 +147,26 @@
       input.addEventListener('input', function () {
         set(key, false);
         clearTimeout(timer);
-        timer = setTimeout(function () { check(input.value.trim()); }, delay);
+        timer = setTimeout(function () { check(input.value.trim(), input); }, delay);
       });
     }
 
-    guard(document.getElementById('signup-id'), 'id', 350, function (v) {
+    guard(document.getElementById('signup-id'), 'id', 350, function (v, input) {
       if (!v) { clearError('signup-id'); return; }
       if (!ID_RE.test(v)) { setError('signup-id', '영문·숫자 4~50자로 입력해 주세요.'); return; }
-      availability('check-login-id', 'loginId', v).then(function (a) {
+      availability('check-login-id', v).then(function (a) {
+        if (input.value.trim() !== v) { return; } // 값이 바뀌면 늦게 온 결과는 폐기(스테일 응답 경쟁 방지)
         if (a === true) { setField('signup-id', '사용 가능한 아이디입니다.', 'ok'); set('id', true); }
         else if (a === false) setError('signup-id', '이미 사용 중인 아이디입니다.');
         else clearError('signup-id');
       });
     });
 
-    guard(document.getElementById('signup-email'), 'email', 350, function (v) {
+    guard(document.getElementById('signup-email'), 'email', 350, function (v, input) {
       if (!v) { clearError('signup-email'); return; }
       if (!EMAIL_RE.test(v)) { setError('signup-email', '올바른 이메일 형식이 아닙니다.'); return; }
-      availability('check-email', 'email', v).then(function (a) {
+      availability('check-email', v).then(function (a) {
+        if (input.value.trim() !== v) { return; } // 스테일 응답 폐기
         if (a === true) { setField('signup-email', '사용 가능한 이메일입니다.', 'ok'); set('email', true); }
         else if (a === false) setError('signup-email', '이미 가입된 이메일입니다.');
         else clearError('signup-email');
