@@ -15,6 +15,30 @@
     var FILTERS = [{ key: "ALL", label: "전체" }].concat(
         STATUSES.map(function (s) { return { key: s.value, label: s.label }; }));
 
+    // 현재 상태에서 허용하는 전이만 버튼으로 노출한다. 휴면(DORMANT)은 무활동으로 시스템이 매기는 상태라 수동 부여 버튼을 두지 않는다.
+    function actionsFor(status) {
+        if (status === "ACTIVE") {
+            return [{ to: "BANNED", label: "정지", danger: true }, { to: "WITHDRAWN", label: "강제 탈퇴", danger: true }];
+        }
+        if (status === "DORMANT") {
+            return [{ to: "ACTIVE", label: "활성화" }, { to: "BANNED", label: "정지", danger: true }, { to: "WITHDRAWN", label: "강제 탈퇴", danger: true }];
+        }
+        if (status === "BANNED") {
+            return [{ to: "ACTIVE", label: "정지 해제" }, { to: "WITHDRAWN", label: "강제 탈퇴", danger: true }];
+        }
+        if (status === "WITHDRAWN") {
+            return [{ to: "ACTIVE", label: "재활성화", danger: true }];
+        }
+        return [];
+    }
+    // 되돌리기 어렵거나 파급이 큰 전이에만 확인창을 띄운다.
+    function confirmMsg(from, to) {
+        if (to === "WITHDRAWN") { return "이 회원을 강제 탈퇴 처리할까요? 되돌리기 어려운 작업입니다."; }
+        if (to === "BANNED") { return "이 회원을 정지하면 로그인할 수 없습니다. 정지할까요?"; }
+        if (from === "WITHDRAWN") { return "탈퇴한 회원을 다시 활성 상태로 되돌립니다. 진행할까요?"; }
+        return null;
+    }
+
     function api(path, opts) {
         return fetch(path, opts).then(function (res) {
             return res.json().catch(function () { return null; }).then(function (b) {
@@ -46,15 +70,19 @@
     var chipsEl = document.getElementById("ma-chips");
     var searchEl = document.getElementById("ma-search");
     var pagerEl = document.getElementById("ma-pager");
+    var pagesEl = document.getElementById("ma-pages");
     var prevBtn = document.getElementById("ma-prev");
     var nextBtn = document.getElementById("ma-next");
-    var pageInfo = document.getElementById("ma-page-info");
     var metaEl = document.getElementById("ma-meta");
     var flashEl = document.getElementById("ma-flash");
 
-    var state = { filter: "ALL", keyword: "", page: 0, size: 20, resp: null, counts: null };
+    var state = { filter: "ALL", keyword: "", sort: { key: "createdAt", dir: "desc" }, page: 0, size: 20, resp: null, counts: null };
     var flashTimer = null;
     var searchTimer = null;
+    // 요청 순번. 조작이 겹칠 때 늦게 온 낡은 응답이 최신 화면을 덮지 않게 한다.
+    var reqSeq = 0;
+    // 상태 변경 후 재조회하면 innerHTML이 갈리므로, 그 행 버튼으로 포커스를 되돌리기 위한 대상.
+    var pendingFocusId = null;
 
     function flash(msg, isError) {
         flashEl.textContent = msg;
@@ -69,10 +97,14 @@
         for (var i = 0; i < list.length; i++) { if (list[i].memberId === id) { return list[i]; } }
         return null;
     }
+    function setBusy(on) {
+        tbody.classList.toggle("is-busy", on);
+        tbody.setAttribute("aria-busy", on ? "true" : "false");
+    }
 
     function buildChips() {
         chipsEl.innerHTML = FILTERS.map(function (f) {
-            return '<button type="button" class="ma-chip" data-filter="' + f.key + '">'
+            return '<button type="button" class="ma-chip" data-filter="' + f.key + '" aria-pressed="false">'
                 + esc(f.label) + ' <b data-count="' + f.key + '">0</b></button>';
         }).join("");
         Array.prototype.forEach.call(chipsEl.querySelectorAll(".ma-chip"), function (chip) {
@@ -87,7 +119,9 @@
     }
     function renderChipsActive() {
         Array.prototype.forEach.call(chipsEl.querySelectorAll(".ma-chip"), function (chip) {
-            chip.classList.toggle("is-active", chip.getAttribute("data-filter") === state.filter);
+            var on = chip.getAttribute("data-filter") === state.filter;
+            chip.classList.toggle("is-active", on);
+            chip.setAttribute("aria-pressed", on ? "true" : "false");
         });
     }
     function renderCounts() {
@@ -109,11 +143,19 @@
     }
 
     function load() {
-        var q = "/api/admin/members?page=" + state.page + "&size=" + state.size;
+        var seq = ++reqSeq;
+        var q = "/api/admin/members?page=" + state.page + "&size=" + state.size
+            + "&sort=" + state.sort.key + "&direction=" + state.sort.dir;
         if (state.filter !== "ALL") { q += "&status=" + state.filter; }
         if (state.keyword) { q += "&keyword=" + encodeURIComponent(state.keyword); }
-        tbody.innerHTML = emptyRow("불러오는 중…");
+
+        // 첫 로딩만 로딩 문구, 이후 갱신은 기존 행을 흐리게만 해서 깜빡임을 없앤다.
+        if (state.resp == null) { tbody.innerHTML = emptyRow("불러오는 중…"); }
+        else { setBusy(true); }
+
         api(q).then(function (r) {
+            if (seq !== reqSeq) { return; } // 더 최신 요청이 있으면 이 응답은 버린다
+            setBusy(false);
             if (r.status === 401) { return; } // 세션 만료는 admin-shell이 로그인으로 보냄
             if (r.status === 403) { forbidden(); return; }
             if (!r.ok || !r.body || !r.body.data) {
@@ -122,8 +164,16 @@
                 return;
             }
             state.resp = r.body.data;
+            // 상태 필터 마지막 페이지의 유일 행이 필터 밖으로 바뀌면 빈 페이지에 갇힌다. 마지막 유효 페이지로 한 번 당겨 재조회.
+            if (state.resp.content.length === 0 && state.resp.page > 0) {
+                state.page = Math.max(0, state.resp.totalPages - 1);
+                load();
+                return;
+            }
             renderTable();
         }, function () {
+            if (seq !== reqSeq) { return; }
+            setBusy(false);
             tbody.innerHTML = emptyRow("목록을 불러오지 못했습니다.");
             pagerEl.hidden = true;
         });
@@ -137,20 +187,20 @@
     function rowHtml(m) {
         var s = statusMeta(m.status);
         var badge = '<span class="badge ' + s.badge + '"><span class="dot ' + s.dot + '" aria-hidden="true"></span>' + esc(s.label) + "</span>";
-        var select = '<select class="ma-status-select" data-id="' + m.memberId + '" aria-label="' + esc(m.nickname) + " 상태 변경" + '">'
-            + STATUSES.map(function (o) {
-                return '<option value="' + o.value + '"' + (o.value === m.status ? " selected" : "") + ">" + esc(o.label) + "</option>";
-            }).join("")
-            + "</select>";
+        var acts = actionsFor(m.status).map(function (a) {
+            return '<button type="button" class="ma-act' + (a.danger ? " ma-act-danger" : "") + '" data-id="' + m.memberId + '" data-status="' + a.to + '">' + esc(a.label) + "</button>";
+        }).join("");
+        var auditHref = "/admin/audit-log?targetType=MEMBER&targetId=" + m.memberId + "&label=" + encodeURIComponent(m.loginId);
         return "<tr>"
             + '<td><div class="ma-user"><span class="ma-avatar" aria-hidden="true">' + esc((m.nickname || "?").charAt(0)) + "</span>"
             + '<span class="ma-id"><span class="ma-name">' + esc(m.nickname) + "</span>"
-            + '<span class="ma-login">' + esc(m.loginId) + "</span></span></div></td>"
+            + '<span class="ma-login">' + esc(m.loginId) + "</span>"
+            + '<span class="ma-audit"><a href="' + auditHref + '">변경 이력</a></span></span></div></td>'
             + '<td class="ma-email">' + esc(m.email) + "</td>"
             + '<td class="col-center">' + badge + "</td>"
             + '<td class="ma-muted">' + fmtDate(m.createdAt) + "</td>"
             + '<td class="ma-muted">' + fmtDateTime(m.lastLoginAt) + "</td>"
-            + '<td class="col-center">' + select + "</td>"
+            + '<td class="col-center"><div class="ma-actions">' + acts + "</div></td>"
             + "</tr>";
     }
 
@@ -161,48 +211,83 @@
             ? list.map(rowHtml).join("")
             : emptyRow(state.keyword ? "검색 결과가 없습니다." : "표시할 회원이 없습니다.");
         wireRows();
-
-        if (resp.totalPages > 1) {
-            pagerEl.hidden = false;
-            prevBtn.disabled = resp.page <= 0;
-            nextBtn.disabled = resp.page >= resp.totalPages - 1;
-            pageInfo.textContent = "페이지 " + (resp.page + 1) + " / " + resp.totalPages;
-        } else {
-            pagerEl.hidden = true;
-        }
+        syncSortHeaders();
+        renderPager(resp);
         metaEl.textContent = "총 " + Number(resp.totalElements).toLocaleString() + "명";
+
+        // 방금 상태를 바꾼 행의 버튼으로 포커스를 되돌린다(필터에서 빠졌으면 없으니 건너뜀).
+        if (pendingFocusId != null) {
+            var btn = tbody.querySelector('.ma-act[data-id="' + pendingFocusId + '"]');
+            if (btn) { btn.focus(); }
+            pendingFocusId = null;
+        }
     }
 
     function wireRows() {
-        Array.prototype.forEach.call(tbody.querySelectorAll(".ma-status-select"), function (sel) {
-            sel.addEventListener("change", function () {
-                changeStatus(Number(sel.getAttribute("data-id")), sel.value, sel);
+        Array.prototype.forEach.call(tbody.querySelectorAll(".ma-act[data-status]"), function (btn) {
+            btn.addEventListener("click", function () {
+                changeStatus(Number(btn.getAttribute("data-id")), btn.getAttribute("data-status"), btn);
             });
         });
     }
 
-    function changeStatus(id, status, sel) {
+    function changeStatus(id, status, btn) {
         var m = findMember(id);
-        // 강제 탈퇴는 되돌리기 어려우므로 확인
-        if (status === "WITHDRAWN" && !window.confirm("이 회원을 강제 탈퇴 처리할까요? 되돌리기 어려운 작업입니다.")) {
-            if (m) { sel.value = m.status; }
-            return;
-        }
-        sel.disabled = true;
+        var msg = confirmMsg(m ? m.status : null, status);
+        if (msg && !window.confirm(msg)) { return; }
+        btn.disabled = true;
         api("/api/admin/members/" + id + "/status", jsonOpts("PATCH", { status: status })).then(function (r) {
-            sel.disabled = false;
             if (!r.ok) {
-                if (m) { sel.value = m.status; }
+                btn.disabled = false;
                 flash(msgOf(r, "상태 변경에 실패했습니다."), true);
                 return;
             }
             flash("상태를 변경했습니다.");
-            load();       // 필터에 안 맞으면 목록에서 빠지도록 재조회
-            loadCounts(); // 상태별 카운트 갱신
+            pendingFocusId = id; // 재조회 후 이 행 버튼으로 포커스 복원
+            load();              // 필터에 안 맞으면 목록에서 빠지도록 재조회
+            loadCounts();        // 상태별 카운트 갱신
         }, function () {
-            sel.disabled = false;
-            if (m) { sel.value = m.status; }
+            btn.disabled = false;
             flash("상태 변경에 실패했습니다.", true);
+        });
+    }
+
+    // 정렬 헤더 화살표 표시 동기화. 서버 정렬이라 현재 정렬 상태만 반영한다.
+    function syncSortHeaders() {
+        Array.prototype.forEach.call(document.querySelectorAll(".ma-th-sort"), function (btn) {
+            var on = btn.getAttribute("data-sort") === state.sort.key;
+            btn.classList.toggle("is-sorted", on);
+            var arrow = btn.querySelector(".ma-arrow");
+            if (arrow) { arrow.textContent = on ? (state.sort.dir === "asc" ? "▲" : "▼") : ""; }
+        });
+    }
+
+    // 번호 페이징: 현재 페이지 주변 창 + 처음/끝 + 생략(...)
+    function pageWindow(cur, total) {
+        var out = [], i, from = Math.max(1, cur - 1), to = Math.min(total, cur + 3);
+        out.push(1);
+        if (from > 2) { out.push("gap"); }
+        for (i = Math.max(2, from); i <= Math.min(total - 1, to); i++) { out.push(i); }
+        if (to < total - 1) { out.push("gap"); }
+        if (total > 1) { out.push(total); }
+        return out;
+    }
+    function renderPager(resp) {
+        var total = resp.totalPages;
+        if (total <= 1) { pagerEl.hidden = true; return; }
+        pagerEl.hidden = false;
+        prevBtn.disabled = resp.page <= 0;
+        nextBtn.disabled = resp.page >= total - 1;
+        pagesEl.innerHTML = pageWindow(resp.page + 1, total).map(function (it) {
+            if (it === "gap") { return '<span class="ma-page-gap">…</span>'; }
+            var active = (it === resp.page + 1) ? " is-active" : "";
+            return '<button type="button" class="ma-page-num' + active + '" data-page="' + (it - 1) + '">' + it + "</button>";
+        }).join("");
+        Array.prototype.forEach.call(pagesEl.querySelectorAll(".ma-page-num"), function (btn) {
+            btn.addEventListener("click", function () {
+                var p = Number(btn.getAttribute("data-page"));
+                if (p !== state.page) { state.page = p; load(); }
+            });
         });
     }
 
@@ -220,6 +305,17 @@
             }, 300);
         });
     }
+
+    // 헤더 클릭으로 정렬. 같은 열을 다시 누르면 오름/내림 토글. 정렬 변경 시 첫 페이지로.
+    Array.prototype.forEach.call(document.querySelectorAll(".ma-th-sort"), function (btn) {
+        btn.addEventListener("click", function () {
+            var k = btn.getAttribute("data-sort");
+            if (state.sort.key === k) { state.sort.dir = state.sort.dir === "asc" ? "desc" : "asc"; }
+            else { state.sort.key = k; state.sort.dir = "asc"; }
+            state.page = 0;
+            load();
+        });
+    });
 
     buildChips();
     load();

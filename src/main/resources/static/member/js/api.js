@@ -56,6 +56,13 @@
 
     // HTTP 에러 처리(가능하면 ApiResponse 의 code/message 사용).
     if (!res.ok) {
+      // 로드 이후 세션이 만료돼 보호 자원이 401이면 로그인 화면으로 보낸다.
+      // 로그인/가입 화면 자체(로그인 실패 M004 등)는 제외해 화면이 스스로 처리하게 둔다.
+      if (res.status === 401 && location.pathname.indexOf('login') < 0) {
+        const back = encodeURIComponent(location.pathname.split('/').pop() + location.search);
+        location.replace('login?redirect=' + back);
+        throw new ApiError('UNAUTHENTICATED', '세션이 만료되어 다시 로그인해야 합니다.');
+      }
       const code = (payload && payload.code) || 'HTTP_' + res.status;
       const message = (payload && payload.message) || '요청이 실패했습니다.';
       throw new ApiError(code, message);
@@ -79,6 +86,8 @@
     login: function (data) { return request('POST', '/api/auth/login', data); },
     logout: function () { return request('POST', '/api/auth/logout'); },
     me: function () { return request('GET', '/api/members/me'); },
+    checkLoginId: function (loginId) { return request('GET', '/api/members/check-login-id?loginId=' + encodeURIComponent(loginId)); },
+    checkEmail: function (email) { return request('GET', '/api/members/check-email?email=' + encodeURIComponent(email)); },
     updateMe: function (data) { return request('PATCH', '/api/members/me', data); },
     withdraw: function () { return request('DELETE', '/api/members/me'); },
     favorites: function () { return request('GET', '/api/favorites'); },

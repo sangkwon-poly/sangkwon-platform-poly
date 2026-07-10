@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
@@ -21,7 +22,15 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     long countByCreatedAtGreaterThanEqual(LocalDateTime from);
 
-    long countByStatus(MemberStatus status);
+    // 상태 필터 칩 카운트: 상태별 count 4번 대신 group by 한 번으로 집계한다. 없는 상태는 행이 안 나오므로 서비스에서 0으로 채운다.
+    @Query("select m.status as status, count(m) as cnt from Member m group by m.status")
+    List<MemberStatusCount> countGroupByStatus();
+
+    interface MemberStatusCount {
+        MemberStatus getStatus();
+
+        long getCnt();
+    }
 
     // 관리자 회원 목록: 상태 필터(선택)와 아이디/이메일/닉네임 부분검색(선택). kw는 서비스에서 소문자·%감싸기·이스케이프 처리해 넘긴다.
     @Query("""

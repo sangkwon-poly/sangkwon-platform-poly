@@ -66,8 +66,8 @@
                   <th scope="col">회원</th>
                   <th scope="col">이메일</th>
                   <th scope="col" class="col-center">상태</th>
-                  <th scope="col">가입일</th>
-                  <th scope="col">최근 로그인</th>
+                  <th scope="col"><button type="button" class="ma-th-sort" data-sort="createdAt">가입일<span class="ma-arrow" aria-hidden="true"></span></button></th>
+                  <th scope="col"><button type="button" class="ma-th-sort" data-sort="lastLoginAt">최근 로그인<span class="ma-arrow" aria-hidden="true"></span></button></th>
                   <th scope="col" class="col-center">상태 변경</th>
                 </tr>
               </thead>
@@ -79,9 +79,9 @@
         </section>
 
         <div class="ma-pager" id="ma-pager" hidden>
-          <button type="button" class="ma-page-btn" id="ma-prev">이전</button>
-          <span class="ma-page-info" id="ma-page-info"></span>
-          <button type="button" class="ma-page-btn" id="ma-next">다음</button>
+          <button type="button" class="ma-page-btn" id="ma-prev" aria-label="이전 페이지">이전</button>
+          <div class="ma-pages" id="ma-pages" aria-label="페이지 번호"></div>
+          <button type="button" class="ma-page-btn" id="ma-next" aria-label="다음 페이지">다음</button>
         </div>
       </main>
     </div>
