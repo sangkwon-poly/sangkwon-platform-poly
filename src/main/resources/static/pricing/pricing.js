@@ -41,12 +41,13 @@
   });
 
   /* ---------------------------------------------------------------
-   * 결제 모달
+   * 결제 모달: 1단계 플랜 확인 → 2단계 결제 수단
    * ------------------------------------------------------------- */
   var backdrop = $("pm-backdrop");
+  var nextBtn = $("pm-next");
   var payBtn = $("pm-pay");
   var errorEl = $("pm-error");
-  var widgets = null;        // 토스 위젯 인스턴스 (첫 열기에 한 번만 렌더)
+  var widgets = null;        // 토스 위젯 인스턴스 (2단계 첫 진입에 한 번만 렌더)
   var widgetReady = false;
   var paying = false;
   var lastFocus = null;
@@ -56,12 +57,20 @@
     errorEl.hidden = false;
   }
 
+  function showStep(n) {
+    $("pm-step-plan").hidden = n !== 1;
+    $("pm-step-pay").hidden = n !== 2;
+  }
+
   function renderModalCycle() {
     var p = PRICE[cycle];
     $("pm-cycle-label").textContent = p.label;
     $("pm-amount").textContent = won(p.amount);
     $("pm-calc").innerHTML = p.calc + (p.save ? ' <span class="pm-save">' + p.save + "</span>" : "");
-    payBtn.textContent = won(p.amount) + " 결제하기";
+    nextBtn.textContent = won(p.amount) + " 결제하기";
+    $("pm-pay-cycle").textContent = p.label;
+    $("pm-pay-amount").textContent = won(p.amount);
+    if (!paying) { payBtn.textContent = won(p.amount) + " 결제하기"; }
     document.querySelectorAll(".pm-cycle-btn").forEach(function (b) {
       b.classList.toggle("is-active", b.getAttribute("data-cycle") === cycle);
     });
@@ -74,21 +83,29 @@
     lastFocus = document.activeElement;
     errorEl.hidden = true;
     renderModalCycle();
+    showStep(1); // 항상 플랜 확인부터. 결제 수단은 결제하기를 눌러야 뜬다
     backdrop.hidden = false;
     document.body.style.overflow = "hidden"; // 뒤 배경 스크롤 잠금
     $("pm-close").focus();
-    if (!widgets) { initWidget(); }
   }
 
   function closeModal() {
-    if (paying) { return; } // 결제창 여는 중에는 닫지 않는다
     backdrop.hidden = true;
     document.body.style.overflow = "";
+    paying = false;
+    renderModalCycle(); // 버튼 라벨 복원
     if (lastFocus && lastFocus.focus) { lastFocus.focus(); }
   }
 
-  // 위젯은 공개 clientKey로 렌더하고, 주문은 결제 버튼을 누를 때 만든다
-  function initWidget() {
+  // 2단계 진입: 위젯은 여기서 처음 렌더하고, 이후엔 금액만 갱신한다
+  function enterPayStep() {
+    errorEl.hidden = true;
+    showStep(2);
+    if (widgets) {
+      renderModalCycle();
+      return;
+    }
+    payBtn.disabled = true;
     fetch("/api/payments/config", { headers: { Accept: "application/json" } })
       .then(function (r) { return r.json(); })
       .then(function (b) {
@@ -115,7 +132,7 @@
       });
   }
 
-  // 결제하기: 이 시점에 주문을 만들어 서버 확정 금액으로 결제창을 연다
+  // 최종 결제: 이 시점에 주문을 만들어 서버 확정 금액으로 결제창을 연다
   payBtn.addEventListener("click", function () {
     if (!widgetReady || paying) { return; }
     paying = true;
@@ -158,7 +175,7 @@
   });
 
   /* ---------------------------------------------------------------
-   * 열기/닫기 바인딩
+   * 열기/닫기/단계 이동 바인딩
    * ------------------------------------------------------------- */
   $("pc-pro-cta").addEventListener("click", function () {
     fetch("/api/members/me", { credentials: "include", headers: { Accept: "application/json" } })
@@ -168,6 +185,12 @@
         else { location.href = "/member/login?redirect=/pricing"; }
       })
       .catch(function () { location.href = "/member/login?redirect=/pricing"; });
+  });
+
+  $("pm-next").addEventListener("click", enterPayStep);
+  $("pm-back").addEventListener("click", function () {
+    errorEl.hidden = true;
+    showStep(1);
   });
 
   document.querySelectorAll(".pm-cycle-btn").forEach(function (b) {
@@ -184,6 +207,19 @@
   });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && !backdrop.hidden) { closeModal(); }
+  });
+
+  // 결제 후 뒤로가기로 돌아오면 브라우저가 페이지를 캐시(bfcache)에서 복원해
+  // 모달이 열린 채 위젯만 죽은 상태가 된다. 그때는 모달을 닫고 상태를 초기화한다.
+  window.addEventListener("pageshow", function (e) {
+    if (e.persisted && !backdrop.hidden) {
+      widgets = null;
+      widgetReady = false;
+      $("pm-loading").hidden = false;
+      $("payment-method").innerHTML = "";
+      $("agreement").innerHTML = "";
+      closeModal();
+    }
   });
 
   renderCardCycle();

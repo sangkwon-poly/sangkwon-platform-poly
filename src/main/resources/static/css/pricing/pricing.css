@@ -270,12 +270,31 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
   border-radius: 10px; padding: 2px 8px;
 }
 
+/* 2단계: 뒤로가기 + 결제 요약 라인 */
+.pm-back {
+  margin-top: 14px;
+  border: 0; background: none;
+  padding: 0;
+  font-size: 12.5px; font-weight: 600; color: var(--muted);
+}
+.pm-back::before { content: "\2190"; margin-right: 5px; }
+.pm-back:hover { color: var(--brand); }
+.pm-payline {
+  margin-top: 12px;
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
 .pm-widget { margin-top: 6px; min-height: 60px; }
 .pm-widget-loading {
   display: flex; align-items: center; justify-content: center; gap: 9px;
   padding: 30px 0;
   font-size: 13px; color: var(--muted);
 }
+.pm-widget-loading[hidden] { display: none; } /* display:flex가 hidden 기본값을 덮지 않게 */
 .pm-spinner {
   width: 16px; height: 16px;
   border: 2px solid var(--line); border-top-color: var(--brand);
