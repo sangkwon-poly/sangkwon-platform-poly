@@ -72,9 +72,9 @@ class PaymentServiceTest {
         PaymentOrderResponse yearly = service("ck", "sk").createOrder(1L, new PaymentOrderCreateRequest("PRO", "YEARLY"));
         PaymentOrderResponse monthly = service("ck", "sk").createOrder(1L, new PaymentOrderCreateRequest("PRO", "MONTHLY"));
 
-        assertThat(yearly.amount()).isEqualTo(468_000L);
+        assertThat(yearly.amount()).isEqualTo(240_000L);
         assertThat(yearly.orderName()).isEqualTo("여기콕 Pro 연간");
-        assertThat(monthly.amount()).isEqualTo(49_000L);
+        assertThat(monthly.amount()).isEqualTo(24_000L);
         assertThat(yearly.clientKey()).isEqualTo("ck");
         verify(paymentOrderRepository, org.mockito.Mockito.times(2)).save(any(PaymentOrder.class));
     }
@@ -98,7 +98,7 @@ class PaymentServiceTest {
 
     @Test
     void 승인_시_금액이_다르면_M014를_던지고_토스를_호출하지_않는다() {
-        PaymentOrder order = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 468_000L, "여기콕 Pro 연간");
+        PaymentOrder order = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
         when(paymentOrderRepository.findByOrderIdAndMemberId("o1", 1L)).thenReturn(Optional.of(order));
 
         assertThatThrownBy(() -> service("ck", "sk").confirm(1L, new PaymentConfirmRequest("pk", "o1", 999L)))
@@ -108,11 +108,11 @@ class PaymentServiceTest {
 
     @Test
     void 이미_승인된_주문은_토스_재호출_없이_멱등하게_응답한다() {
-        PaymentOrder order = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 468_000L, "여기콕 Pro 연간");
+        PaymentOrder order = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
         order.paid("pk-1", LocalDateTime.now());
         when(paymentOrderRepository.findByOrderIdAndMemberId("o1", 1L)).thenReturn(Optional.of(order));
 
-        PaymentConfirmResponse res = service("ck", "sk").confirm(1L, new PaymentConfirmRequest("pk-1", "o1", 468_000L));
+        PaymentConfirmResponse res = service("ck", "sk").confirm(1L, new PaymentConfirmRequest("pk-1", "o1", 240_000L));
 
         assertThat(res.status()).isEqualTo(PaymentStatus.PAID);
         verifyNoInteractions(restClient);
