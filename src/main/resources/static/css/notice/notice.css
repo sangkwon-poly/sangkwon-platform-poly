@@ -27,6 +27,9 @@
 .link-login { font-size: 13.5px; font-weight: 600; color: var(--text-soft); }
 .link-login:hover { color: var(--brand); }
 .nav-toggle-btn { display: none; }
+/* 토글 체크박스: 화면에선 숨기되 모바일에서 키보드 포커스는 유지 (hidden 대신) */
+.nav-toggle { position: absolute; opacity: 0; pointer-events: none; }
+@media (min-width: 641px) { .nav-toggle { display: none; } }
 
 /* 로그인 후: 아바타 버튼(마이페이지) + 닉네임 (랜딩과 동일) */
 .nav-user { display: inline-flex; align-items: center; gap: 8px; }
@@ -200,6 +203,7 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
     display: none;
   }
   .nav-toggle:checked ~ .site-nav { display: flex; }
+  .nav-toggle:focus-visible + .nav-toggle-btn { outline: 2px solid var(--brand); outline-offset: 3px; }
   .nav-menu { flex-direction: column; gap: 0; font-size: 15px; }
   .nav-menu li { border-bottom: 1px solid var(--line-soft); }
   .nav-menu a { display: block; padding: 13px 0; }
