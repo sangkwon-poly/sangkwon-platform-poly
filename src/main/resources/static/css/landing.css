@@ -123,6 +123,9 @@
 
 /* 햄버거 (기본 숨김, 모바일에서만 노출) */
 .nav-toggle-btn { display: none; }
+/* 토글 체크박스: 화면에선 숨기되 모바일에서 키보드 포커스는 유지한다 (hidden 대신) */
+.nav-toggle { position: absolute; opacity: 0; pointer-events: none; }
+@media (min-width: 641px) { .nav-toggle { display: none; } }
 
 /* 2. 히어로 */
 .hero { background: linear-gradient(var(--surface-2), #fff); }
@@ -162,7 +165,7 @@
 /* 4. 지도 프리뷰 카드 */
 .map-preview {
   background: #fff;
-  border: 1px solid #eadfd9;
+  border: 1px solid var(--card-line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   overflow: hidden;
@@ -175,28 +178,6 @@
   color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .02em;
 }
 .map-preview-dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255, 255, 255, .5); }
-.choropleth {
-  display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px;
-  padding: 14px;
-}
-.choropleth span { aspect-ratio: 1; border-radius: 5px; background: var(--c); }
-
-.rank-list { padding: 2px 14px 16px; }
-.rank-item {
-  display: flex; align-items: center; gap: 9px;
-  padding: 7px 0;
-  border-top: 1px solid #f2ebe6;
-}
-.rank-badge {
-  width: 19px; height: 19px; flex: 0 0 auto;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 5px;
-  background: #f1e0d9; color: #8a5748;
-  font-family: var(--mono); font-size: 10px; font-weight: 800;
-}
-.rank-badge.rank-1 { background: var(--brand); color: #fff; }
-.rank-name { flex: 1; font-size: 12.5px; font-weight: 700; color: #3a322e; }
-.rank-value { font-family: var(--mono); font-size: 11.5px; font-weight: 700; color: var(--brand); }
 
 /* 지표 바 */
 .stats { background: var(--dark); color: #fff; }
@@ -229,7 +210,7 @@
   margin: 40px auto 0;
   max-width: 920px;
   background: #fff;
-  border: 1px solid #eadfd9;
+  border: 1px solid var(--card-line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   overflow: hidden;
@@ -326,7 +307,7 @@
 .report-chip svg{ width: 20px; height: 20px; flex: 0 0 auto; color: var(--brand); }
 
 .report-mock{
-  background: #fff; border: 1px solid #eadfd9; border-radius: var(--radius-lg);
+  background: #fff; border: 1px solid var(--card-line); border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card); padding: 26px 26px 22px;
   max-width: 340px; margin: 0 auto;
 }
@@ -410,6 +391,7 @@
     display: none;
   }
   .nav-toggle:checked ~ .site-nav { display: flex; }  /* 체크박스 켜지면 메뉴 표시 */
+  .nav-toggle:focus-visible + .nav-toggle-btn { outline: 2px solid var(--brand); outline-offset: 3px; }
   .nav-menu { flex-direction: column; gap: 0; font-size: 15px; }
   .nav-menu li { border-bottom: 1px solid var(--line-soft); }
   .nav-menu a { display: block; padding: 13px 0; }

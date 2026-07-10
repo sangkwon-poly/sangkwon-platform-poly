@@ -7,31 +7,46 @@
 
   <!-- SEO / OG (명세: SEO 메타·OG) -->
   <meta name="description" content="서울시 공식 상권 데이터 기반 상권분석 플랫폼. 매출·유동인구·경쟁·임대료를 지도 한 화면에서 비교하고 창업 지원사업까지 매칭받으세요.">
+  <meta name="theme-color" content="#a8412c">
   <meta property="og:type" content="website">
   <meta property="og:title" content="여기콕 · 서울 상권분석 플랫폼">
   <meta property="og:description" content="1,650개 상권을 지도 위에서 비교하고 창업 지원사업까지 매칭.">
   <meta property="og:locale" content="ko_KR">
+  <meta property="og:site_name" content="여기콕">
+  <!-- 공유 미리보기 이미지. 배포 도메인이 정해지면 절대 URL로 바꾸는 게 좋다 -->
+  <meta property="og:image" content="/images/map_only.png">
+  <meta property="og:image:width" content="844">
+  <meta property="og:image:height" content="655">
+  <meta property="og:image:alt" content="서울 상권 지도">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="여기콕 · 서울 상권분석 플랫폼">
+  <meta name="twitter:description" content="1,650개 상권을 지도 위에서 비교하고 창업 지원사업까지 매칭.">
+  <meta name="twitter:image" content="/images/map_only.png">
 
-  <!-- 폰트: 목업과 동일한 Pretendard -->
+  <!-- 폰트: 목업과 동일한 Pretendard. CDN 사전 연결로 폰트 로딩을 앞당긴다 -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
-  <link rel="stylesheet" href="/css/common.css">
-  <link rel="stylesheet" href="/css/landing.css">
+  <link rel="stylesheet" href="/css/common.css?v=20260710">
+  <link rel="stylesheet" href="/css/landing.css?v=20260710">
 
+  <!-- 배포 도메인이 정해지면 절대 URL canonical을 추가한다 (상대경로는 Lighthouse에서 무효 처리) -->
   <link rel="icon" href="/favicon/favicon.ico" sizes="any">
 </head>
 <body>
 
+<a class="skip-link" href="#main">본문 바로가기</a>
+
 <!-- 1. 헤더 내비 -->
 <header class="site-header">
   <div class="container header-inner">
-    <a class="brand" href="/">
+    <a class="brand" href="/" aria-label="여기콕 홈">
       <span class="brand-mark-tag" aria-hidden="true">여기</span>
       <span class="brand-name-kok">콕</span>
     </a>
 
-    <!-- 모바일 햄버거: JS 없이 체크박스로 토글 -->
-    <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
-    <label for="nav-toggle" class="nav-toggle-btn" aria-label="메뉴 열기">
+    <!-- 모바일 햄버거: JS 없이 체크박스로 토글. 체크박스는 화면에서만 숨겨 키보드 포커스는 살린다 -->
+    <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="주요 메뉴 열기/닫기">
+    <label for="nav-toggle" class="nav-toggle-btn" aria-hidden="true">
       <span></span><span></span><span></span>
     </label>
 
@@ -51,7 +66,7 @@
   </div>
 </header>
 
-<main>
+<main id="main">
   <!-- 2. 히어로 · 3. 시작 CTA · 4. 지도 프리뷰 -->
   <section class="hero">
     <div class="container hero-inner">
@@ -83,31 +98,14 @@
           </figcaption>
 
           <!-- 코로플레스 데모 (실제 서울 25개 자치구 GeoJSON 좌표 기반, 장식 요소) -->
-          <div class="stage">
+          <!-- 장식용 데모 지도. 인터랙션은 마우스 전용이라 보조기술에는 숨긴다 -->
+          <div class="stage" aria-hidden="true">
             <div class="map-wrap" id="mapWrap">
-              <svg class="overlay" id="overlaySvg" viewBox="0 0 900 747"></svg>
+              <svg class="overlay" id="overlaySvg" viewBox="0 0 900 747.4"></svg>
               <div class="label-tag" id="tag"></div>
             </div>
           </div>
 
-          <!-- 매출 상위 상권 -->
-          <!-- <ol class="rank-list">
-            <li class="rank-item">
-              <span class="rank-badge rank-1">1</span>
-              <span class="rank-name">양천구</span>
-              <span class="rank-value">900억</span>
-            </li>
-            <li class="rank-item">
-              <span class="rank-badge">2</span>
-              <span class="rank-name">영등포구</span>
-              <span class="rank-value">862억</span>
-            </li>
-            <li class="rank-item">
-              <span class="rank-badge">3</span>
-              <span class="rank-name">용산구</span>
-              <span class="rank-value">854억</span>
-            </li>
-          </ol> -->
         </figure>
       </div>
     </div>
@@ -149,8 +147,8 @@
           <span class="map-demo-tag">서울 전체 · 25개 자치구</span>
         </div>
         <div class="map-demo-body">
-          <div class="map-wrap map-wrap-mini" id="mapWrapFeature">
-            <svg class="overlay" id="featureSvg" viewBox="0 0 900 747"></svg>
+          <div class="map-wrap map-wrap-mini" id="mapWrapFeature" aria-hidden="true">
+            <svg class="overlay" id="featureSvg" viewBox="0 0 900 747.4"></svg>
             <div class="label-tag" id="tagFeature"></div>
           </div>
 
@@ -242,7 +240,7 @@
           <div class="report-mock-sub">성동구 · 2026년 1분기 · 여기콕</div>
           <div class="report-mock-stats">
             <div><em>22</em><span>세부업종</span></div>
-            <div><em>90분</em><span>유동인구</span></div>
+            <div><em>90만</em><span>유동인구</span></div>
             <div><em>110</em><span>점포 수</span></div>
           </div>
           <div class="report-mock-chart">
@@ -310,47 +308,35 @@
   </div>
 </footer>
 
-<script src="/js/indexMap.js"></script>
+<script src="/js/indexMap.js?v=20260710"></script>
 
 <script>
-  // 로그인 세션을 헤더 액션 영역에 반영
+  // 로그인 세션을 한 번만 확인해서 헤더 액션과 히어로 CTA에 함께 반영한다(요청 중복 제거)
   (function () {
     var actions = document.querySelector('.nav-actions');
-    if (!actions) return;
+    var cta = document.getElementById('heroCta');
+    var demoBtn = document.getElementById('demoBtn');
     function esc(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
     fetch('/api/members/me', { credentials: 'include', headers: { Accept: 'application/json' } })
             .then(function (r) { return r.ok ? r.json() : null; })
             .then(function (b) {
               var me = b && b.data;
-              if (!me) return;
-              var initial = esc((me.nickname || me.loginId || '?').slice(0, 1));
-              actions.innerHTML =
-                      '<a class="nav-user" href="/member/mypage" title="마이페이지">' +
-                        '<span class="nav-avatar" aria-hidden="true">' + initial + '</span>' +
-                        '<span class="nav-user-name">' + esc(me.nickname || me.loginId) + '님</span>' +
-                      '</a>' +
-                      '<button type="button" class="btn btn-primary btn-sm" id="nav-logout">로그아웃</button>';
-              var btn = document.getElementById('nav-logout');
-              if (btn) btn.addEventListener('click', function () {
-                fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
-                        .then(function () { location.reload(); }, function () { location.reload(); });
-              });
-            })
-            .catch(function () {});
-  })();
-</script>
-
-<script>
-  // 로그인 상태면 히어로의 "무료로 시작하기" 버튼을 /map 으로 연결하고, "데모 보기"는 숨김
-  (function () {
-    var cta = document.getElementById('heroCta');
-    var demoBtn = document.getElementById('demoBtn');
-    if (!cta && !demoBtn) return;
-    fetch('/api/members/me', { credentials: 'include', headers: { Accept: 'application/json' } })
-            .then(function (r) { return r.ok ? r.json() : null; })
-            .then(function (b) {
-              var me = b && b.data;
-              if (!me) return; // 비로그인 상태면 기존 상태 유지
+              if (!me) return; // 비로그인이면 기존 UI 유지
+              if (actions) {
+                var initial = esc((me.nickname || me.loginId || '?').slice(0, 1));
+                actions.innerHTML =
+                        '<a class="nav-user" href="/member/mypage" title="마이페이지">' +
+                          '<span class="nav-avatar" aria-hidden="true">' + initial + '</span>' +
+                          '<span class="nav-user-name">' + esc(me.nickname || me.loginId) + '님</span>' +
+                        '</a>' +
+                        '<button type="button" class="btn btn-primary btn-sm" id="nav-logout">로그아웃</button>';
+                var btn = document.getElementById('nav-logout');
+                if (btn) btn.addEventListener('click', function () {
+                  fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+                          .then(function () { location.reload(); }, function () { location.reload(); });
+                });
+              }
+              // 로그인 상태면 "무료로 시작하기"를 지도로 연결하고 "데모 보기"는 숨긴다
               if (cta) {
                 cta.href = '/map';
                 cta.textContent = '지도 보러가기 →';
