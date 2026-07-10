@@ -205,6 +205,7 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
   backdrop-filter: blur(3px);
   animation: pmFade .18s ease;
 }
+.pm-backdrop[hidden] { display: none; } /* display:flex가 hidden 기본값을 덮지 않게. 없으면 진입하자마자 모달이 뜬다 */
 .pm-modal {
   width: 100%; max-width: 460px;
   max-height: calc(100vh - 40px);
