@@ -92,6 +92,15 @@
         set("ov-stat-trdar", rows.length ? rows.length.toLocaleString() : "—");
     });
 
+    // 2-1) 대기중 1:1 문의: 목록 API의 totalElements만 사용 (로그인 관리자 전원 조회 가능)
+    api("/api/admin/inquiries?status=OPEN&page=0&size=1").then(function (r) {
+        var d = data(r);
+        if (!d) { return; }
+        var open = Number(d.totalElements || 0);
+        set("ov-stat-inquiry", num(open));
+        setSub("ov-sub-inquiry", open > 0 ? "답변 대기" : "모두 처리됨", open > 0 ? "ov-warn" : "ov-flat");
+    });
+
     // 3) 관리자 수 (SUPER_ADMIN 전용)
     api("/api/admin/admin-users").then(function (r) {
         if (r.status === 403) { set("ov-stat-admin", "—"); setSub("ov-sub-admin", "권한 필요"); return; }

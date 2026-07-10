@@ -70,6 +70,10 @@
         var s = statusMeta(n.status);
         var badge = '<span class="badge ' + s.badge + '"><span class="dot ' + s.dot + '" aria-hidden="true"></span>' + esc(s.label) + "</span>";
         var pin = n.isPinned === "Y" ? '<span class="nt-pin">고정</span>' : "";
+        // 발행된 공지만 공개 페이지에 실제 노출되므로, 그 화면을 새 탭으로 확인하는 링크를 단다
+        var open = n.status === "PUBLISHED"
+            ? '<a class="nt-open" href="/notice/detail?id=' + n.noticeId + '" target="_blank" rel="noopener" title="공개 화면에서 보기">공개 ↗</a>'
+            : "";
         var actions;
         if (canManage()) {
             var sel = '<select class="nt-status-select" data-id="' + n.noticeId + '" aria-label="공지 상태 변경">'
@@ -85,7 +89,7 @@
             actions = '<span class="nt-muted">—</span>';
         }
         return "<tr>"
-            + '<td><div class="nt-title">' + pin + '<span class="nt-title-text">' + esc(n.title) + "</span></div></td>"
+            + '<td><div class="nt-title">' + pin + '<span class="nt-title-text">' + esc(n.title) + "</span>" + open + "</div></td>"
             + '<td class="col-center">' + badge + "</td>"
             + '<td class="col-num nt-views">' + Number(n.viewCnt || 0).toLocaleString() + "</td>"
             + '<td class="nt-muted">' + esc(n.adminName || "-") + "</td>"
