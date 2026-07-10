@@ -14,7 +14,16 @@ public interface AdminAuditLogRepository extends JpaRepository<AdminAuditLog, Lo
 
     List<AdminAuditLog> findByOrderByCreatedAtDesc(Limit limit);
 
-    // 감사 로그 조회: 행위(action) 필터(선택) + 페이징. 정렬은 Pageable로 넘긴다.
-    @Query("select a from AdminAuditLog a where (:action is null or a.action = :action)")
-    Page<AdminAuditLog> search(@Param("action") String action, Pageable pageable);
+    // 감사 로그 조회: 행위(action)·행위자(adminId)·대상(targetType/targetId) 필터(모두 선택) + 페이징.
+    // 계정 화면의 '이 관리자 활동'(adminId)과 '이 계정 변경 이력'(targetType=ADMIN,targetId) 드릴다운에 쓴다.
+    @Query("""
+            select a from AdminAuditLog a
+            where (:action is null or a.action = :action)
+              and (:adminId is null or a.adminId = :adminId)
+              and (:targetType is null or a.targetType = :targetType)
+              and (:targetId is null or a.targetId = :targetId)
+            """)
+    Page<AdminAuditLog> search(@Param("action") String action, @Param("adminId") Long adminId,
+                               @Param("targetType") String targetType, @Param("targetId") String targetId,
+                               Pageable pageable);
 }

@@ -5,6 +5,7 @@ import com.sangkwon.sangkwonplatform.admin.account.dto.response.AdminListRespons
 import com.sangkwon.sangkwonplatform.admin.account.dto.response.OtpSetupResponse;
 import com.sangkwon.sangkwonplatform.admin.account.dto.session.AdminSession;
 import com.sangkwon.sangkwonplatform.admin.account.entity.AdminUser;
+import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminRole;
 import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminStatus;
 import com.sangkwon.sangkwonplatform.admin.account.otp.OtpRequiredException;
 import com.sangkwon.sangkwonplatform.admin.account.otp.Totp;
@@ -80,6 +81,9 @@ public class AdminUserService {
         if (adminUser.getStatus() == AdminStatus.LOCKED) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "로그인 실패가 반복되어 계정이 잠겼습니다. 관리자에게 문의하세요.");
+        }
+        if (adminUser.getStatus() == AdminStatus.DISABLED) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "비활성화된 관리자 계정입니다.");
         }
         if (adminUser.getStatus() != AdminStatus.ACTIVE) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "사용할 수 없는 관리자 계정입니다.");
@@ -168,11 +172,30 @@ public class AdminUserService {
     }
 
     public void updateRole(Long adminId, AdminRoleUpdateRequest request) {
-        findAdminUser(adminId).updateRole(request.role());
+        AdminUser adminUser = findAdminUser(adminId);
+        // 마지막 활성 최고관리자를 강등해 관리할 사람이 사라지는 것을 막는다
+        if (request.role() != AdminRole.SUPER_ADMIN) {
+            requireNotLastActiveSuperAdmin(adminUser);
+        }
+        adminUser.updateRole(request.role());
     }
 
     public void updateStatus(Long adminId, AdminStatusUpdateRequest request) {
-        findAdminUser(adminId).updateStatus(request.status());
+        AdminUser adminUser = findAdminUser(adminId);
+        // 마지막 활성 최고관리자를 잠금·비활성해 로그인 가능한 관리자가 사라지는 것을 막는다
+        if (request.status() != AdminStatus.ACTIVE) {
+            requireNotLastActiveSuperAdmin(adminUser);
+        }
+        adminUser.updateStatus(request.status());
+    }
+
+    // 활성 최고관리자(SUPER_ADMIN)가 항상 최소 1명 남도록 보장한다. 락아웃 방지.
+    private void requireNotLastActiveSuperAdmin(AdminUser target) {
+        if (target.getRole() == AdminRole.SUPER_ADMIN && target.getStatus() == AdminStatus.ACTIVE
+                && adminUserRepository.countByRoleAndStatus(AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE) <= 1) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "마지막 활성 최고관리자는 강등·잠금·비활성할 수 없습니다.");
+        }
     }
 
     private AdminUser findAdminUser(Long adminId) {

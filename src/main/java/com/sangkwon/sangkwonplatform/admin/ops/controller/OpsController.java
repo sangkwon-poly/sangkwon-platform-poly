@@ -81,13 +81,16 @@ public class OpsController {
     @GetMapping("/audit")
     public ApiResponse<AuditPageResponse> audit(@LoginAdmin AdminSession admin,
                                                 @RequestParam(required = false) String action,
+                                                @RequestParam(required = false) Long adminId,
+                                                @RequestParam(required = false) String targetType,
+                                                @RequestParam(required = false) String targetId,
                                                 @RequestParam(defaultValue = "0") int page,
                                                 @RequestParam(defaultValue = "30") int size) {
         requireSuperAdmin(admin);
         int safeSize = Math.min(Math.max(size, 1), 100);
         PageRequest pageable = PageRequest.of(Math.max(page, 0), safeSize,
                 Sort.by(Sort.Direction.DESC, "createdAt"));
-        return ApiResponse.ok(opsService.searchAudits(action, pageable));
+        return ApiResponse.ok(opsService.searchAudits(action, adminId, targetType, targetId, pageable));
     }
 
     private void requireSuperAdmin(AdminSession admin) {

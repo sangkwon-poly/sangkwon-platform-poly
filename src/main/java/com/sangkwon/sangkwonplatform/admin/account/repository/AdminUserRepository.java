@@ -1,6 +1,8 @@
 package com.sangkwon.sangkwonplatform.admin.account.repository;
 
 import com.sangkwon.sangkwonplatform.admin.account.entity.AdminUser;
+import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminRole;
+import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -24,4 +26,7 @@ public interface AdminUserRepository extends JpaRepository<AdminUser, Long> {
     boolean existsByLoginId(String loginId);
 
     List<AdminUser> findAllByOrderByCreatedAtDesc();
+
+    // 마지막 활성 최고관리자 보호용: 활성 SUPER_ADMIN 수
+    long countByRoleAndStatus(AdminRole role, AdminStatus status);
 }

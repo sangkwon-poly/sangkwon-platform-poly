@@ -53,6 +53,7 @@
           <button type="button" class="ua-chip ua-chip-active" data-filter="ALL">전체 <b>0</b></button>
           <button type="button" class="ua-chip" data-filter="ACTIVE">활성 <b>0</b></button>
           <button type="button" class="ua-chip" data-filter="LOCKED">잠김 <b>0</b></button>
+          <button type="button" class="ua-chip" data-filter="DISABLED">비활성 <b>0</b></button>
         </div>
 
         <section class="data-table-wrap" aria-label="관리자 계정 표">
@@ -60,12 +61,12 @@
             <table class="data-table ua-table">
               <thead>
                 <tr>
-                  <th scope="col">관리자</th>
-                  <th scope="col">권한</th>
-                  <th scope="col" class="col-center">상태</th>
-                  <th scope="col" class="col-center">로그인 실패</th>
-                  <th scope="col">최근 로그인</th>
-                  <th scope="col">생성일</th>
+                  <th scope="col"><button type="button" class="ua-th-sort" data-sort="name">관리자<span class="ua-arrow" aria-hidden="true"></span></button></th>
+                  <th scope="col"><button type="button" class="ua-th-sort" data-sort="role">권한<span class="ua-arrow" aria-hidden="true"></span></button></th>
+                  <th scope="col" class="col-center"><button type="button" class="ua-th-sort" data-sort="status">상태<span class="ua-arrow" aria-hidden="true"></span></button></th>
+                  <th scope="col" class="col-num"><button type="button" class="ua-th-sort" data-sort="fail">로그인 실패<span class="ua-arrow" aria-hidden="true"></span></button></th>
+                  <th scope="col"><button type="button" class="ua-th-sort" data-sort="lastLogin">최근 로그인<span class="ua-arrow" aria-hidden="true"></span></button></th>
+                  <th scope="col"><button type="button" class="ua-th-sort" data-sort="created">생성일<span class="ua-arrow" aria-hidden="true"></span></button></th>
                   <th scope="col" class="col-center">작업</th>
                 </tr>
               </thead>
@@ -75,6 +76,12 @@
             </table>
           </div>
         </section>
+
+        <div class="ua-pager" id="ua-pager" hidden>
+          <button type="button" class="ua-page-btn" id="ua-prev" aria-label="이전 페이지">이전</button>
+          <div class="ua-pages" id="ua-pages" aria-label="페이지 번호"></div>
+          <button type="button" class="ua-page-btn" id="ua-next" aria-label="다음 페이지">다음</button>
+        </div>
       </main>
     </div>
   </div>

@@ -3,6 +3,8 @@ package com.sangkwon.sangkwonplatform.admin.account.service;
 import com.sangkwon.sangkwonplatform.admin.account.dto.request.AdminJoinRequest;
 import com.sangkwon.sangkwonplatform.admin.account.dto.request.AdminLoginRequest;
 import com.sangkwon.sangkwonplatform.admin.account.dto.request.AdminPasswordResetRequest;
+import com.sangkwon.sangkwonplatform.admin.account.dto.request.AdminRoleUpdateRequest;
+import com.sangkwon.sangkwonplatform.admin.account.dto.request.AdminStatusUpdateRequest;
 import com.sangkwon.sangkwonplatform.admin.account.dto.session.AdminSession;
 import com.sangkwon.sangkwonplatform.admin.account.entity.AdminUser;
 import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminRole;
@@ -155,5 +157,50 @@ class AdminUserServiceTest {
                 .satisfies(e -> assertThat(status(e)).isEqualTo(401));
         // 계정이 없어도 비밀번호 비교(더미 해시)를 수행해 타이밍 차이를 없앤다
         verify(passwordEncoder).matches(eq("pw"), any());
+    }
+
+    @Test
+    void 마지막_활성_최고관리자는_강등할_수_없다() {
+        AdminUser sa = activeAdmin();
+        when(adminUserRepository.findById(1L)).thenReturn(Optional.of(sa));
+        when(adminUserRepository.countByRoleAndStatus(AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE)).thenReturn(1L);
+
+        assertThatThrownBy(() -> adminUserService.updateRole(1L, new AdminRoleUpdateRequest(AdminRole.OPERATOR)))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(status(e)).isEqualTo(409));
+        assertThat(sa.getRole()).isEqualTo(AdminRole.SUPER_ADMIN);
+    }
+
+    @Test
+    void 활성_최고관리자가_둘_이상이면_강등된다() {
+        AdminUser sa = activeAdmin();
+        when(adminUserRepository.findById(1L)).thenReturn(Optional.of(sa));
+        when(adminUserRepository.countByRoleAndStatus(AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE)).thenReturn(2L);
+
+        adminUserService.updateRole(1L, new AdminRoleUpdateRequest(AdminRole.OPERATOR));
+
+        assertThat(sa.getRole()).isEqualTo(AdminRole.OPERATOR);
+    }
+
+    @Test
+    void 마지막_활성_최고관리자는_비활성할_수_없다() {
+        AdminUser sa = activeAdmin();
+        when(adminUserRepository.findById(1L)).thenReturn(Optional.of(sa));
+        when(adminUserRepository.countByRoleAndStatus(AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE)).thenReturn(1L);
+
+        assertThatThrownBy(() -> adminUserService.updateStatus(1L, new AdminStatusUpdateRequest(AdminStatus.DISABLED)))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(status(e)).isEqualTo(409));
+        assertThat(sa.getStatus()).isEqualTo(AdminStatus.ACTIVE);
+    }
+
+    @Test
+    void 최고관리자가_아니면_마지막_여부와_무관하게_비활성된다() {
+        AdminUser operator = AdminUser.create("op", "hash", "운영자", AdminRole.OPERATOR);
+        when(adminUserRepository.findById(2L)).thenReturn(Optional.of(operator));
+
+        adminUserService.updateStatus(2L, new AdminStatusUpdateRequest(AdminStatus.DISABLED));
+
+        assertThat(operator.getStatus()).isEqualTo(AdminStatus.DISABLED);
     }
 }

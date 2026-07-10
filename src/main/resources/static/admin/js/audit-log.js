@@ -41,8 +41,29 @@
     var prevBtn = document.getElementById("ag-prev");
     var nextBtn = document.getElementById("ag-next");
     var pageInfo = document.getElementById("ag-page-info");
+    var contextEl = document.getElementById("ag-context");
+    var contextTextEl = document.getElementById("ag-context-text");
 
-    var state = { action: "", page: 0, size: 30, resp: null };
+    function param(name) { return new URLSearchParams(location.search).get(name) || ""; }
+
+    // 계정 화면에서 넘어온 드릴다운 필터: adminId(이 관리자 활동), targetType+targetId(이 계정 변경 이력)
+    var state = {
+        action: "", page: 0, size: 30, resp: null,
+        adminId: param("adminId"), targetType: param("targetType"), targetId: param("targetId"), label: param("label")
+    };
+
+    function showContext() {
+        var who = state.label || state.adminId || state.targetId;
+        if (state.adminId) {
+            contextTextEl.textContent = who + " 관리자가 한 활동";
+            contextEl.hidden = false;
+        } else if (state.targetType === "ADMIN" && state.targetId) {
+            contextTextEl.textContent = who + " 계정의 변경 이력";
+            contextEl.hidden = false;
+        } else {
+            contextEl.hidden = true;
+        }
+    }
 
     function emptyRow(msg) { return '<tr><td colspan="6" class="ops-empty">' + esc(msg) + "</td></tr>"; }
 
@@ -77,7 +98,10 @@
     function load() {
         tbody.innerHTML = emptyRow("불러오는 중…");
         var q = "/api/admin/ops/audit?page=" + state.page + "&size=" + state.size;
-        if (state.action) { q += "&action=" + state.action; }
+        if (state.action) { q += "&action=" + encodeURIComponent(state.action); }
+        if (state.adminId) { q += "&adminId=" + encodeURIComponent(state.adminId); }
+        if (state.targetType) { q += "&targetType=" + encodeURIComponent(state.targetType); }
+        if (state.targetId) { q += "&targetId=" + encodeURIComponent(state.targetId); }
         api(q).then(function (r) {
             if (r.status === 401) { return; }
             if (r.status === 403) { tbody.innerHTML = emptyRow("SUPER_ADMIN만 볼 수 있습니다."); pagerEl.hidden = true; return; }
@@ -102,5 +126,6 @@
         if (state.resp && state.page < state.resp.totalPages - 1) { state.page++; load(); }
     });
 
+    showContext();
     load();
 })();
