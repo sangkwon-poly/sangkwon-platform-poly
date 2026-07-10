@@ -97,6 +97,8 @@
     logSearch: function (data) { return request('POST', '/api/search-logs', data); },
     deleteSearchLog: function (keyword) { return request('DELETE', '/api/search-logs/' + encodeURIComponent(keyword)); },
     clearSearchLogs: function () { return request('DELETE', '/api/search-logs'); },
+    myInquiries: function (page, size) { return request('GET', '/api/inquiries/my?page=' + page + '&size=' + size); },
+    inquiry: function (id) { return request('GET', '/api/inquiries/' + encodeURIComponent(id)); },
   };
 
   /* -------------------------------------------------------------------
@@ -182,6 +184,7 @@
       const links = [
         { key: 'map', label: '지도', href: '/map' },
         { key: 'favorites', label: '찜', href: 'favorites' },
+        { key: 'inquiries', label: '문의', href: 'inquiries' },
         { key: 'mypage', label: '마이페이지', href: 'mypage' },
       ];
 

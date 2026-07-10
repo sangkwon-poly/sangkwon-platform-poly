@@ -1537,3 +1537,74 @@ textarea.input {
     display: none;
   }
 }
+
+/* --------------------------------------------------------------------
+ * 내 문의 내역 (member/inquiries)
+ * ------------------------------------------------------------------ */
+.iq-list { display: flex; flex-direction: column; gap: 10px; }
+.iq-row {
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: border-color .12s ease;
+}
+.iq-row.is-open, .iq-row:hover { border-color: var(--brand); }
+.iq-row__head {
+  width: 100%;
+  display: flex; align-items: center; gap: 12px;
+  padding: 15px 18px;
+  border: 0; background: none;
+  font-family: inherit; text-align: left; cursor: pointer;
+}
+.iq-row__head .badge { flex: 0 0 auto; }
+.iq-row__title {
+  flex: 1 1 auto; min-width: 0;
+  font-size: 14px; font-weight: 700; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.iq-row__date { flex: 0 0 auto; font-size: 12.5px; }
+.iq-row__arrow {
+  flex: 0 0 auto;
+  width: 7px; height: 7px;
+  border-right: 2px solid var(--muted-3); border-bottom: 2px solid var(--muted-3);
+  transform: rotate(45deg);
+  transition: transform .15s ease;
+  margin-top: -3px;
+}
+.iq-row.is-open .iq-row__arrow { transform: rotate(-135deg); margin-top: 3px; }
+.iq-row__body { padding: 0 18px 18px; }
+.iq-loading-inline { font-size: 13px; color: var(--muted); padding: 4px 0; }
+.iq-q {
+  font-size: 13.5px; line-height: 1.7; color: var(--ink);
+  white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word;
+  background: var(--surface-2);
+  border: 1px solid var(--line-2);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.iq-answer {
+  margin-top: 10px;
+  background: var(--surface-3);
+  border: 1px solid var(--field-line);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.iq-answer__head {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  font-size: 12.5px; font-weight: 800; color: var(--brand);
+}
+.iq-answer__meta { font-weight: 600; color: var(--muted); }
+.iq-answer__body {
+  margin-top: 8px;
+  font-size: 13.5px; line-height: 1.7; color: var(--ink);
+  white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word;
+}
+.iq-wait { margin-top: 10px; font-size: 12.5px; color: var(--muted-3); }
+
+/* 모바일: 제목이 길면 줄바꿈되도록 */
+@media (max-width: 560px) {
+  .iq-row__head { flex-wrap: wrap; gap: 8px 12px; }
+  .iq-row__title { flex-basis: 100%; white-space: normal; order: -1; }
+  .iq-row__date { margin-left: auto; }
+}
