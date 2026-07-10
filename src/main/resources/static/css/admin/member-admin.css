@@ -71,8 +71,13 @@
 .ma-table .dot { width: 6px; height: 6px; }
 .dot-muted { background: var(--faint); }
 
-/* 상태 전이 버튼 (관리자 계정 화면의 작업 버튼과 동일 톤) */
-.ma-actions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+/* 구독 셀: Pro 배지 + 만료일 스택 */
+.ma-plan { display: inline-flex; flex-direction: column; align-items: center; gap: 3px; }
+.ma-plan-until { font-size: 11px; color: var(--faint); font-family: var(--mono); white-space: nowrap; }
+
+/* 상태 전이 버튼 (관리자 계정 화면의 작업 버튼과 동일 톤)
+   구독 버튼까지 최대 4개라, 좁은 화면에서 한 줄씩 쌓여 행이 치솟지 않게 최소 폭으로 2열 흐름을 보장한다 */
+.ma-actions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; min-width: 216px; }
 .ma-act {
   font-size: 12px; font-weight: 700;
   border: 1px solid var(--line); border-radius: var(--radius-sm);

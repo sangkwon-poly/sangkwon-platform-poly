@@ -41,6 +41,13 @@
   background: var(--brand);
   color: #fff; font-weight: 700;
 }
+/* 메뉴가 늘어 그룹 라벨로 시각적 단락을 나눈다 */
+.admin-nav-label {
+  margin: 13px 11px 3px;
+  font-size: 10.5px; font-weight: 700;
+  letter-spacing: .05em;
+  color: rgba(255,255,255,.35);
+}
 .admin-nav-sep {
   margin: 10px 4px;
   border: 0; border-top: 1px solid rgba(255,255,255,.1);
@@ -236,6 +243,7 @@
     flex-wrap: nowrap;
   }
   .admin-nav a { padding: 8px 10px; white-space: nowrap; }
+  .admin-nav-label { display: none; } /* 가로 스크롤 메뉴에선 그룹 라벨이 흐름을 끊는다 */
   .admin-nav-sep { display: none; }
   .admin-user { margin-top: 0; padding: 4px 8px; border-top: 0; }
   .admin-content { padding: 16px; }

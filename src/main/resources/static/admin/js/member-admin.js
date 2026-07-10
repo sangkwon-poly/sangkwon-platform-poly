@@ -91,7 +91,7 @@
         if (flashTimer) { clearTimeout(flashTimer); }
         flashTimer = setTimeout(function () { flashEl.hidden = true; }, 2600);
     }
-    function emptyRow(msg) { return '<tr><td colspan="6" class="ma-empty">' + esc(msg) + "</td></tr>"; }
+    function emptyRow(msg) { return '<tr><td colspan="7" class="ma-empty">' + esc(msg) + "</td></tr>"; }
     function findMember(id) {
         var list = (state.resp && state.resp.content) || [];
         for (var i = 0; i < list.length; i++) { if (list[i].memberId === id) { return list[i]; } }
@@ -184,12 +184,28 @@
         });
     }
 
+    // 구독 셀: Pro면 만료일까지, 아니면 무료 배지만
+    function planHtml(m) {
+        if (!m.pro) { return '<span class="badge badge-muted">무료</span>'; }
+        return '<div class="ma-plan"><span class="badge badge-info">Pro</span>'
+            + '<span class="ma-plan-until">~ ' + esc(fmtDate(m.planUntil)) + "</span></div>";
+    }
+    // 구독 조작: 탈퇴 회원은 대상에서 제외. 부여·연장은 1개월 단위(CS 보상 기본 단위).
+    function planActionsFor(m) {
+        if (m.status === "WITHDRAWN") { return []; }
+        var acts = [{ op: "EXTEND", label: m.pro ? "구독 연장" : "Pro 부여" }];
+        if (m.pro) { acts.push({ op: "REVOKE", label: "구독 회수", danger: true }); }
+        return acts;
+    }
+
     function rowHtml(m) {
         var s = statusMeta(m.status);
         var badge = '<span class="badge ' + s.badge + '"><span class="dot ' + s.dot + '" aria-hidden="true"></span>' + esc(s.label) + "</span>";
         var acts = actionsFor(m.status).map(function (a) {
             return '<button type="button" class="ma-act' + (a.danger ? " ma-act-danger" : "") + '" data-id="' + m.memberId + '" data-status="' + a.to + '">' + esc(a.label) + "</button>";
-        }).join("");
+        }).concat(planActionsFor(m).map(function (a) {
+            return '<button type="button" class="ma-act' + (a.danger ? " ma-act-danger" : "") + '" data-id="' + m.memberId + '" data-plan="' + a.op + '">' + esc(a.label) + "</button>";
+        })).join("");
         var auditHref = "/admin/audit-log?targetType=MEMBER&targetId=" + m.memberId + "&label=" + encodeURIComponent(m.loginId);
         return "<tr>"
             + '<td><div class="ma-user"><span class="ma-avatar" aria-hidden="true">' + esc((m.nickname || "?").charAt(0)) + "</span>"
@@ -198,6 +214,7 @@
             + '<span class="ma-audit"><a href="' + auditHref + '">변경 이력</a></span></span></div></td>'
             + '<td class="ma-email">' + esc(m.email) + "</td>"
             + '<td class="col-center">' + badge + "</td>"
+            + '<td class="col-center">' + planHtml(m) + "</td>"
             + '<td class="ma-muted">' + fmtDate(m.createdAt) + "</td>"
             + '<td class="ma-muted">' + fmtDateTime(m.lastLoginAt) + "</td>"
             + '<td class="col-center"><div class="ma-actions">' + acts + "</div></td>"
@@ -229,6 +246,11 @@
                 changeStatus(Number(btn.getAttribute("data-id")), btn.getAttribute("data-status"), btn);
             });
         });
+        Array.prototype.forEach.call(tbody.querySelectorAll(".ma-act[data-plan]"), function (btn) {
+            btn.addEventListener("click", function () {
+                changePlan(Number(btn.getAttribute("data-id")), btn.getAttribute("data-plan"), btn);
+            });
+        });
     }
 
     function changeStatus(id, status, btn) {
@@ -249,6 +271,32 @@
         }, function () {
             btn.disabled = false;
             flash("상태 변경에 실패했습니다.", true);
+        });
+    }
+
+    // 구독 부여·연장·회수. 돈이 걸린 조치라 세 경우 모두 확인창을 거친다.
+    function planConfirmMsg(m, op) {
+        if (op === "REVOKE") { return "구독을 회수할까요? 만료일이 사라지고 즉시 무료로 전환됩니다."; }
+        if (m && m.pro) { return "구독을 1개월 연장할까요? 현재 만료일 뒤에 이어집니다."; }
+        return "이 회원에게 Pro 1개월을 부여할까요?";
+    }
+    function changePlan(id, op, btn) {
+        var m = findMember(id);
+        if (!window.confirm(planConfirmMsg(m, op))) { return; }
+        btn.disabled = true;
+        var body = op === "REVOKE" ? { op: "REVOKE" } : { op: "EXTEND", months: 1 };
+        api("/api/admin/members/" + id + "/plan", jsonOpts("PATCH", body)).then(function (r) {
+            if (!r.ok) {
+                btn.disabled = false;
+                flash(msgOf(r, "구독 변경에 실패했습니다."), true);
+                return;
+            }
+            flash(op === "REVOKE" ? "구독을 회수했습니다." : "구독을 적용했습니다.");
+            pendingFocusId = id;
+            load();
+        }, function () {
+            btn.disabled = false;
+            flash("구독 변경에 실패했습니다.", true);
         });
     }
 

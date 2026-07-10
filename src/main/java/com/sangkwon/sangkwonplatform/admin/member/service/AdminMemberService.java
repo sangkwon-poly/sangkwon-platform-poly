@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -47,8 +48,7 @@ public class AdminMemberService {
     // 회원 상태 변경(정지/휴면/해제/강제탈퇴). 같은 상태로의 무의미한 변경은 막는다.
     // 감사 로그에 전이(from -> to)를 남길 수 있게 이전 상태를 함께 돌려준다.
     public StatusChange changeStatus(Long memberId, MemberStatus status) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다."));
+        Member member = find(memberId);
         MemberStatus from = member.getStatus();
         if (from == status) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 해당 상태입니다.");
@@ -59,6 +59,36 @@ public class AdminMemberService {
 
     // 상태 변경 결과: 이전 상태(감사용)와 변경된 회원 정보.
     public record StatusChange(MemberStatus from, AdminMemberResponse member) {
+    }
+
+    // 구독 부여·연장(CS 보상, 환불 전 임시 처리). 만료 전이면 남은 기간에 이어붙여 손해가 없게 한다.
+    // 결제 승인 경로(PaymentService.activateSubscription)와 같은 규칙.
+    public PlanChange extendPlan(Long memberId, int months) {
+        Member member = find(memberId);
+        LocalDateTime before = member.getPlanUntil();
+        LocalDateTime base = member.isPro() ? member.getPlanUntil() : LocalDateTime.now();
+        member.activatePro(base.plusMonths(months));
+        return new PlanChange(before, AdminMemberResponse.from(member));
+    }
+
+    // 구독 회수. 만료 정보 자체가 없으면 회수할 대상이 없는 요청이다.
+    public PlanChange revokePlan(Long memberId) {
+        Member member = find(memberId);
+        if (member.getPlanUntil() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "회수할 구독이 없습니다.");
+        }
+        LocalDateTime before = member.getPlanUntil();
+        member.revokePro();
+        return new PlanChange(before, AdminMemberResponse.from(member));
+    }
+
+    // 구독 변경 결과: 이전 만료 시각(감사용)과 변경된 회원 정보.
+    public record PlanChange(LocalDateTime beforeUntil, AdminMemberResponse member) {
+    }
+
+    private Member find(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다."));
     }
 
     // 검색어를 소문자화하고 LIKE 와일드카드로 감싼다. 비어 있으면 null(=필터 없음).

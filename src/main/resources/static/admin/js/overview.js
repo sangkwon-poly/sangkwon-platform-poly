@@ -75,6 +75,7 @@
     api("/api/admin/ops/overview").then(function (r) {
         if (r.status === 403) {
             setSub("ov-sub-member", "권한 필요"); setSub("ov-sub-report", "권한 필요");
+            setSub("ov-sub-revenue", "권한 필요"); setSub("ov-sub-pro", "권한 필요");
             return;
         }
         var d = data(r);
@@ -85,6 +86,10 @@
         set("ov-stat-report", num(d.reportCount));
         setSub("ov-sub-report", d.todayReports > 0 ? "오늘 +" + d.todayReports : "AI 생성",
             d.todayReports > 0 ? "ov-up" : "ov-flat");
+        set("ov-stat-revenue", "₩" + num(d.monthRevenue));
+        setSub("ov-sub-revenue", d.monthRevenue > 0 ? "승인 완료 기준" : "이번 달 결제 없음");
+        set("ov-stat-pro", num(d.activeProCount));
+        setSub("ov-sub-pro", d.activeProCount > 0 ? "유효 구독 회원" : "구독자 없음");
     });
 
     // 2) 분석 상권 수 (공개 API)
