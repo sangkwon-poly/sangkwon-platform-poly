@@ -136,26 +136,30 @@ function logSearch(keyword) {
 }
 
 // 비로그인은 조회가 막혀 드롭다운이 자동으로 안 뜬다.
+var recentList = [];
+
 function bindRecent(input) {
     const wrap = document.querySelector(".app-search-wrap");
     const box = document.getElementById("recent-box");
     if (!wrap || !box) return;
 
-    input.addEventListener("focus", () => {
-        if (!input.value.trim()) showRecent(box, input);
-    });
-    input.addEventListener("input", () => {
-        if (input.value.trim()) box.hidden = true;
-    });
+    input.addEventListener("focus", () => loadRecent(box, input));
+    input.addEventListener("input", () => showRecent(box, input));
     document.addEventListener("click", (e) => {
         if (!wrap.contains(e.target)) box.hidden = true;
     });
 }
 
-function showRecent(box, input) {
+function loadRecent(box, input) {
     apiData("/api/search-logs?limit=5")
-        .then((list) => renderRecent(box, input, list || []))
+        .then((list) => { recentList = list || []; showRecent(box, input); })
         .catch(() => { box.hidden = true; });
+}
+
+// 입력 중이면 최신 3개, 빈 창이면 5개
+function showRecent(box, input) {
+    var n = input.value.trim() ? 3 : 5;
+    renderRecent(box, input, recentList.slice(0, n));
 }
 
 function renderRecent(box, input, list) {
@@ -181,14 +185,13 @@ function renderRecent(box, input, list) {
             view.keyword = r.keyword;
             box.hidden = true;
             render();
-            logSearch(r.keyword);
         });
         del.addEventListener("click", (e) => {
             e.stopPropagation();
             fetch("/api/search-logs/" + encodeURIComponent(r.keyword), {
                 method: "DELETE",
                 credentials: "include",
-            }).then(() => showRecent(box, input)).catch(() => {});
+            }).then(() => loadRecent(box, input)).catch(() => {});
         });
         box.appendChild(item);
     });
