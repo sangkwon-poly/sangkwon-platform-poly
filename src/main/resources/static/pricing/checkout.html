@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>결제 · 여기콕</title>
+  <meta name="robots" content="noindex">
+
+  <meta name="theme-color" content="#a8412c">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/pricing/pricing.css">
+  <link rel="icon" href="/favicon/favicon.ico" sizes="any">
+</head>
+<body>
+
+<a class="skip-link" href="#main">본문 바로가기</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/" aria-label="여기콕 홈">
+        <span class="brand-mark-tag" aria-hidden="true">여기</span>
+        <span class="brand-name-kok">콕</span>
+      </a>
+      <nav class="site-nav site-nav-slim" aria-label="주요 메뉴">
+        <div class="nav-actions">
+          <a class="link-login" href="/pricing">요금제로 돌아가기</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="pricing-main" aria-label="결제">
+    <div class="container co-wrap">
+
+      <header class="pc-head co-head">
+        <h1 class="pc-title">주문 결제</h1>
+        <p class="pc-lead">테스트 결제 환경입니다. 실제로 청구되지 않습니다.</p>
+      </header>
+
+      <div class="co-grid">
+        <section class="co-summary" aria-label="주문 요약">
+          <h2 class="co-summary-title">주문 요약</h2>
+          <dl class="co-rows">
+            <div class="co-row"><dt>플랜</dt><dd>여기콕 Pro</dd></div>
+            <div class="co-row"><dt>결제 주기</dt><dd id="co-cycle">-</dd></div>
+            <div class="co-row co-row-total"><dt>결제 금액</dt><dd id="co-amount">-</dd></div>
+          </dl>
+          <p class="co-note">결제 완료 후 언제든 해지할 수 있어요. 남은 기간은 일할 계산으로 환불됩니다.</p>
+        </section>
+
+        <section class="co-pay" aria-label="결제 수단">
+          <div id="co-error" class="co-error" hidden></div>
+          <div id="payment-method"></div>
+          <div id="agreement"></div>
+          <button type="button" class="btn btn-primary co-pay-btn" id="co-pay-btn" disabled>결제하기</button>
+        </section>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="https://js.tosspayments.com/v2/standard"></script>
+  <script src="/pricing/checkout.js"></script>
+</body>
+</html>

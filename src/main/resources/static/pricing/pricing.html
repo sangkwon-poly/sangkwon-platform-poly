@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>요금제 · 여기콕</title>
+  <meta name="description" content="개인 창업자부터 프랜차이즈 본사까지, 비즈니스 규모에 맞는 여기콕 요금제를 확인하세요.">
+
+  <meta name="theme-color" content="#a8412c">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/pricing/pricing.css">
+  <link rel="icon" href="/favicon/favicon.ico" sizes="any">
+</head>
+<body>
+
+<a class="skip-link" href="#main">본문 바로가기</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/" aria-label="여기콕 홈">
+        <span class="brand-mark-tag" aria-hidden="true">여기</span>
+        <span class="brand-name-kok">콕</span>
+      </a>
+
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="주요 메뉴 열기/닫기">
+      <label for="nav-toggle" class="nav-toggle-btn" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </label>
+
+      <nav class="site-nav" aria-label="주요 메뉴">
+        <ul class="nav-menu">
+          <li><a href="/#features">기능</a></li>
+          <li><a href="/pricing" aria-current="page">요금제</a></li>
+          <li><a href="/support">지원사업</a></li>
+          <li><a href="/industry/industry.html">업계동향</a></li>
+          <li><a href="/notice">공지사항</a></li>
+          <li><a href="/inquiry">문의하기</a></li>
+        </ul>
+        <div class="nav-actions">
+          <a class="link-login" href="/login">로그인</a>
+          <a class="link-login" href="/signup">회원가입</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="pricing-main" aria-label="요금제">
+    <div class="container pricing-inner">
+
+      <header class="pc-head">
+        <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>14일 무료 체험 · 신용카드 없이</span>
+        <h1 class="pc-title">비즈니스 규모에 맞는 요금제</h1>
+        <p class="pc-lead">개인 창업자부터 프랜차이즈 본사까지, 필요한 만큼만 씁니다.</p>
+      </header>
+
+      <div class="pc-toggle" role="group" aria-label="결제 주기">
+        <button type="button" class="pc-toggle-btn" data-cycle="MONTHLY">월간</button>
+        <button type="button" class="pc-toggle-btn is-active" data-cycle="YEARLY">연간 <span class="pc-toggle-tag">2개월 무료</span></button>
+      </div>
+
+      <div class="pc-grid">
+
+        <article class="pc-card">
+          <div class="pc-plan"><span class="pc-dot pc-dot-free" aria-hidden="true"></span>Free</div>
+          <p class="pc-desc">개인 · 체험용</p>
+          <div class="pc-price"><strong>₩0</strong></div>
+          <p class="pc-price-sub">영구 무료</p>
+          <a class="btn btn-ghost pc-cta" href="/signup">무료로 시작</a>
+          <ul class="pc-features">
+            <li>기본 코로플레스 지도</li>
+            <li>상권 조회 월 3회</li>
+            <li>매출·인구 요약 지표</li>
+            <li>리포트 미리보기</li>
+          </ul>
+        </article>
+
+        <article class="pc-card is-featured">
+          <span class="pc-popular">가장 인기</span>
+          <div class="pc-plan"><span class="pc-dot pc-dot-pro" aria-hidden="true"></span>Pro</div>
+          <p class="pc-desc">소상공인 · 예비창업자</p>
+          <div class="pc-price"><strong id="pc-pro-price">₩39,000</strong><span class="pc-per">/월</span></div>
+          <p class="pc-price-sub" id="pc-pro-sub">연간 결제 시 · 월간 ₩49,000</p>
+          <button type="button" class="btn btn-primary pc-cta" id="pc-pro-cta">프로 시작하기</button>
+          <ul class="pc-features">
+            <li>Free의 모든 기능</li>
+            <li>상권 무제한 조회</li>
+            <li>최대 4개 상권 비교</li>
+            <li>PDF·CSV 리포트 내보내기</li>
+            <li>정부 지원사업 매칭</li>
+            <li>관심 상권 저장·알림</li>
+          </ul>
+        </article>
+
+        <article class="pc-card">
+          <div class="pc-plan"><span class="pc-dot pc-dot-ent" aria-hidden="true"></span>Enterprise</div>
+          <p class="pc-desc">프랜차이즈 · 기관</p>
+          <div class="pc-price"><strong class="pc-price-text">맞춤 견적</strong></div>
+          <p class="pc-price-sub">사용 규모별 협의</p>
+          <a class="btn btn-ghost pc-cta" href="/inquiry">문의하기</a>
+          <ul class="pc-features">
+            <li>Pro의 모든 기능</li>
+            <li>API · 데이터 연동</li>
+            <li>다중 사용자 · 권한 관리</li>
+            <li>전담 CS 매니저</li>
+            <li>맞춤 리포트 · SLA 보장</li>
+          </ul>
+        </article>
+
+      </div>
+
+      <section class="pc-compare" aria-label="기능 비교">
+        <h2 class="pc-compare-title">기능 비교</h2>
+        <div class="pc-table-wrap">
+          <table class="pc-table">
+            <thead>
+              <tr>
+                <th scope="col">기능</th>
+                <th scope="col">Free</th>
+                <th scope="col" class="pc-col-pro">Pro</th>
+                <th scope="col">Enterprise</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">상권 조회</th><td>월 3회</td><td class="pc-col-pro">무제한</td><td>무제한</td></tr>
+              <tr><th scope="row">상권 비교</th><td class="pc-none">-</td><td class="pc-col-pro">4개</td><td>무제한</td></tr>
+              <tr><th scope="row">리포트 내보내기</th><td>미리보기</td><td class="pc-col-pro">PDF·CSV</td><td>PDF·CSV·API</td></tr>
+              <tr><th scope="row">정부 지원사업 매칭</th><td class="pc-none">-</td><td class="pc-col-pro pc-yes">✓</td><td class="pc-yes">✓</td></tr>
+              <tr><th scope="row">업종·상권 동향</th><td class="pc-none">-</td><td class="pc-col-pro pc-yes">✓</td><td class="pc-yes">✓</td></tr>
+              <tr><th scope="row">API · 데이터 연동</th><td class="pc-none">-</td><td class="pc-col-pro pc-none">-</td><td class="pc-yes">✓</td></tr>
+              <tr><th scope="row">사용자 수</th><td>1</td><td class="pc-col-pro">5</td><td>무제한</td></tr>
+              <tr><th scope="row">고객 지원</th><td>커뮤니티</td><td class="pc-col-pro">이메일</td><td>전담 매니저</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="pc-banner" aria-label="데모 안내">
+        <div class="pc-banner-copy">
+          <h2>어떤 플랜이 맞을지 고민되나요?</h2>
+          <p>10분 데모로 우리 상권에 맞는 활용법을 안내해 드립니다.</p>
+        </div>
+        <a class="btn btn-primary pc-banner-cta" href="/inquiry">데모 신청 →</a>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark-tag" aria-hidden="true">여기</span>
+        <span class="brand-name-kok">콕</span>
+      </div>
+      <nav class="footer-nav" aria-label="푸터 메뉴">
+        <a href="/about">회사소개</a>
+        <a href="/terms">이용약관</a>
+        <a href="/privacy">개인정보처리방침</a>
+      </nav>
+      <p class="footer-copy">© 2026 여기콕. 서울시 공식 상권 데이터 기반.</p>
+    </div>
+  </footer>
+
+  <script>
+    // 로그인 세션을 헤더 액션 영역에 반영
+    (function () {
+      var actions = document.querySelector('.nav-actions');
+      if (!actions) return;
+      function esc(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
+      fetch('/api/members/me', { credentials: 'include', headers: { Accept: 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (b) {
+          var me = b && b.data;
+          if (!me) return;
+          var initial = esc((me.nickname || me.loginId || '?').slice(0, 1));
+          actions.innerHTML =
+            '<a class="nav-user" href="/member/mypage" title="마이페이지">' +
+              '<span class="nav-avatar" aria-hidden="true">' + initial + '</span>' +
+              '<span class="nav-user-name">' + esc(me.nickname || me.loginId) + '님</span>' +
+            '</a>' +
+            '<button type="button" class="btn btn-primary btn-sm" id="nav-logout">로그아웃</button>';
+          var btn = document.getElementById('nav-logout');
+          if (btn) btn.addEventListener('click', function () {
+            fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+              .then(function () { location.reload(); }, function () { location.reload(); });
+          });
+        })
+        .catch(function () {});
+    })();
+  </script>
+  <script src="/pricing/pricing.js"></script>
+</body>
+</html>
