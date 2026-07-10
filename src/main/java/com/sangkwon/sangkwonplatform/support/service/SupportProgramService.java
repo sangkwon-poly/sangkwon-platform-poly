@@ -124,6 +124,8 @@ public class SupportProgramService {
     private List<SupportProgramPageResponse.TypeCount> buildTypeCounts(List<TypeCountRow> rows) {
         Map<SupportProgramTypeTab, Long> byTab = new EnumMap<>(SupportProgramTypeTab.class);
         long total = 0;
+        // 배지 카운트는 목록 필터(program_type IN)와 같은 exact 기준으로 센다. 카드 라벨은 of()로 폭넓게
+        // 보여주므로, 비정규 구분자 값에선 라벨과 배지가 갈릴 수 있다(실데이터는 정규값이라 사실상 일치).
         for (TypeCountRow row : rows) {
             byTab.merge(SupportProgramTypeTab.fromRawValue(row.getProgramType()), row.getCnt(), Long::sum);
             total += row.getCnt();

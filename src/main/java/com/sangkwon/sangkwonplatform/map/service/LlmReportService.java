@@ -123,8 +123,10 @@ public class LlmReportService {
         synchronized (limitLock) {
             LocalDate today = LocalDate.now();
             if (!today.equals(limitDay)) {
+                // 카운트가 성공한 뒤에 기준일을 확정한다. 조회가 일시 실패하면 기준일을 안 바꿔 다음 요청이 다시 읽게 한다.
+                int base = (int) llmReportRepository.countByCreatedAtGreaterThanEqual(today.atStartOfDay());
+                reservedToday = base;
                 limitDay = today;
-                reservedToday = (int) llmReportRepository.countByCreatedAtGreaterThanEqual(today.atStartOfDay());
             }
             if (reservedToday >= DAILY_LIMIT) {
                 throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "오늘 리포트 생성 한도를 초과했습니다");
