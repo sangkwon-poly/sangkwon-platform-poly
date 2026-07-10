@@ -364,5 +364,4 @@ load().catch((err) => {
     document.getElementById("detail-title").textContent = "상권 정보를 불러오지 못했습니다";
 });
 
-// 헤더 검색창 최근검색 드롭다운(포커스 시). 상세 로드와 독립적으로 활성화한다.
 initRecentSearch();
