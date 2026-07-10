@@ -61,26 +61,44 @@
 .ma-email { font-size: 12px; color: var(--text-soft); }
 .ma-muted { font-size: 12px; color: var(--faint); }
 
+/* 감사 로그 드릴다운: 이 회원의 상태 변경 이력 */
+.ma-audit { display: flex; gap: 10px; margin-top: 3px; }
+.ma-audit a { font-size: 11px; color: var(--faint); }
+.ma-audit a:hover { color: var(--brand); text-decoration: underline; }
+
 /* 표 안 상태 배지·점 */
 .ma-table .badge { gap: 6px; font-size: 11px; padding: 4px 10px; }
 .ma-table .dot { width: 6px; height: 6px; }
 .dot-muted { background: var(--faint); }
 
-/* 상태 변경 셀렉트 (권한 셀렉트와 동일 톤) */
-.ma-status-select {
-  font-size: 12.5px; font-weight: 600; color: var(--text);
-  background: var(--bg); border: 1px solid var(--line);
-  border-radius: var(--radius-sm); padding: 6px 26px 6px 10px;
-  cursor: pointer; appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%239a8e86' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 10px center;
+/* 상태 전이 버튼 (관리자 계정 화면의 작업 버튼과 동일 톤) */
+.ma-actions { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.ma-act {
+  font-size: 12px; font-weight: 700;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--bg); color: var(--text-soft);
+  padding: 6px 12px; cursor: pointer; white-space: nowrap;
 }
-.ma-status-select:hover { border-color: var(--brand); }
-.ma-status-select:disabled { cursor: default; opacity: .6; }
+.ma-act:hover { border-color: var(--brand); color: var(--brand); }
+/* 정지·강제탈퇴처럼 파급이 큰 전이는 위험색으로 구분 */
+.ma-act.ma-act-danger:hover { border-color: var(--danger); color: var(--danger); }
+.ma-act:disabled { cursor: default; color: var(--faint); border-color: var(--line-soft); }
+
+/* 갱신 중에는 표를 로딩 문구로 무너뜨리지 않고 기존 행을 흐리게만 */
+#ma-tbody.is-busy { opacity: .5; transition: opacity .12s ease; }
+
+/* 정렬 가능한 헤더 */
+.ma-th-sort {
+  display: inline-flex; align-items: center; gap: 4px;
+  font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer;
+}
+.ma-th-sort:hover { color: var(--brand); }
+.ma-th-sort.is-sorted { color: var(--brand); }
+.ma-arrow { font-size: 10px; line-height: 1; }
 
 .ma-empty { padding: 32px 16px; text-align: center; color: var(--faint); font-size: 14px; }
 
-/* 페이지네이션 */
+/* 페이지네이션(번호 + 이전/다음) */
 .ma-pager {
   display: flex; align-items: center; justify-content: center; gap: 14px;
   margin-top: 16px;
@@ -93,7 +111,18 @@
 }
 .ma-page-btn:hover:not(:disabled) { border-color: var(--brand); color: var(--brand); }
 .ma-page-btn:disabled { opacity: .5; cursor: default; }
-.ma-page-info { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ma-pages { display: flex; align-items: center; gap: 4px; }
+.ma-page-num {
+  min-width: 34px; height: 34px; padding: 0 8px;
+  font-size: 12.5px; font-weight: 700; color: var(--text-soft);
+  background: #fff; border: 1px solid var(--line); border-radius: 9px;
+  cursor: pointer; font-variant-numeric: tabular-nums;
+}
+.ma-page-num:hover { border-color: var(--brand); color: var(--brand); }
+.ma-page-num.is-active, .ma-page-num.is-active:hover {
+  color: #fff; background: var(--brand); border-color: var(--brand); cursor: default;
+}
+.ma-page-gap { padding: 0 4px; color: var(--faint); font-weight: 700; }
 
 @media (max-width: 640px) {
   .ma-search { margin-left: 0; width: 100%; }
