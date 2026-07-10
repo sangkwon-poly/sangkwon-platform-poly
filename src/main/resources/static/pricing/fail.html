@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>결제 실패 · 여기콕</title>
+  <meta name="robots" content="noindex">
+
+  <meta name="theme-color" content="#a8412c">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/pricing/pricing.css">
+  <link rel="icon" href="/favicon/favicon.ico" sizes="any">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/" aria-label="여기콕 홈">
+        <span class="brand-mark-tag" aria-hidden="true">여기</span>
+        <span class="brand-name-kok">콕</span>
+      </a>
+    </div>
+  </header>
+
+  <main id="main" class="pricing-main" aria-label="결제 실패">
+    <div class="container co-wrap">
+      <section class="co-result">
+        <div class="co-result-card">
+          <span class="co-result-icon co-result-icon-fail" aria-hidden="true">!</span>
+          <h1 class="co-result-title">결제를 완료하지 못했어요</h1>
+          <p class="co-result-sub" id="co-fail-msg">결제가 취소되었거나 실패했습니다.</p>
+          <div class="co-result-actions">
+            <a class="btn btn-primary" href="/pricing">다시 시도하기</a>
+            <a class="btn btn-ghost" href="/inquiry">문의하기</a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    // 토스가 넘겨준 실패 사유를 표시한다 (없으면 기본 문구 유지)
+    (function () {
+      var m = /[?&]message=([^&]*)/.exec(location.search);
+      if (!m) return;
+      try {
+        var msg = decodeURIComponent(m[1].replace(/\+/g, " "));
+        if (msg) document.getElementById("co-fail-msg").textContent = msg;
+      } catch (e) { /* 잘못된 인코딩이면 기본 문구 유지 */ }
+    })();
+  </script>
+</body>
+</html>

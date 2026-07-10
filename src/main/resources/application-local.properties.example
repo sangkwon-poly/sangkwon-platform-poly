@@ -27,6 +27,10 @@ SEOUL_OPENDATA_KEY=여기에_서울_열린데이터광장_인증키
 FTC_FRANCHISE_KEY=여기에_franchise.ftc.go.kr_키
 REB_RONE_KEY=여기에_R-ONE_키
 
+# 토스페이먼츠 (데모는 공식 문서 공개 테스트 키를 그대로 사용, 실결제 안 됨)
+TOSS_CLIENT_KEY=test_gck_docs_Ovk5rk1EwkEbP0W43n07xlzm
+TOSS_SECRET_KEY=test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6
+
 # 창업지원/기업정보 API 키
 NAVER_CLIENT_ID=여기에_네이버_클라이언트_ID
 NAVER_CLIENT_SECRET=여기에_네이버_시크릿
