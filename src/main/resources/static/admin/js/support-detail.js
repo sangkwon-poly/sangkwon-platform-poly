@@ -12,6 +12,8 @@
 
     function esc(s) { var d = document.createElement("div"); d.textContent = (s == null) ? "" : String(s); return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
     function attr(s) { return esc(s); }
+    // href에는 http/https만 허용해 javascript: 등 스킴 주입(저장형 XSS)을 막는다
+    function safeUrl(u) { if (!u) { return ""; } var s = String(u).trim(); return /^https?:\/\//i.test(s) ? s : ""; }
     function api(path, opts) {
         return fetch(path, opts).then(function (res) {
             return res.json().catch(function () { return null; }).then(function (b) { return { ok: res.ok, status: res.status, body: b }; });
@@ -106,7 +108,7 @@
             + '<div class="sd-actions">'
             + '<button type="button" class="sd-btn sd-btn-primary" id="sd-edit">수정</button>'
             + '<button type="button" class="sd-btn" id="sd-toggle">' + (d.visible ? "숨김으로" : "노출로") + "</button>"
-            + (d.detailUrl ? '<a class="sd-btn" href="' + attr(d.detailUrl) + '" target="_blank" rel="noopener">원문 보기</a>' : "")
+            + (safeUrl(d.detailUrl) ? '<a class="sd-btn" href="' + attr(safeUrl(d.detailUrl)) + '" target="_blank" rel="noopener">원문 보기</a>' : "")
             + '<a class="sd-btn" href="/support/detail?source=' + encodeURIComponent(d.sourceCd) + "&id=" + encodeURIComponent(d.programId) + '" target="_blank" rel="noopener">공개 상세 미리보기</a>'
             + "</div>"
             + '<div class="sd-info">'

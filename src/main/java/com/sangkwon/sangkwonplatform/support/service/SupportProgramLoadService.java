@@ -16,7 +16,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 // 창업지원사업(기업마당 + K-Startup) 적재를 앱에서 실행한다. 파이썬 06_load_support_program.py 포팅.
@@ -54,16 +56,23 @@ public class SupportProgramLoadService {
         fetchKstartup(programs, details);
 
         LocalDateTime now = LocalDateTime.now();
+        Set<String> savedKstartupIds = new HashSet<>();
         long saved = 0;
         for (Program p : programs) {
             if (p.title == null) {
                 continue; // TITLE NOT NULL
             }
             upsertProgram(p, now);
+            if ("KSTARTUP".equals(p.sourceCd)) {
+                savedKstartupIds.add(p.programId);
+            }
             saved++;
         }
         for (Detail d : details) {
-            upsertDetail(d, now);
+            // 제목이 없어 마스터를 건너뛴 공고의 상세는 넣지 않는다(FK 위반 나면 배치 전체가 롤백된다)
+            if (savedKstartupIds.contains(d.programId)) {
+                upsertDetail(d, now);
+            }
         }
         return saved;
     }

@@ -125,7 +125,7 @@ public class SupportProgramService {
         Map<SupportProgramTypeTab, Long> byTab = new EnumMap<>(SupportProgramTypeTab.class);
         long total = 0;
         for (TypeCountRow row : rows) {
-            byTab.merge(SupportProgramTypeTab.of(row.getProgramType()), row.getCnt(), Long::sum);
+            byTab.merge(SupportProgramTypeTab.fromRawValue(row.getProgramType()), row.getCnt(), Long::sum);
             total += row.getCnt();
         }
         List<SupportProgramPageResponse.TypeCount> out = new ArrayList<>();
