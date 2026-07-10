@@ -1,0 +1,207 @@
+/* 공지사항(NOTICE-01/02) 전용 스타일
+   공통 토큰·프리미티브(.container/.btn/.badge)는 common.css 에서 로드됨 */
+
+/* 헤더 (랜딩과 동일 패턴) */
+.site-header {
+  position: sticky; top: 0; z-index: 20;
+  background: #fff;
+  border-bottom: 1px solid var(--line-soft);
+}
+.header-inner {
+  height: 66px;
+  display: flex; align-items: center; gap: 14px;
+}
+.site-nav {
+  flex: 1;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 30px;
+}
+.nav-menu {
+  flex: 1;
+  display: flex; justify-content: center; gap: 30px;
+  font-size: 13.5px; font-weight: 600; color: var(--text-soft);
+}
+.nav-menu a:hover { color: var(--brand); }
+.nav-menu a[aria-current="page"] { color: var(--brand); }
+.nav-actions { display: flex; align-items: center; gap: 14px; }
+.link-login { font-size: 13.5px; font-weight: 600; color: var(--text-soft); }
+.link-login:hover { color: var(--brand); }
+.nav-toggle-btn { display: none; }
+
+/* 로그인 후: 아바타 버튼(마이페이지) + 닉네임 (랜딩과 동일) */
+.nav-user { display: inline-flex; align-items: center; gap: 8px; }
+.nav-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--brand); color: #fff;
+  font-size: 13px; font-weight: 800;
+  transition: filter .15s ease;
+}
+.nav-user:hover .nav-avatar { filter: brightness(1.08); }
+.nav-user-name { font-size: 13.5px; font-weight: 600; color: var(--text-soft); }
+.nav-user:hover .nav-user-name { color: var(--brand); }
+
+/* 본문 래퍼 */
+.notice-main { padding: 46px 0 72px; background: var(--surface-2); min-height: 62vh; }
+
+/* 페이지 헤드 */
+.nt-head { max-width: 860px; margin: 0 auto 22px; }
+.nt-title {
+  font-size: 30px; font-weight: 800;
+  letter-spacing: -.03em; color: var(--ink);
+}
+.nt-lead { margin-top: 8px; font-size: 14px; color: var(--muted); }
+
+/* 목록 카드 */
+.nt-board {
+  max-width: 860px; margin: 0 auto;
+  background: #fff;
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.nt-row { border-top: 1px solid var(--line-soft); }
+.nt-row:first-child { border-top: 0; }
+.nt-row-link {
+  display: flex; align-items: center; gap: 12px;
+  padding: 17px 22px;
+  transition: background .12s ease;
+}
+.nt-row-link:hover { background: var(--surface-2); }
+.nt-row.is-pinned { background: var(--surface); }
+.nt-flag {
+  flex: 0 0 auto;
+  font-size: 11px; font-weight: 700;
+  color: var(--brand-dark); background: var(--brand-tint);
+  padding: 3px 9px; border-radius: 6px;
+}
+.nt-row-title {
+  flex: 1 1 auto; min-width: 0;
+  font-size: 14.5px; font-weight: 600; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.nt-row.is-pinned .nt-row-title { font-weight: 700; color: var(--ink); }
+.nt-new {
+  display: inline-block; width: 5px; height: 5px;
+  border-radius: 50%; background: var(--brand);
+  margin: 0 0 7px 5px;
+}
+.nt-row-meta {
+  flex: 0 0 auto;
+  display: flex; align-items: center; gap: 14px;
+  font-size: 12.5px; color: var(--faint);
+}
+.nt-views { font-variant-numeric: tabular-nums; }
+
+/* 빈 상태 */
+.nt-empty { text-align: center; padding: 64px 20px; }
+.nt-empty-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.nt-empty-sub { margin-top: 6px; font-size: 13px; color: var(--muted); }
+
+/* 페이저 */
+.nt-pager {
+  display: flex; justify-content: center; align-items: center; gap: 6px;
+  margin-top: 22px;
+}
+.nt-pager:empty { display: none; }
+.nt-page-btn {
+  min-width: 34px; height: 34px; padding: 0 11px;
+  border: 1px solid var(--line); background: #fff;
+  border-radius: 9px;
+  font-size: 13px; font-weight: 600; color: var(--text-soft);
+}
+.nt-page-btn:hover:not(:disabled):not(.is-active) { border-color: var(--brand); color: var(--brand); }
+.nt-page-btn.is-active { background: var(--brand); border-color: var(--brand); color: #fff; cursor: default; }
+.nt-page-btn:disabled { opacity: .45; cursor: default; }
+
+/* 상세 (NOTICE-02) */
+.ntd-wrap { max-width: 860px; }
+.container.ntd-wrap { margin: 0 auto; }
+.ntd-back {
+  display: inline-block; margin-bottom: 14px;
+  font-size: 13px; font-weight: 600; color: var(--muted);
+}
+.ntd-back::before { content: "\2190"; margin-right: 6px; }
+.ntd-back:hover { color: var(--brand); }
+.ntd-card {
+  background: #fff;
+  border: 1px solid var(--card-line);
+  border-radius: var(--radius);
+  padding: 34px 38px 30px;
+}
+.ntd-loading, .ntd-missing { text-align: center; padding: 56px 0; color: var(--muted); }
+.ntd-missing-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 16px; }
+.ntd-flags { display: flex; gap: 8px; margin-bottom: 12px; }
+.ntd-title {
+  font-size: 26px; font-weight: 800; color: var(--ink);
+  line-height: 1.35; letter-spacing: -.02em;
+}
+.ntd-meta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  margin-top: 12px; padding-bottom: 20px;
+  border-bottom: 1px solid var(--line-soft);
+  font-size: 13px; color: var(--faint);
+}
+.ntd-meta-sep { width: 3px; height: 3px; border-radius: 50%; background: #d8ccc4; }
+.ntd-body {
+  margin-top: 24px;
+  font-size: 14.5px; line-height: 1.8; color: var(--text);
+  white-space: pre-wrap; word-break: keep-all; overflow-wrap: break-word;
+}
+.ntd-foot {
+  margin-top: 34px; padding-top: 20px;
+  border-top: 1px solid var(--line-soft);
+  display: flex; justify-content: center;
+}
+
+/* 푸터 (랜딩과 동일 패턴) */
+.site-footer { border-top: 1px solid var(--line); background: #fff; }
+.footer-inner {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 16px 28px;
+  padding: 34px 24px;
+}
+.footer-brand { display: inline-flex; align-items: center; gap: 10px; }
+.footer-nav { display: flex; gap: 22px; font-size: 13px; font-weight: 600; color: var(--text-soft); }
+.footer-nav a:hover { color: var(--brand); }
+.footer-copy { margin-left: auto; font-size: 12.5px; color: var(--faint); }
+
+/* 반응형 · 태블릿 */
+@media (max-width: 720px) {
+  .notice-main { padding: 30px 0 56px; }
+  .nt-title { font-size: 24px; }
+  .nt-row-link { flex-wrap: wrap; gap: 8px 12px; padding: 15px 18px; }
+  .nt-row-title { flex-basis: 100%; white-space: normal; order: -1; }
+  .nt-row.is-pinned .nt-row-title { flex-basis: auto; order: 0; flex: 1 1 auto; }
+  .nt-row-meta { margin-left: auto; }
+  .ntd-card { padding: 24px 20px; }
+  .ntd-title { font-size: 21px; }
+}
+
+/* 반응형 · 모바일 (1열 · 햄버거) */
+@media (max-width: 640px) {
+  .nav-toggle-btn {
+    display: flex; flex-direction: column; justify-content: center; gap: 5px;
+    width: 40px; height: 40px; margin-left: auto;
+  }
+  .nav-toggle-btn span {
+    display: block; width: 20px; height: 2px; margin: 0 auto;
+    background: var(--ink); border-radius: 2px;
+  }
+  .site-nav {
+    position: absolute; left: 0; right: 0; top: 66px;
+    flex-direction: column; align-items: stretch; gap: 0;
+    background: #fff;
+    border-bottom: 1px solid var(--line-soft);
+    box-shadow: 0 16px 30px rgba(90, 45, 28, .08);
+    padding: 8px 24px 20px;
+    display: none;
+  }
+  .nav-toggle:checked ~ .site-nav { display: flex; }
+  .nav-menu { flex-direction: column; gap: 0; font-size: 15px; }
+  .nav-menu li { border-bottom: 1px solid var(--line-soft); }
+  .nav-menu a { display: block; padding: 13px 0; }
+  .nav-actions { margin-top: 16px; justify-content: space-between; }
+  .footer-inner { flex-direction: column; align-items: flex-start; }
+  .footer-copy { margin-left: 0; }
+}

@@ -19,4 +19,7 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
             """,
             countQuery = "select count(i) from Inquiry i where (:status is null or i.status = :status)")
     Page<Inquiry> searchForAdmin(@Param("status") InquiryStatus status, Pageable pageable);
+
+    // 회원 본인 문의 목록: 최신순. 목록에는 답변자 정보를 노출하지 않아 fetch join이 필요 없다.
+    Page<Inquiry> findByMemberMemberIdOrderByCreatedAtDesc(Long memberId, Pageable pageable);
 }

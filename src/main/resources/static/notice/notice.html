@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>공지사항 · 여기콕</title>
+  <meta name="description" content="여기콕의 새 소식과 데이터 갱신, 점검 일정을 확인하세요.">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/notice/notice.css">
+  <link rel="icon" href="/favicon/favicon.ico" sizes="any">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/">
+        <span class="brand-mark-tag" aria-hidden="true">여기</span>
+        <span class="brand-name-kok">콕</span>
+      </a>
+
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
+      <label for="nav-toggle" class="nav-toggle-btn" aria-label="메뉴 열기">
+        <span></span><span></span><span></span>
+      </label>
+
+      <nav class="site-nav" aria-label="주요 메뉴">
+        <ul class="nav-menu">
+          <li><a href="/#features">기능</a></li>
+          <li><a href="/support">지원사업</a></li>
+          <li><a href="/industry/industry.html">업계동향</a></li>
+          <li><a href="/notice" aria-current="page">공지사항</a></li>
+          <li><a href="/inquiry">문의하기</a></li>
+        </ul>
+        <div class="nav-actions">
+          <a class="link-login" href="/login">로그인</a>
+          <a class="link-login" href="/signup">회원가입</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main class="notice-main" aria-label="공지사항">
+    <div class="container notice-inner">
+
+      <header class="nt-head">
+        <h1 class="nt-title">공지사항</h1>
+        <p class="nt-lead">여기콕의 새 소식과 데이터 갱신, 점검 일정을 알려드립니다.</p>
+      </header>
+
+      <section class="nt-board" aria-label="공지 목록">
+        <ol class="nt-list" id="nt-list"></ol>
+        <div class="nt-empty" id="nt-empty" hidden>
+          <p class="nt-empty-title">등록된 공지가 없습니다.</p>
+          <p class="nt-empty-sub">새 소식이 올라오면 이곳에서 알려드릴게요.</p>
+        </div>
+      </section>
+
+      <nav class="nt-pager" id="nt-pager" aria-label="페이지 이동"></nav>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <span class="brand-mark-tag" aria-hidden="true">여기</span>
+        <span class="brand-name-kok">콕</span>
+      </div>
+      <nav class="footer-nav" aria-label="푸터 메뉴">
+        <a href="/about">회사소개</a>
+        <a href="/terms">이용약관</a>
+        <a href="/privacy">개인정보처리방침</a>
+      </nav>
+      <p class="footer-copy">© 2026 여기콕. 서울시 공식 상권 데이터 기반.</p>
+    </div>
+  </footer>
+
+  <script>
+    // 로그인 세션을 헤더 액션 영역에 반영
+    (function () {
+      var actions = document.querySelector('.nav-actions');
+      if (!actions) return;
+      function esc(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
+      fetch('/api/members/me', { credentials: 'include', headers: { Accept: 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (b) {
+          var me = b && b.data;
+          if (!me) return;
+          var initial = esc((me.nickname || me.loginId || '?').slice(0, 1));
+          actions.innerHTML =
+            '<a class="nav-user" href="/member/mypage" title="마이페이지">' +
+              '<span class="nav-avatar" aria-hidden="true">' + initial + '</span>' +
+              '<span class="nav-user-name">' + esc(me.nickname || me.loginId) + '님</span>' +
+            '</a>' +
+            '<button type="button" class="btn btn-primary btn-sm" id="nav-logout">로그아웃</button>';
+          var btn = document.getElementById('nav-logout');
+          if (btn) btn.addEventListener('click', function () {
+            fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+              .then(function () { location.reload(); }, function () { location.reload(); });
+          });
+        })
+        .catch(function () {});
+    })();
+  </script>
+  <script src="/notice/notice.js"></script>
+</body>
+</html>

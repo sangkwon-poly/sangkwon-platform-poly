@@ -38,7 +38,11 @@
       var params = new URLSearchParams(location.search);
       var back = params.get('redirect');
       if (back) {
-        // 오픈 리다이렉트 방지: 같은 디렉터리의 영문/숫자/하이픈 페이지명만 허용.
+        // 오픈 리다이렉트 방지: 사이트 내부 절대경로(/inquiry 등)나 같은 디렉터리 페이지명만 허용.
+        // 절대경로는 슬래시 하나 뒤에 곧바로 문자·숫자가 와야 해서 //host 형태(프로토콜 상대 URL)는 걸러진다.
+        if (/^\/[\w-][\w\-/]*([?#].*)?$/.test(back)) {
+          return back;
+        }
         var safe = back.replace(/^\/+/, '');
         if (safe.indexOf(':') === -1 && /^[\w-]+(\.html)?([?#].*)?$/.test(safe)) {
           return safe;
