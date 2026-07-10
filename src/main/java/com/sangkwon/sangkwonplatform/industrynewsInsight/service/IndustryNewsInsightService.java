@@ -17,7 +17,7 @@ public class IndustryNewsInsightService {
 
     public IndustryNewsInsightResponse getLatestInsight(String indutyCd) {
 
-        return repository.findLatestByIndutyCd(indutyCd)
+        return repository.findFirstByIndutyCdOrderByYearMonthDesc(indutyCd)
                 .map(entity -> IndustryNewsInsightResponse.from(entity))
                 .orElse(new IndustryNewsInsightResponse(
                         indutyCd,
