@@ -162,7 +162,7 @@
     </div>
   </footer>
 
-  <!-- 결제 모달: 프로 시작하기에서 열린다. 주문은 결제하기를 누르는 순간 생성(빈 주문 방지) -->
+  <!-- 결제 모달: 1단계(플랜 확인) → 결제하기를 눌러야 2단계(결제 수단)가 뜬다. 주문 생성도 그때. -->
   <div class="pm-backdrop" id="pm-backdrop" hidden>
     <div class="pm-modal" role="dialog" aria-modal="true" aria-labelledby="pm-title">
       <div class="pm-head">
@@ -173,30 +173,45 @@
         <button type="button" class="pm-close" id="pm-close" aria-label="닫기">×</button>
       </div>
 
-      <div class="pm-cycle" role="group" aria-label="결제 주기">
-        <button type="button" class="pm-cycle-btn" data-cycle="MONTHLY">월간</button>
-        <button type="button" class="pm-cycle-btn is-active" data-cycle="YEARLY">연간 <span class="pm-cycle-tag">2개월 무료</span></button>
-      </div>
-
-      <div class="pm-summary">
-        <div class="pm-summary-row">
-          <span class="pm-summary-name">여기콕 Pro <em id="pm-cycle-label">연간</em></span>
-          <strong class="pm-summary-amount" id="pm-amount">₩468,000</strong>
+      <!-- 1단계: 플랜 확인 -->
+      <div id="pm-step-plan">
+        <div class="pm-cycle" role="group" aria-label="결제 주기">
+          <button type="button" class="pm-cycle-btn" data-cycle="MONTHLY">월간</button>
+          <button type="button" class="pm-cycle-btn is-active" data-cycle="YEARLY">연간 <span class="pm-cycle-tag">2개월 무료</span></button>
         </div>
-        <p class="pm-summary-calc" id="pm-calc">월 ₩39,000 × 12개월 <span class="pm-save">₩120,000 절약</span></p>
-      </div>
 
-      <div class="pm-widget">
-        <div class="pm-widget-loading" id="pm-loading">
-          <span class="pm-spinner" aria-hidden="true"></span>결제 수단을 불러오는 중
+        <div class="pm-summary">
+          <div class="pm-summary-row">
+            <span class="pm-summary-name">여기콕 Pro <em id="pm-cycle-label">연간</em></span>
+            <strong class="pm-summary-amount" id="pm-amount">₩468,000</strong>
+          </div>
+          <p class="pm-summary-calc" id="pm-calc">월 ₩39,000 × 12개월 <span class="pm-save">₩120,000 절약</span></p>
         </div>
-        <div id="payment-method"></div>
-        <div id="agreement"></div>
+
+        <button type="button" class="btn btn-primary pm-pay" id="pm-next">₩468,000 결제하기</button>
+        <p class="pm-note">결제 완료 후 언제든 해지할 수 있어요. 남은 기간은 일할 계산으로 환불됩니다.</p>
       </div>
 
-      <p class="pm-error" id="pm-error" hidden></p>
-      <button type="button" class="btn btn-primary pm-pay" id="pm-pay" disabled>₩468,000 결제하기</button>
-      <p class="pm-note">결제 완료 후 언제든 해지할 수 있어요. 남은 기간은 일할 계산으로 환불됩니다.</p>
+      <!-- 2단계: 결제 수단 선택 -->
+      <div id="pm-step-pay" hidden>
+        <button type="button" class="pm-back" id="pm-back">플랜 다시 선택</button>
+
+        <div class="pm-payline">
+          <span class="pm-summary-name">여기콕 Pro <em id="pm-pay-cycle">연간</em></span>
+          <strong class="pm-summary-amount" id="pm-pay-amount">₩468,000</strong>
+        </div>
+
+        <div class="pm-widget">
+          <div class="pm-widget-loading" id="pm-loading">
+            <span class="pm-spinner" aria-hidden="true"></span>결제 수단을 불러오는 중
+          </div>
+          <div id="payment-method"></div>
+          <div id="agreement"></div>
+        </div>
+
+        <p class="pm-error" id="pm-error" hidden></p>
+        <button type="button" class="btn btn-primary pm-pay" id="pm-pay" disabled>₩468,000 결제하기</button>
+      </div>
     </div>
   </div>
 
