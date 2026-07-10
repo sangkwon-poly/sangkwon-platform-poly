@@ -1,6 +1,7 @@
 package com.sangkwon.sangkwonplatform.map.repository;
 
 import com.sangkwon.sangkwonplatform.map.entity.LlmReport;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,14 +14,15 @@ public interface LlmReportRepository extends JpaRepository<LlmReport, Long> {
 
     long countByCreatedAtGreaterThanEqual(LocalDateTime from);
 
-    // 최근 생성순. 업종 리포트는 업종 코드로, 상권 전체 리포트는 NULL로 구분한다
+    // 최근 생성순. 업종 리포트는 업종 코드로, 상권 전체 리포트는 NULL로 구분한다.
+    // 최신 한 건만 필요하므로 Pageable로 조회 행을 제한한다(CLOB까지 전체 이력을 읽지 않게).
     @Query("""
             select r from LlmReport r
             where r.trdarCd = :trdarCd
               and ((:indutyCd is null and r.indutyCd is null) or r.indutyCd = :indutyCd)
             order by r.createdAt desc
             """)
-    List<LlmReport> findLatest(@Param("trdarCd") String trdarCd, @Param("indutyCd") String indutyCd);
+    List<LlmReport> findLatest(@Param("trdarCd") String trdarCd, @Param("indutyCd") String indutyCd, Pageable pageable);
 
     // 업종명 조회 (INDUTY 엔티티가 따로 없어 여기서 함께 해결)
     @Query(value = "select induty_cd_nm from induty where induty_cd = :indutyCd", nativeQuery = true)
