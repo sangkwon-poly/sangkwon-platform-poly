@@ -1,5 +1,7 @@
 package com.sangkwon.sangkwonplatform.industrynewsInsight.service;
 
+import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
+import com.sangkwon.sangkwonplatform.admin.ops.service.ApiUsageService;
 import com.sangkwon.sangkwonplatform.industrynewsInsight.entity.IndustryNewsInsight;
 import com.sangkwon.sangkwonplatform.industrynewsInsight.repository.IndustryNewsInsightRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ import java.util.*;
 public class IndustryNewsInsightBatchService {
 
     private final IndustryNewsInsightRepository repository;
+    private final ApiUsageService apiUsageService;
     private final RestTemplate restTemplate = timeoutRestTemplate();
 
     // 외부 호출이 무한 대기하지 않도록 연결/읽기 타임아웃을 건다(소켓 hang 시 배치 스레드가 묶이는 것 방지)
@@ -470,6 +473,12 @@ public class IndustryNewsInsightBatchService {
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
 
         for (int attempt = 1; attempt <= GEMINI_MAX_RETRY; attempt++) {
+            // 재시도 포함 시도마다 집계한다(구글 쿼터도 시도 기준). 집계 실패가 요약 생성을 막으면 안 되므로 따로 삼킨다.
+            try {
+                apiUsageService.record(ExternalApi.GEMINI_NEWS);
+            } catch (RuntimeException e) {
+                System.out.println("Gemini 사용량 집계 실패(요약은 계속 진행): " + e.getMessage());
+            }
             try {
                 ResponseEntity<String> response = restTemplate.postForEntity(
                         url, requestEntity, String.class);

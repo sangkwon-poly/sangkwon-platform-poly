@@ -7,7 +7,14 @@
         FTC_FRANCHISE: "공정위 가맹사업",
         REB_RONE: "부동산원 R-ONE",
         SEOUL: "서울 열린데이터광장",
-        KAKAO: "카카오맵"
+        KAKAO: "카카오맵",
+        GEMINI: "Gemini · AI 리포트",
+        GEMINI_NEWS: "Gemini · 뉴스 요약"
+    };
+    // 한도에 걸렸을 때 무슨 일이 생기는지 카드에서 바로 알 수 있게 한다
+    var NOTES = {
+        GEMINI: "한도 도달 시 AI 리포트 생성이 차단됩니다",
+        GEMINI_NEWS: "뉴스 요약 배치 전용 키의 사용량입니다"
     };
 
     function api(path) {
@@ -42,6 +49,7 @@
                 + '<span class="usage-limit"> / ' + Number(a.dailyLimit).toLocaleString() + " 호출</span></div>"
                 + '<div class="usage-bar"><span class="usage-fill usage-' + lv + '" style="width:' + pct + '%"></span></div>'
                 + '<div class="usage-pct usage-' + lv + '">' + pct + "% 사용</div>"
+                + (NOTES[a.apiName] ? '<p class="usage-note">' + esc(NOTES[a.apiName]) + "</p>" : "")
                 + "</article>";
         }).join("");
     });

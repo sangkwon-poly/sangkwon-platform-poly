@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.admin.ops.service;
 
 import com.sangkwon.sangkwonplatform.admin.account.entity.AdminUser;
 import com.sangkwon.sangkwonplatform.admin.account.repository.AdminUserRepository;
+import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.ApiUsageResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.AuditLogResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.AuditPageResponse;
@@ -24,6 +25,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,9 +55,16 @@ public class OpsService {
                 .stream().map(BatchLogResponse::from).toList();
     }
 
+    // 집계 행이 아직 없어도 계측 중인 API는 0건으로 함께 보여준다. 오늘 안 썼다는 사실도 운영 정보다.
     public List<ApiUsageResponse> todayApiUsage() {
-        return apiUsageLogRepository.findByUsageDateOrderByApiName(LocalDate.now())
-                .stream().map(ApiUsageResponse::from).toList();
+        LocalDate today = LocalDate.now();
+        Map<String, ApiUsageResponse> byName = new TreeMap<>();
+        for (ExternalApi api : ExternalApi.values()) {
+            byName.put(api.name(), new ApiUsageResponse(api.name(), today, 0, api.dailyLimit(), 0));
+        }
+        apiUsageLogRepository.findByUsageDateOrderByApiName(today)
+                .forEach(a -> byName.put(a.getApiName(), ApiUsageResponse.from(a)));
+        return List.copyOf(byName.values());
     }
 
     // 감사 로그: 행위·행위자(adminId)·대상 필터(모두 선택) + 페이징. 관리자 로그인 아이디는 한 번에 모아 매핑한다.

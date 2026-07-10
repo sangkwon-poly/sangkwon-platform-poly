@@ -98,6 +98,7 @@
 .usage-pct.usage-ok     { color: var(--ok); }
 .usage-pct.usage-warn   { color: var(--warn); }
 .usage-pct.usage-danger { color: var(--danger); }
+.usage-note { margin-top: 8px; font-size: 11.5px; color: var(--faint); }
 
 /* 계정 화면에서 넘어온 드릴다운 필터 컨텍스트 배너 */
 .ag-context {

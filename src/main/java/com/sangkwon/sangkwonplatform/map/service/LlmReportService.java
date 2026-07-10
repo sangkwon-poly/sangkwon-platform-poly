@@ -1,6 +1,8 @@
 package com.sangkwon.sangkwonplatform.map.service;
 
 import tools.jackson.databind.JsonNode;
+import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
+import com.sangkwon.sangkwonplatform.admin.ops.service.ApiUsageService;
 import com.sangkwon.sangkwonplatform.map.dto.response.LlmReportResponse;
 import com.sangkwon.sangkwonplatform.map.entity.LlmReport;
 import com.sangkwon.sangkwonplatform.map.entity.Sales;
@@ -20,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -28,29 +29,22 @@ import java.util.TreeMap;
 @Service
 public class LlmReportService {
 
-    // 유료 Gemini 호출을 트리거하므로 하루 생성 건수를 제한해 비용 폭주와 남용을 막는다
-    private static final long DAILY_LIMIT = 500;
-
     private final TrdarRepository trdarRepository;
     private final SalesRepository salesRepository;
     private final StoreStatRepository storeStatRepository;
     private final StreetPopRepository streetPopRepository;
     private final LlmReportRepository llmReportRepository;
+    private final ApiUsageService apiUsageService;
     private final RestClient restClient;
     private final String apiKey;
     private final String model;
-
-    // 일일 한도는 외부 호출 전에 슬롯을 선점해 원자적으로 지킨다(동시 요청이 같은 카운트를 읽고 모두 통과하는 것 방지).
-    // 단일 인스턴스 기준이라, 다중 인스턴스로 늘리면 DB 원자 카운터로 바꿔야 한다.
-    private final Object limitLock = new Object();
-    private LocalDate limitDay;
-    private int reservedToday;
 
     public LlmReportService(TrdarRepository trdarRepository,
                             SalesRepository salesRepository,
                             StoreStatRepository storeStatRepository,
                             StreetPopRepository streetPopRepository,
                             LlmReportRepository llmReportRepository,
+                            ApiUsageService apiUsageService,
                             RestClient restClient,
                             @Value("${gemini.api-key}") String apiKey,
                             @Value("${gemini.model}") String model) {
@@ -59,6 +53,7 @@ public class LlmReportService {
         this.storeStatRepository = storeStatRepository;
         this.streetPopRepository = streetPopRepository;
         this.llmReportRepository = llmReportRepository;
+        this.apiUsageService = apiUsageService;
         this.restClient = restClient;
         this.apiKey = apiKey;
         this.model = model;
@@ -78,69 +73,41 @@ public class LlmReportService {
 
         PromptData promptData = buildPrompt(trdar, indutyCd, indutyNm);
 
-        // 유료 호출 전에 오늘 한도 슬롯을 선점한다. 저장까지 못 가면 되돌린다.
-        reserveDailySlot();
+        // 유료 호출 전에 오늘 GEMINI 슬롯을 DB 카운터로 원자 선점한다(한도 초과 시 429).
+        // 선점 후 호출이 실패해도 반납하지 않는다: 구글 쿼터도 시도 기준이라 집계가 실제 사용과 일치한다.
+        apiUsageService.reserve(ExternalApi.GEMINI);
+
+        JsonNode res;
         try {
-            JsonNode res;
-            try {
-                res = restClient.post()
-                        .uri("https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent", model)
-                        .header("x-goog-api-key", apiKey)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(Map.of("contents", List.of(Map.of("parts", List.of(Map.of("text", promptData.prompt()))))))
-                        .retrieve()
-                        .body(JsonNode.class);
-            } catch (Exception e) {
-                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI 호출에 실패했습니다");
-            }
-            // 본문 없는 200 응답이면 body(JsonNode)가 null을 돌려줄 수 있어, 역참조 전에 막는다
-            if (res == null) {
-                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI 응답이 비어 있습니다");
-            }
-            String text = res.path("candidates").path(0).path("content").path("parts").path(0).path("text").asText("");
-            if (text.isBlank()) {
-                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI 응답이 비어 있습니다");
-            }
-
-            LlmReport saved = llmReportRepository.save(LlmReport.builder()
-                    .trdarCd(trdarCd)
-                    .stdrYyquCd(promptData.quarter())
-                    .indutyCd(indutyCd)
-                    .prompt(promptData.prompt())
-                    .resultText(text)
-                    .modelName(model)
-                    .tokenCnt(res.path("usageMetadata").path("totalTokenCount").asLong(0))
-                    .build());
-            return LlmReportResponse.from(saved);
-        } catch (RuntimeException e) {
-            releaseDailySlot(); // 저장 전에 실패했으면 선점한 슬롯을 반납한다
-            throw e;
+            res = restClient.post()
+                    .uri("https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent", model)
+                    .header("x-goog-api-key", apiKey)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("contents", List.of(Map.of("parts", List.of(Map.of("text", promptData.prompt()))))))
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI 호출에 실패했습니다");
         }
-    }
-
-    // 오늘 한도 슬롯 선점. 카운트는 날짜가 바뀔 때만 DB에서 다시 읽고, 그 뒤로는 선점 카운터로 센다.
-    private void reserveDailySlot() {
-        synchronized (limitLock) {
-            LocalDate today = LocalDate.now();
-            if (!today.equals(limitDay)) {
-                // 카운트가 성공한 뒤에 기준일을 확정한다. 조회가 일시 실패하면 기준일을 안 바꿔 다음 요청이 다시 읽게 한다.
-                int base = (int) llmReportRepository.countByCreatedAtGreaterThanEqual(today.atStartOfDay());
-                reservedToday = base;
-                limitDay = today;
-            }
-            if (reservedToday >= DAILY_LIMIT) {
-                throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "오늘 리포트 생성 한도를 초과했습니다");
-            }
-            reservedToday++;
+        // 본문 없는 200 응답이면 body(JsonNode)가 null을 돌려줄 수 있어, 역참조 전에 막는다
+        if (res == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI 응답이 비어 있습니다");
         }
-    }
-
-    private void releaseDailySlot() {
-        synchronized (limitLock) {
-            if (reservedToday > 0) {
-                reservedToday--;
-            }
+        String text = res.path("candidates").path(0).path("content").path("parts").path(0).path("text").asText("");
+        if (text.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "AI 응답이 비어 있습니다");
         }
+
+        LlmReport saved = llmReportRepository.save(LlmReport.builder()
+                .trdarCd(trdarCd)
+                .stdrYyquCd(promptData.quarter())
+                .indutyCd(indutyCd)
+                .prompt(promptData.prompt())
+                .resultText(text)
+                .modelName(model)
+                .tokenCnt(res.path("usageMetadata").path("totalTokenCount").asLong(0))
+                .build());
+        return LlmReportResponse.from(saved);
     }
 
     // 가장 최근 생성한 리포트. 업종 리포트와 상권 전체 리포트는 따로 관리한다
