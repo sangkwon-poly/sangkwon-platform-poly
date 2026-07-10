@@ -96,6 +96,67 @@ function distanceKm(lat1, lon1, lat2, lon2) {
     return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
+// 헤더 최근검색 드롭다운(포커스 시). onSelect로 클릭 동작 주입, search.js는 자체 재검색이라 미사용
+function initRecentSearch(onSelect) {
+    const wrap = document.querySelector(".app-search-wrap");
+    const input = document.querySelector(".app-search input");
+    const box = document.getElementById("recent-box");
+    if (!wrap || !input || !box) { return; }
+
+    const pick = onSelect || function (kw) {
+        location.href = "/map/search?q=" + encodeURIComponent(kw);
+    };
+    let recentList = [];
+
+    function renderRecent(list) {
+        box.innerHTML = "";
+        if (!list.length) { box.hidden = true; return; }
+        list.forEach((r) => {
+            const item = document.createElement("div");
+            item.className = "recent-item";
+            const kw = document.createElement("span");
+            kw.textContent = r.keyword; // 사용자 입력이라 textContent로만(XSS 방지)
+            const del = document.createElement("button");
+            del.type = "button";
+            del.className = "recent-item__del";
+            del.textContent = "×";
+            del.setAttribute("aria-label", "삭제");
+            item.appendChild(kw);
+            item.appendChild(del);
+            item.addEventListener("click", () => {
+                box.hidden = true;
+                pick(r.keyword);
+            });
+            del.addEventListener("click", (e) => {
+                e.stopPropagation();
+                fetch("/api/search-logs/" + encodeURIComponent(r.keyword), {
+                    method: "DELETE",
+                    credentials: "include",
+                }).then(loadRecent).catch(() => {});
+            });
+            box.appendChild(item);
+        });
+        box.hidden = false;
+    }
+
+    // 입력 중이면 최신 3개, 빈 창이면 5개
+    function showRecent() {
+        renderRecent(recentList.slice(0, input.value.trim() ? 3 : 5));
+    }
+
+    function loadRecent() {
+        apiData("/api/search-logs?limit=5")
+            .then((list) => { recentList = list || []; showRecent(); })
+            .catch(() => { box.hidden = true; });
+    }
+
+    input.addEventListener("focus", loadRecent);
+    input.addEventListener("input", showRecent);
+    document.addEventListener("click", (e) => {
+        if (!wrap.contains(e.target)) { box.hidden = true; }
+    });
+}
+
 // 로그인 세션을 헤더 사용자 영역(.app-user)에 반영한다. 모든 지도 페이지 공통.
 (function () {
     function esc(s) {

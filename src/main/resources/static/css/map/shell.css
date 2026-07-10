@@ -52,6 +52,7 @@
 
 /* 헤더 검색창 */
 .app-search-wrap {
+  position: relative;
   flex: 1 1 0;
   display: flex;
   justify-content: center;
@@ -78,7 +79,43 @@
   background: transparent;
   font-family: inherit;
 }
-.app-search .app-search-text { font-size: 13px; color: var(--text); }
+/* 최근검색 드롭다운 */
+.recent-box {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 440px;
+  background: #fff;
+  border: 1px solid #eae1db;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(90, 45, 28, .12);
+  overflow: hidden;
+  z-index: 40;
+}
+.recent-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 14px;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+.recent-item:hover { background: #f7f1ec; }
+.recent-item__del {
+  flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  color: #b0a49e;
+  font-size: 15px;
+  line-height: 1;
+  padding: 2px 4px;
+  cursor: pointer;
+}
+.recent-item__del:hover { color: var(--brand); }
 
 /* 헤더 페이지명 (검색창 대신 쓰는 화면) */
 .app-page-name { font-size: 13.5px; font-weight: 600; color: rgba(255, 255, 255, .9); }

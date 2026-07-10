@@ -671,3 +671,5 @@ init().catch((err) => {
     document.getElementById("map").innerHTML =
         '<p style="padding:40px;text-align:center;color:#8c7f78">지도를 불러오지 못했습니다. 서버 연결을 확인해 주세요.</p>';
 });
+
+initRecentSearch();
