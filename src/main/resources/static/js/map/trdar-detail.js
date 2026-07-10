@@ -274,7 +274,6 @@ async function load() {
     ]);
 
     document.title = d.trdarNm + " 상권 상세 · 여기콕";
-    document.querySelector(".app-search-text").textContent = (d.signguNm || "") + " " + d.trdarNm;
     document.getElementById("detail-crumb").textContent = "지도 › " + (d.signguNm || "") + " › " + d.trdarNm;
     document.getElementById("detail-title").innerHTML =
         d.trdarNm + ' <span class="detail-title-sub">· ' + (d.signguNm || "") + "</span>";
@@ -364,3 +363,6 @@ load().catch((err) => {
     console.error("상세 로드 실패:", err);
     document.getElementById("detail-title").textContent = "상권 정보를 불러오지 못했습니다";
 });
+
+// 헤더 검색창 최근검색 드롭다운(포커스 시). 상세 로드와 독립적으로 활성화한다.
+initRecentSearch();

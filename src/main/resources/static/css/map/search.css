@@ -192,41 +192,4 @@
   .rt { min-width: 620px; }
 }
 
-/* 검색창 최근검색 드롭다운 */
-.app-search-wrap { position: relative; }
-.recent-box {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 440px;
-  background: #fff;
-  border: 1px solid #eae1db;
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(90, 45, 28, .12);
-  overflow: hidden;
-  z-index: 40;
-}
-.recent-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 9px 14px;
-  font-size: 13px;
-  color: var(--text);
-  cursor: pointer;
-}
-.recent-item:hover { background: #f7f1ec; }
-.recent-item__del {
-  flex: 0 0 auto;
-  border: 0;
-  background: transparent;
-  color: #b0a49e;
-  font-size: 15px;
-  line-height: 1;
-  padding: 2px 4px;
-  cursor: pointer;
-}
-.recent-item__del:hover { color: var(--brand); }
+/* 최근검색 드롭다운(.recent-box) → shell.css 공통 */

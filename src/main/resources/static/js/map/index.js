@@ -671,3 +671,6 @@ init().catch((err) => {
     document.getElementById("map").innerHTML =
         '<p style="padding:40px;text-align:center;color:#8c7f78">지도를 불러오지 못했습니다. 서버 연결을 확인해 주세요.</p>';
 });
+
+// 헤더 검색창 최근검색 드롭다운(포커스 시). 지도 로드와 독립적으로 활성화한다.
+initRecentSearch();
