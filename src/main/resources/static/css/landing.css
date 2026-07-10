@@ -27,36 +27,6 @@
 .link-login:hover { color: var(--brand); }
 .btn-ghost { padding: 0 24px; }
 
-/* 로고: "여기" 말풍선 뱃지(버건디) + "콕" 텍스트(검정) */
-.brand-mark-tag{
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--brand);
-  color: #fff;
-  font-weight: 800;
-  font-size: 13px;
-  letter-spacing: -.01em;
-  padding: 6px 11px 8px;
-  border-radius: 9px;
-  line-height: 1;
-}
-.brand-mark-tag::after{
-  content: '';
-  position: absolute;
-  left: 13px;
-  bottom: -6px;
-  width: 0; height: 0;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-top: 6px solid var(--brand);
-}
-.brand-name-kok{
-  font-weight: 800;
-  color: var(--ink);
-}
-
 /* 서울 지도 코로플레스 데모 (히어로의 .hero-visual 안에서만 쓰임)
    ⚠ body, *{box-sizing} 같은 전역 규칙은 페이지 전체 레이아웃을 깨뜨리므로 넣지 않음.
    ⚠ --pin 등 전역 :root 변수 대신 .stage 안에서만 쓰이는 --map-pin으로 스코프를 좁힘. */

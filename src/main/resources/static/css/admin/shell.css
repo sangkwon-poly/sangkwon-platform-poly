@@ -23,6 +23,7 @@
   padding: 6px 8px 22px;
 }
 .admin-brand .brand-mark { width: 30px; height: 30px; }
+.admin-brand .brand-name-kok { color: #fff; font-size: 13.5px; }
 .admin-brand-text { line-height: 1.2; }
 .admin-brand-name { font-weight: 800; font-size: 13.5px; }
 .admin-brand-sub { font-size: 10px; color: rgba(255,255,255,.5); }

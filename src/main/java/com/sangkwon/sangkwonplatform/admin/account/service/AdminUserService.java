@@ -24,7 +24,7 @@ import java.util.List;
 @Transactional
 public class AdminUserService {
 
-    private static final String OTP_ISSUER = "서울공화국 ADMIN";
+    private static final String OTP_ISSUER = "여기콕 ADMIN";
 
     private final AdminUserRepository adminUserRepository;
     private final PasswordEncoder passwordEncoder;

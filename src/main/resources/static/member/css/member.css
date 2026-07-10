@@ -1,6 +1,6 @@
 /* =====================================================================
  * member.css: 회원·인증 도메인 디자인 시스템
- * 서울공화국 상권분석 플랫폼 · 김민혁(member)
+ * 여기콕 상권분석 플랫폼 · 김민혁(member)
  * 팀장 하이파이 목업에서 추출한 토큰 + 고정 컴포넌트 어휘 구현.
  * 페이지는 이 파일이 정의한 클래스만 사용한다(인라인 스타일 지양).
  * ===================================================================== */
@@ -200,11 +200,38 @@ p {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 800;
-  font-size: 16px;
-  letter-spacing: -.01em;
-  color: #fff;
   flex: 0 0 auto;
+}
+.app-header__brand .brand-name-kok { color: #fff; }
+
+/* 로고: "여기" 말풍선 뱃지 + "콕" 텍스트 */
+.brand-mark-tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: -.01em;
+  padding: 6px 11px 8px;
+  border-radius: 9px;
+  line-height: 1;
+}
+.brand-mark-tag::after {
+  content: '';
+  position: absolute;
+  left: 13px;
+  bottom: -6px;
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--brand);
+}
+.brand-name-kok {
+  font-weight: 800;
+  color: var(--ink);
 }
 
 .app-header__logo {
@@ -771,15 +798,8 @@ textarea.input {
   align-items: center;
   gap: 9px;
   align-self: flex-start;
-  padding: 7px 15px 7px 8px;
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, .14);
-  border: 1px solid rgba(255, 255, 255, .26);
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: -.01em;
-  color: #fff;
 }
+.auth-hero__brand .brand-name-kok { color: #fff; }
 
 .auth-hero__logo {
   width: 24px;
@@ -1473,7 +1493,7 @@ textarea.input {
 }
 
 @media (max-width: 420px) {
-  .app-header__brand span {
+  .app-header__brand .brand-name-kok {
     display: none;
   }
 }

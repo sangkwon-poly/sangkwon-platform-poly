@@ -164,11 +164,11 @@ async function load() {
 
     document.querySelector(".app-page-name").textContent =
         "리포트 · " + d.trdarNm + (indutyNm ? " · " + indutyNm : "");
-    document.title = "리포트 · " + d.trdarNm + (indutyNm ? " · " + indutyNm : "") + " · 서울공화국";
+    document.title = "리포트 · " + d.trdarNm + (indutyNm ? " · " + indutyNm : "") + " · 여기콕";
     document.querySelector(".paper-title").textContent =
         d.trdarNm + (indutyNm ? " " + indutyNm : " 상권") + " 분석 리포트";
     document.querySelector(".paper-meta").textContent =
-        [d.signguNm, quarterLabel(quarter), indutyNm ? indutyNm + " 업종" : "", "서울공화국"]
+        [d.signguNm, quarterLabel(quarter), indutyNm ? indutyNm + " 업종" : "", "여기콕"]
             .filter(Boolean).join(" · ");
 
     if (report.totals.length) {

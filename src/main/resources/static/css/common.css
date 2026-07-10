@@ -1,4 +1,4 @@
-/* 서울공화국 · 공통 디자인 토큰 + 프리미티브
+/* 여기콕 · 공통 디자인 토큰 + 프리미티브
    모든 화면 CSS는 이 파일을 먼저 불러온 뒤, 화면별 CSS에서 차이만 정의한다.
    화면별 CSS에서 :root 토큰을 재정의하지 말 것 (여기서만 관리). */
 
@@ -92,6 +92,36 @@ button { font-family: inherit; cursor: pointer; }
   font-weight: 800; font-size: 13px;
 }
 .brand-name { font-weight: 800; font-size: 16px; letter-spacing: -.01em; }
+
+/* 로고: "여기" 말풍선 뱃지(버건디) + "콕" 텍스트(검정) */
+.brand-mark-tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: -.01em;
+  padding: 6px 11px 8px;
+  border-radius: 9px;
+  line-height: 1;
+}
+.brand-mark-tag::after {
+  content: '';
+  position: absolute;
+  left: 13px;
+  bottom: -6px;
+  width: 0; height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--brand);
+}
+.brand-name-kok {
+  font-weight: 800;
+  color: var(--ink);
+}
 
 /* 버튼 */
 .btn {
