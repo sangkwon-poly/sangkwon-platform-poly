@@ -3,199 +3,363 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>서울공화국 · 서울 상권분석 플랫폼</title>
+  <title>여기콕 · 서울 상권분석 플랫폼</title>
 
   <!-- SEO / OG (명세: SEO 메타·OG) -->
   <meta name="description" content="서울시 공식 상권 데이터 기반 상권분석 플랫폼. 매출·유동인구·경쟁·임대료를 지도 한 화면에서 비교하고 창업 지원사업까지 매칭받으세요.">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="서울공화국 · 서울 상권분석 플랫폼">
-  <meta property="og:description" content="1,247개 상권을 지도 위에서 비교하고 창업 지원사업까지 매칭.">
+  <meta property="og:title" content="여기콕 · 서울 상권분석 플랫폼">
+  <meta property="og:description" content="1,650개 상권을 지도 위에서 비교하고 창업 지원사업까지 매칭.">
   <meta property="og:locale" content="ko_KR">
 
   <!-- 폰트: 목업과 동일한 Pretendard -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
   <link rel="stylesheet" href="/css/common.css">
   <link rel="stylesheet" href="/css/landing.css">
+
+  <link rel="icon" href="/favicon/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png">
+  <link rel="apple-touch-icon" href="/favicon/apple-touch-icon.png">
 </head>
 <body>
 
-  <!-- 1. 헤더 내비 -->
-  <header class="site-header">
-    <div class="container header-inner">
-      <a class="brand" href="/">
-        <span class="brand-mark" aria-hidden="true">서</span>
-        <span class="brand-name">서울공화국</span>
-      </a>
+<!-- 1. 헤더 내비 -->
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="/">
+      <span class="brand-mark-tag" aria-hidden="true">여기</span>
+      <span class="brand-name-kok">콕</span>
+    </a>
 
-      <!-- 모바일 햄버거: JS 없이 체크박스로 토글 -->
-      <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
-      <label for="nav-toggle" class="nav-toggle-btn" aria-label="메뉴 열기">
-        <span></span><span></span><span></span>
-      </label>
+    <!-- 모바일 햄버거: JS 없이 체크박스로 토글 -->
+    <input type="checkbox" id="nav-toggle" class="nav-toggle" hidden>
+    <label for="nav-toggle" class="nav-toggle-btn" aria-label="메뉴 열기">
+      <span></span><span></span><span></span>
+    </label>
 
-      <nav class="site-nav" aria-label="주요 메뉴">
-        <ul class="nav-menu">
-          <li><a href="/map">상권분석</a></li>
-          <li><a href="/support">지원사업</a></li>
-          <li><a href="#features">기능</a></li>
-          <li><a href="#pricing">요금제</a></li>
-        </ul>
-        <div class="nav-actions">
-          <a class="link-login" href="/login">로그인</a>
-          <a class="btn btn-primary btn-sm" href="/signup">무료로 시작</a>
-        </div>
-      </nav>
-    </div>
-  </header>
+    <nav class="site-nav" aria-label="주요 메뉴">
+      <ul class="nav-menu">
+        <li><a href="#features">기능</a></li>
+        <li><a href="/support">지원사업</a></li>
+        <li><a href="/insight">업계동향</a></li>
+        <li><a>공지사항</a></li>
+        <li><a>문의하기</a></li>
+      </ul>
+      <div class="nav-actions">
+        <a class="link-login" href="/login">로그인</a>
+        <a class="link-login" href="/signup">회원가입</a>
+      </div>
+    </nav>
+  </div>
+</header>
 
-  <main>
-    <!-- 2. 히어로 · 3. 시작 CTA · 4. 지도 프리뷰 -->
-    <section class="hero">
-      <div class="container hero-inner">
-        <div class="hero-copy">
+<main>
+  <!-- 2. 히어로 · 3. 시작 CTA · 4. 지도 프리뷰 -->
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-copy">
           <span class="eyebrow">
             <span class="eyebrow-dot" aria-hidden="true"></span>서울시 공식 상권 데이터 기반
           </span>
-          <h1 class="hero-title">골목 상권까지,<br>지도 위에서 결정하세요</h1>
-          <p class="hero-lead">
-            매출·유동인구·경쟁·임대료를 한 화면에서. 1,247개 상권을 비교하고,
-            창업 지원사업까지 매칭받으세요.
-          </p>
-          <div class="hero-cta">
-            <a class="btn btn-primary btn-lg" href="/signup">무료로 시작하기 →</a>
-            <a class="btn btn-ghost btn-lg" href="/map">데모 보기</a>
-          </div>
-          <ul class="hero-trust">
-            <li>✓ 신용카드 없이 시작</li>
-            <li class="trust-sep" aria-hidden="true"></li>
-            <li>✓ 25개 자치구 전체</li>
-          </ul>
+        <h1 class="hero-title">골목 상권까지,<br>지도 위에서 결정하세요</h1>
+        <p class="hero-lead">
+          매출·유동인구·경쟁·임대료를 한 화면에서. 1,650개 상권을 비교하고,
+          창업 지원사업까지 매칭받으세요.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href="/signup" id="heroCta">무료로 시작하기 →</a>
+          <a class="btn btn-ghost btn-lg" href="/map" id="demoBtn">데모 보기</a>
         </div>
+        <ul class="hero-trust">
+          <li>✓ 신용카드 없이 시작</li>
+          <li class="trust-sep" aria-hidden="true"></li>
+          <li>✓ 25개 자치구 전체</li>
+        </ul>
+      </div>
 
-        <!-- 4. 지도 프리뷰 -->
-        <div class="hero-visual">
-          <figure class="map-preview">
-            <figcaption class="map-preview-bar">
-              <span class="map-preview-dot" aria-hidden="true"></span>서울 상권 지도
-            </figcaption>
+      <!-- 4. 지도 프리뷰 -->
+      <div class="hero-visual">
+        <figure class="map-preview">
+          <figcaption class="map-preview-bar">
+            <span class="map-preview-dot" aria-hidden="true"></span>서울 상권 지도
+          </figcaption>
 
-            <!-- 코로플레스 데모 (장식 요소) -->
-            <div class="choropleth" aria-hidden="true">
-              <span style="--c:#d8937b"></span><span style="--c:#e6b7a4"></span><span style="--c:#f1d8cc"></span>
-              <span style="--c:#f7efea"></span><span style="--c:#c16951"></span><span style="--c:#f3e1d8"></span>
-              <span style="--c:#f6eae3"></span><span style="--c:#89301f"></span><span style="--c:#d38971"></span>
-              <span style="--c:#dd9d86"></span><span style="--c:#c16951"></span><span style="--c:#f1d9ce"></span>
-              <span style="--c:#f0d4c8"></span><span style="--c:#eac3b3"></span><span style="--c:#bc6049"></span>
-              <span style="--c:#a23e29"></span><span style="--c:#ad4833"></span><span style="--c:#dd9d86"></span>
-              <span style="--c:#aa452f"></span><span style="--c:#eac3b3"></span><span style="--c:#d68e76"></span>
-              <span style="--c:#f1d8cc"></span><span style="--c:#862f1e"></span><span style="--c:#8b3120"></span>
+          <!-- 코로플레스 데모 (실제 서울 25개 자치구 GeoJSON 좌표 기반, 장식 요소) -->
+          <div class="stage">
+            <div class="map-wrap" id="mapWrap">
+              <svg class="overlay" id="overlaySvg" viewBox="0 0 900 747"></svg>
+              <div class="label-tag" id="tag"></div>
             </div>
+          </div>
 
-            <!-- 매출 상위 상권 -->
-            <ol class="rank-list">
-              <li class="rank-item">
-                <span class="rank-badge rank-1">1</span>
-                <span class="rank-name">양천구</span>
-                <span class="rank-value">900억</span>
-              </li>
-              <li class="rank-item">
-                <span class="rank-badge">2</span>
-                <span class="rank-name">영등포구</span>
-                <span class="rank-value">862억</span>
-              </li>
-              <li class="rank-item">
-                <span class="rank-badge">3</span>
-                <span class="rank-name">용산구</span>
-                <span class="rank-value">854억</span>
-              </li>
-            </ol>
-          </figure>
-        </div>
+          <!-- 매출 상위 상권 -->
+          <!-- <ol class="rank-list">
+            <li class="rank-item">
+              <span class="rank-badge rank-1">1</span>
+              <span class="rank-name">양천구</span>
+              <span class="rank-value">900억</span>
+            </li>
+            <li class="rank-item">
+              <span class="rank-badge">2</span>
+              <span class="rank-name">영등포구</span>
+              <span class="rank-value">862억</span>
+            </li>
+            <li class="rank-item">
+              <span class="rank-badge">3</span>
+              <span class="rank-name">용산구</span>
+              <span class="rank-value">854억</span>
+            </li>
+          </ol> -->
+        </figure>
       </div>
-    </section>
-
-    <!-- 지표 요약 바 -->
-    <section class="stats" aria-label="주요 지표">
-      <div class="container stats-inner">
-        <div class="stat">
-          <span class="stat-num">1,247</span>
-          <span class="stat-label">분석 상권</span>
-        </div>
-        <div class="stat">
-          <span class="stat-num">25</span>
-          <span class="stat-label">자치구 전체</span>
-        </div>
-        <div class="stat">
-          <span class="stat-num">48</span>
-          <span class="stat-label">세부 업종</span>
-        </div>
-        <div class="stat">
-          <span class="stat-num">분기</span>
-          <span class="stat-label">데이터 갱신</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- 5. 기능 3종 -->
-    <section class="features" id="features" aria-label="핵심 기능">
-      <div class="container features-inner">
-        <article class="feature-card">
-          <div class="feature-icon" aria-hidden="true">◉</div>
-          <h2 class="feature-title">지도로 한눈에 비교</h2>
-          <p class="feature-desc">매출·유동인구·경쟁·임대료를 코로플레스로. 상권을 클릭해 바로 상세로.</p>
-        </article>
-        <article class="feature-card">
-          <div class="feature-icon" aria-hidden="true">▤</div>
-          <h2 class="feature-title">상권 리포트</h2>
-          <p class="feature-desc">선택 상권의 매출 추이·업종 구성·요일별 패턴을 PDF·CSV로 내보내기.</p>
-        </article>
-        <article class="feature-card">
-          <div class="feature-icon" aria-hidden="true">✦</div>
-          <h2 class="feature-title">지원사업 매칭</h2>
-          <p class="feature-desc">업종·지역·창업 단계에 맞는 정부·지자체 지원사업을 자동 매칭.</p>
-        </article>
-      </div>
-    </section>
-  </main>
-
-  <!-- 6. 푸터 -->
-  <footer class="site-footer">
-    <div class="container footer-inner">
-      <div class="footer-brand">
-        <span class="brand-mark" aria-hidden="true">서</span>
-        <span class="brand-name">서울공화국</span>
-      </div>
-      <nav class="footer-nav" aria-label="푸터 메뉴">
-        <a href="/about">회사소개</a>
-        <a href="/terms">이용약관</a>
-        <a href="/privacy">개인정보처리방침</a>
-      </nav>
-      <p class="footer-copy">© 2026 서울공화국. 서울시 공식 상권 데이터 기반.</p>
     </div>
-  </footer>
+  </section>
 
-  <script>
-    // 로그인 세션을 헤더 액션 영역에 반영
-    (function () {
-      var actions = document.querySelector('.nav-actions');
-      if (!actions) return;
-      function esc(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
-      fetch('/api/members/me', { credentials: 'include', headers: { Accept: 'application/json' } })
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (b) {
-          var me = b && b.data;
-          if (!me) return;
-          actions.innerHTML =
-            '<a class="link-login" href="/member/mypage">' + esc(me.nickname || me.loginId) + '님</a>' +
-            '<button type="button" class="btn btn-primary btn-sm" id="nav-logout">로그아웃</button>';
-          var btn = document.getElementById('nav-logout');
-          if (btn) btn.addEventListener('click', function () {
-            fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
-              .then(function () { location.reload(); }, function () { location.reload(); });
-          });
-        })
-        .catch(function () {});
-    })();
-  </script>
+  <!-- 지표 요약 바 -->
+  <section class="stats" aria-label="주요 지표">
+    <div class="container stats-inner">
+      <div class="stat">
+        <span class="stat-num">1,650</span>
+        <span class="stat-label">분석 상권</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">25</span>
+        <span class="stat-label">자치구 전체</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">48</span>
+        <span class="stat-label">세부 업종</span>
+      </div>
+      <div class="stat">
+        <span class="stat-num">분기</span>
+        <span class="stat-label">데이터 갱신</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5-1. 지도 비교 기능 -->
+  <section class="feature-map" id="features" aria-label="지도 비교 기능">
+    <div class="container">
+      <div class="feature-map-head">
+        <h2 class="section-title">상권 데이터를 지도로<br>한눈에 비교해요</h2>
+        <p class="section-lead">서울시 공식 데이터를 기반으로, 원하는 조건의 상권을 지도 위에서 바로 찾아보세요.</p>
+      </div>
+
+      <div class="map-demo">
+        <div class="map-demo-bar">
+          <span class="map-demo-dot" aria-hidden="true"></span>서울 상권 지도
+          <span class="map-demo-tag">서울 전체 · 25개 자치구</span>
+        </div>
+        <div class="map-demo-body">
+          <div class="map-wrap map-wrap-mini" id="mapWrapFeature">
+            <svg class="overlay" id="featureSvg" viewBox="0 0 900 747"></svg>
+            <div class="label-tag" id="tagFeature"></div>
+          </div>
+
+          <div class="map-demo-panel map-demo-filter" aria-hidden="true">
+            <div class="mdp-label">필터</div>
+            <div class="mdp-row"><span class="mdp-checkbox checked"></span>추정 매출</div>
+            <div class="mdp-row"><span class="mdp-checkbox"></span>유동인구</div>
+            <div class="mdp-row"><span class="mdp-checkbox"></span>점포 수</div>
+            <div class="mdp-scale"></div>
+          </div>
+
+          <div class="map-demo-panel map-demo-rank" aria-hidden="true">
+            <div class="mdp-label">자치구 랭킹</div>
+            <ul class="mdp-rank-list">
+              <li><span class="mdp-rank-badge is-top">1</span>강남구<em>27,447</em></li>
+              <li><span class="mdp-rank-badge">2</span>송파구<em>21,168</em></li>
+              <li><span class="mdp-rank-badge">3</span>종로구<em>19,362</em></li>
+              <li><span class="mdp-rank-badge">4</span>서초구<em>15,906</em></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-sub-grid">
+        <div class="feature-sub-card">
+          <div class="feature-sub-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h10M4 18h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <h3>원하는 필터링으로 상권 보기</h3>
+          <p>업종, 추정 매출 등 여러가지 키워드로 필터링이 가능해요.</p>
+        </div>
+        <div class="feature-sub-card">
+          <div class="feature-sub-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 20V10M12 20V4M20 20v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <h3>추정 매출 기준, 자치구 랭킹</h3>
+          <p>추정 매출이 높은 자치구의 순위를 실시간으로 확인할 수 있어요.</p>
+        </div>
+        <div class="feature-sub-card">
+          <div class="feature-sub-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <h3>상권의 상세 리포트 제공</h3>
+          <p>선택한 상권의 상세 리포트를 한눈에 볼 수 있어요.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5-2. 상세 리포트 기능 -->
+  <section class="feature-report" aria-label="상세 리포트 기능">
+    <div class="container feature-report-inner">
+      <div class="feature-report-copy">
+        <h2 class="section-title">상세 리포트로 상권에 대해<br>자세히 파악해 보세요</h2>
+        <p class="section-lead">숫자로만 보던 상권 데이터를, 읽기 쉬운 리포트 한 장으로 정리해드려요.</p>
+
+        <div class="report-chip-grid">
+          <div class="report-chip">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 19h16M7 19V9m5 10V5m5 14v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>추정 매출·유동인구·임대료</span>
+          </div>
+          <div class="report-chip">
+            <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="4" width="17" height="17" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3.5 9.5h17M8 4v2M16 4v2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>요일·시간대 매출 히트맵</span>
+          </div>
+          <div class="report-chip">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 15l4.5-5 4 4L20 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>분기 매출 추이</span>
+          </div>
+          <div class="report-chip">
+            <svg viewBox="0 0 24 24" fill="none"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="2"/><path d="M19 19l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>인접 경쟁 상권 비교</span>
+          </div>
+          <div class="report-chip">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h12M4 12h8M4 18h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>업종 구성 비율</span>
+          </div>
+          <div class="report-chip">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M5 20V10l7-6 7 6v10" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 20v-6h6v6" stroke="currentColor" stroke-width="2"/></svg>
+            <span>상권 주변 환경</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="feature-report-visual" aria-hidden="true">
+        <div class="report-mock">
+          <div class="report-mock-kicker">SEOUL TRDAR REPORT</div>
+          <div class="report-mock-title">사근동 살곶이상점가 상권 분석 리포트</div>
+          <div class="report-mock-sub">성동구 · 2026년 1분기 · 여기콕</div>
+          <div class="report-mock-stats">
+            <div><em>22</em><span>세부업종</span></div>
+            <div><em>90분</em><span>유동인구</span></div>
+            <div><em>110</em><span>점포 수</span></div>
+          </div>
+          <div class="report-mock-chart">
+            <svg viewBox="0 0 220 60" preserveAspectRatio="none">
+              <polyline points="0,20 30,35 60,18 90,40 120,26 150,44 180,30 220,46" fill="none" stroke="var(--brand)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="report-mock-bars">
+            <div class="rmb-row"><span>한식·백반</span><i style="width:78%"></i></div>
+            <div class="rmb-row"><span>소매업</span><i style="width:52%"></i></div>
+            <div class="rmb-row"><span>편의점</span><i style="width:34%"></i></div>
+            <div class="rmb-row"><span>카페·디저트</span><i style="width:28%"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5-3. 지원사업 매칭 -->
+  <section class="feature-support" aria-label="지원사업 매칭">
+    <div class="container feature-support-inner">
+      <div class="feature-support-visual" aria-hidden="true">
+        <svg viewBox="0 0 220 200" class="support-network">
+          <line x1="60" y1="110" x2="150" y2="60" stroke="var(--line)" stroke-width="2"/>
+          <line x1="60" y1="110" x2="150" y2="150" stroke="var(--line)" stroke-width="2"/>
+          <line x1="60" y1="110" x2="20" y2="60" stroke="var(--line)" stroke-width="2"/>
+          <line x1="60" y1="110" x2="20" y2="155" stroke="var(--line)" stroke-width="2"/>
+          <line x1="150" y1="60" x2="185" y2="30" stroke="var(--line)" stroke-width="2"/>
+          <line x1="150" y1="150" x2="190" y2="170" stroke="var(--line)" stroke-width="2"/>
+          <circle cx="60" cy="110" r="30" fill="#fff" stroke="var(--brand)" stroke-width="3"/>
+          <circle cx="60" cy="110" r="12" fill="var(--brand-tint)"/>
+          <circle cx="150" cy="60" r="26" fill="#fff" stroke="var(--brand)" stroke-width="3"/>
+          <circle cx="150" cy="60" r="10" fill="var(--brand)"/>
+          <circle cx="150" cy="150" r="26" fill="#fff" stroke="var(--brand)" stroke-width="3"/>
+          <circle cx="150" cy="150" r="10" fill="var(--dark-accent)"/>
+          <circle cx="20" cy="60" r="12" fill="var(--brand-tint)" stroke="var(--brand)" stroke-width="2"/>
+          <circle cx="20" cy="155" r="12" fill="var(--brand-tint)" stroke="var(--brand)" stroke-width="2"/>
+          <circle cx="185" cy="30" r="10" fill="var(--brand-tint)" stroke="var(--brand)" stroke-width="2"/>
+          <circle cx="190" cy="170" r="10" fill="var(--brand-tint)" stroke="var(--brand)" stroke-width="2"/>
+        </svg>
+      </div>
+      <div class="feature-support-copy">
+        <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>소상공인들을 위한 지원사업과 매칭 서비스</span>
+        <h2 class="section-title">정부와 지자체 지원사업,<br>딱 맞는 것만 골라드려요</h2>
+        <p class="section-lead">업종·지역·창업 단계에 맞는 정부·지자체 지원사업을 자동으로 매칭해드려요.</p>
+        <a class="btn btn-ghost btn-lg" href="/support">지원사업 보러가기 →</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- 6. 푸터 -->
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <span class="brand-mark-tag" aria-hidden="true">여기</span>
+      <span class="brand-name-kok">콕</span>
+    </div>
+    <nav class="footer-nav" aria-label="푸터 메뉴">
+      <a href="/about">회사소개</a>
+      <a href="/terms">이용약관</a>
+      <a href="/privacy">개인정보처리방침</a>
+    </nav>
+    <p class="footer-copy">© 2026 여기콕. 서울시 공식 상권 데이터 기반.</p>
+  </div>
+</footer>
+
+<script src="/js/indexMap.js"></script>
+
+<script>
+  // 로그인 세션을 헤더 액션 영역에 반영
+  (function () {
+    var actions = document.querySelector('.nav-actions');
+    if (!actions) return;
+    function esc(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
+    fetch('/api/members/me', { credentials: 'include', headers: { Accept: 'application/json' } })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (b) {
+              var me = b && b.data;
+              if (!me) return;
+              actions.innerHTML =
+                      '<a class="link-login" href="/member/mypage">' + esc(me.nickname || me.loginId) + '님</a>' +
+                      '<button type="button" class="btn btn-primary btn-sm" id="nav-logout">로그아웃</button>';
+              var btn = document.getElementById('nav-logout');
+              if (btn) btn.addEventListener('click', function () {
+                fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+                        .then(function () { location.reload(); }, function () { location.reload(); });
+              });
+            })
+            .catch(function () {});
+  })();
+</script>
+
+<script>
+  // 로그인 상태면 히어로의 "무료로 시작하기" 버튼을 /map 으로 연결하고, "데모 보기"는 숨김
+  (function () {
+    var cta = document.getElementById('heroCta');
+    var demoBtn = document.getElementById('demoBtn');
+    if (!cta && !demoBtn) return;
+    fetch('/api/members/me', { credentials: 'include', headers: { Accept: 'application/json' } })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (b) {
+              var me = b && b.data;
+              if (!me) return; // 비로그인 상태면 기존 상태 유지
+              if (cta) {
+                cta.href = '/map';
+                cta.textContent = '지도 보러가기 →';
+              }
+              if (demoBtn) {
+                demoBtn.style.display = 'none';
+              }
+            })
+            .catch(function () {});
+  })();
+</script>
 </body>
 </html>
