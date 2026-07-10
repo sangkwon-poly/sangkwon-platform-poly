@@ -95,6 +95,8 @@
     removeFavorite: function (trdarCd) { return request('DELETE', '/api/favorites/' + encodeURIComponent(trdarCd)); },
     searchLogs: function () { return request('GET', '/api/search-logs'); },
     logSearch: function (data) { return request('POST', '/api/search-logs', data); },
+    deleteSearchLog: function (keyword) { return request('DELETE', '/api/search-logs/' + encodeURIComponent(keyword)); },
+    clearSearchLogs: function () { return request('DELETE', '/api/search-logs'); },
   };
 
   /* -------------------------------------------------------------------

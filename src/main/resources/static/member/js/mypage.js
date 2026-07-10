@@ -155,9 +155,13 @@
   /* -----------------------------------------------------------------
    * 섹션3: 최근 검색
    * --------------------------------------------------------------- */
-  function renderSearchLogs(logs) {
+  var searchLogs = [];
+  var searchPage = 0;
+  var SEARCH_PAGE_SIZE = 5;
+
+  function renderSearchLogs() {
     var body = $('search-body');
-    if (!logs || logs.length === 0) {
+    if (!searchLogs.length) {
       body.innerHTML =
         '<div class="empty">' +
           '<span class="empty__icon" aria-hidden="true">' + searchIcon() + '</span>' +
@@ -167,25 +171,99 @@
       return;
     }
 
-    var items = logs.map(function (log) {
-      var metaParts = [fmt(log.searchedAt)];
-      if (log.trdarCd) {
-        metaParts.push('상권코드 ' + esc(log.trdarCd));
-      }
-      var meta = metaParts.map(function (p, i) {
-        return i === 0 ? esc(p) : '<span aria-hidden="true">·</span> ' + p;
-      }).join(' ');
+    var totalPages = Math.ceil(searchLogs.length / SEARCH_PAGE_SIZE);
+    if (searchPage > totalPages - 1) searchPage = totalPages - 1;
+    var start = searchPage * SEARCH_PAGE_SIZE;
 
-      return '<div class="fav-item">' +
+    var items = searchLogs.slice(start, start + SEARCH_PAGE_SIZE).map(function (log) {
+      return '<div class="fav-item" data-kw="' + esc(log.keyword) + '" role="link" tabindex="0" ' +
+          'aria-label="' + esc(log.keyword) + ' 검색 결과 보기">' +
         '<span class="fav-item__avatar" aria-hidden="true">' + searchIcon() + '</span>' +
         '<div class="fav-item__body">' +
           '<span class="fav-item__name">' + esc(log.keyword) + '</span>' +
-          '<span class="fav-item__meta">' + meta + '</span>' +
+          '<span class="fav-item__meta">' + esc(fmt(log.searchedAt)) + '</span>' +
+        '</div>' +
+        '<div class="fav-item__actions">' +
+          '<button type="button" class="btn btn--danger btn--sm" data-action="del-search" ' +
+            'aria-label="' + esc(log.keyword) + ' 삭제">삭제</button>' +
         '</div>' +
       '</div>';
     }).join('');
 
-    body.innerHTML = '<div class="list">' + items + '</div>';
+    body.innerHTML =
+      '<div class="row row--between" style="margin-bottom:10px">' +
+        '<span class="text-muted" style="font-size:13px">최근 검색 ' + searchLogs.length + '개</span>' +
+        '<button type="button" class="btn btn--ghost btn--sm" data-action="clear-search">전체 삭제</button>' +
+      '</div>' +
+      '<div class="list">' + items + '</div>' +
+      searchPager(totalPages);
+
+    bindSearchEvents();
+  }
+
+  function searchPager(totalPages) {
+    if (totalPages <= 1) return '';
+    var prevDis = searchPage === 0 ? ' disabled' : '';
+    var nextDis = searchPage >= totalPages - 1 ? ' disabled' : '';
+    return '<div class="pager" style="display:flex;justify-content:center;align-items:center;gap:12px;margin-top:14px">' +
+      '<button type="button" class="btn btn--ghost btn--sm" data-page="prev"' + prevDis + '>이전</button>' +
+      '<span class="text-muted" style="font-size:13px">' + (searchPage + 1) + ' / ' + totalPages + '</span>' +
+      '<button type="button" class="btn btn--ghost btn--sm" data-page="next"' + nextDis + '>다음</button>' +
+    '</div>';
+  }
+
+  function bindSearchEvents() {
+    var body = $('search-body');
+    Array.prototype.forEach.call(body.querySelectorAll('.fav-item'), function (card) {
+      var kw = card.getAttribute('data-kw');
+      var goSearch = function () { location.href = '/map/search?q=' + encodeURIComponent(kw); };
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', goSearch);
+      card.addEventListener('keydown', function (e) {
+        if (e.target !== card) return; // 삭제 버튼 등 내부 요소의 키 입력은 제외
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goSearch(); }
+      });
+      var del = card.querySelector('[data-action="del-search"]');
+      del.addEventListener('click', function (e) {
+        e.stopPropagation();
+        onDeleteSearch(kw, del);
+      });
+    });
+    var clear = body.querySelector('[data-action="clear-search"]');
+    if (clear) clear.addEventListener('click', onClearSearch);
+    var prev = body.querySelector('[data-page="prev"]');
+    if (prev) prev.addEventListener('click', function () {
+      if (searchPage > 0) { searchPage--; renderSearchLogs(); }
+    });
+    var next = body.querySelector('[data-page="next"]');
+    if (next) next.addEventListener('click', function () {
+      var tp = Math.ceil(searchLogs.length / SEARCH_PAGE_SIZE);
+      if (searchPage < tp - 1) { searchPage++; renderSearchLogs(); }
+    });
+  }
+
+  function onDeleteSearch(keyword, btn) {
+    btn.disabled = true;
+    API.deleteSearchLog(keyword)
+      .then(function () {
+        searchLogs = searchLogs.filter(function (l) { return l.keyword !== keyword; });
+        renderSearchLogs();
+      })
+      .catch(function (err) {
+        UI.handleError(err, '삭제하지 못했어요.');
+        btn.disabled = false;
+      });
+  }
+
+  function onClearSearch() {
+    if (!window.confirm('최근 검색 기록을 모두 지울까요?')) return;
+    API.clearSearchLogs()
+      .then(function () {
+        searchLogs = [];
+        renderSearchLogs();
+        UI.toast('검색 기록을 지웠어요.', 'ok');
+      })
+      .catch(function (err) { UI.handleError(err, '삭제하지 못했어요.'); });
   }
 
   function searchIcon() {
@@ -284,7 +362,11 @@
    * --------------------------------------------------------------- */
   function loadSearchLogs() {
     API.searchLogs()
-      .then(renderSearchLogs)
+      .then(function (list) {
+        searchLogs = list || [];
+        searchPage = 0;
+        renderSearchLogs();
+      })
       .catch(function (err) {
         UI.handleError(err, '검색 기록을 불러오지 못했어요.');
         $('search-body').innerHTML =

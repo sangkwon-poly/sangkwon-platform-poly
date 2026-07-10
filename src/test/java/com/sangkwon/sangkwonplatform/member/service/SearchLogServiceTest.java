@@ -33,19 +33,47 @@ class SearchLogServiceTest {
     @Test
     @DisplayName("내 최근 검색: 비인증(null) → M005 (개인 데이터라 인증 필요)")
     void recent_unauthenticated() {
-        assertThatThrownBy(() -> searchLogService.recent(null))
+        assertThatThrownBy(() -> searchLogService.recent(null, null))
                 .satisfies(t -> assertThat(errorCodeOf(t)).isEqualTo(ErrorCode.UNAUTHENTICATED));
     }
 
     @Test
     @DisplayName("내 최근 검색: 정상 → 목록 반환")
     void recent_success() {
-        when(searchLogRepository.findTop20ByMemberIdOrderBySearchedAtDesc(1L))
+        when(searchLogRepository.findTop100ByMemberIdOrderBySearchedAtDesc(1L))
                 .thenReturn(List.of());
 
-        List<SearchLogResponse> res = searchLogService.recent(1L);
+        List<SearchLogResponse> res = searchLogService.recent(1L, null);
 
         assertThat(res).isEmpty();
+    }
+
+    @Test
+    @DisplayName("내 최근 검색: 같은 검색어는 최신 1건만(중복 제거), 최신순 유지")
+    void recent_dedup() {
+        when(searchLogRepository.findTop100ByMemberIdOrderBySearchedAtDesc(1L))
+                .thenReturn(List.of(
+                        SearchLog.create(1L, "커피", null),
+                        SearchLog.create(1L, "커피", null),
+                        SearchLog.create(1L, "지하철", null)));
+
+        List<SearchLogResponse> res = searchLogService.recent(1L, null);
+
+        assertThat(res).extracting(SearchLogResponse::keyword).containsExactly("커피", "지하철");
+    }
+
+    @Test
+    @DisplayName("내 최근 검색: limit로 개수 제한")
+    void recent_limit() {
+        when(searchLogRepository.findTop100ByMemberIdOrderBySearchedAtDesc(1L))
+                .thenReturn(List.of(
+                        SearchLog.create(1L, "A", null),
+                        SearchLog.create(1L, "B", null),
+                        SearchLog.create(1L, "C", null)));
+
+        List<SearchLogResponse> res = searchLogService.recent(1L, 2);
+
+        assertThat(res).extracting(SearchLogResponse::keyword).containsExactly("A", "B");
     }
 
     @Test
@@ -62,5 +90,35 @@ class SearchLogServiceTest {
         searchLogService.log(null, new SearchLogCreateRequest("커피", null));
 
         verify(searchLogRepository).save(any(SearchLog.class));
+    }
+
+    @Test
+    @DisplayName("검색어 삭제: 비인증(null) → M005")
+    void delete_unauthenticated() {
+        assertThatThrownBy(() -> searchLogService.delete(null, "커피"))
+                .satisfies(t -> assertThat(errorCodeOf(t)).isEqualTo(ErrorCode.UNAUTHENTICATED));
+    }
+
+    @Test
+    @DisplayName("검색어 삭제: 정상 → keyword 기준 삭제")
+    void delete_success() {
+        searchLogService.delete(1L, "커피");
+
+        verify(searchLogRepository).deleteByMemberIdAndKeyword(1L, "커피");
+    }
+
+    @Test
+    @DisplayName("전체 삭제: 비인증(null) → M005")
+    void deleteAll_unauthenticated() {
+        assertThatThrownBy(() -> searchLogService.deleteAll(null))
+                .satisfies(t -> assertThat(errorCodeOf(t)).isEqualTo(ErrorCode.UNAUTHENTICATED));
+    }
+
+    @Test
+    @DisplayName("전체 삭제: 정상 → 회원 전체 삭제")
+    void deleteAll_success() {
+        searchLogService.deleteAll(1L);
+
+        verify(searchLogRepository).deleteByMemberId(1L);
     }
 }

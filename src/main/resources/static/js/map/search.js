@@ -111,7 +111,10 @@ function bindControls() {
         clearTimeout(timer);
         view.keyword = input.value.trim();
         render();
+        logSearch(view.keyword);
     });
+
+    bindRecent(input);
 
     const cmp = document.querySelector(".result-compare");
     cmp.innerHTML = "비교함 <b>" + cmpList().length + "</b>";
@@ -121,6 +124,80 @@ function bindControls() {
     });
 }
 
+// submit·load 때만 남긴다. 입력 디바운스마다는 남기지 않는다.
+function logSearch(keyword) {
+    if (!keyword) return;
+    fetch("/api/search-logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ keyword: keyword }),
+    }).catch(() => {});
+}
+
+// 비로그인은 조회가 막혀 드롭다운이 자동으로 안 뜬다.
+var recentList = [];
+
+function bindRecent(input) {
+    const wrap = document.querySelector(".app-search-wrap");
+    const box = document.getElementById("recent-box");
+    if (!wrap || !box) return;
+
+    input.addEventListener("focus", () => loadRecent(box, input));
+    input.addEventListener("input", () => showRecent(box, input));
+    document.addEventListener("click", (e) => {
+        if (!wrap.contains(e.target)) box.hidden = true;
+    });
+}
+
+function loadRecent(box, input) {
+    apiData("/api/search-logs?limit=5")
+        .then((list) => { recentList = list || []; showRecent(box, input); })
+        .catch(() => { box.hidden = true; });
+}
+
+// 입력 중이면 최신 3개, 빈 창이면 5개
+function showRecent(box, input) {
+    var n = input.value.trim() ? 3 : 5;
+    renderRecent(box, input, recentList.slice(0, n));
+}
+
+function renderRecent(box, input, list) {
+    box.innerHTML = "";
+    if (!list.length) {
+        box.hidden = true;
+        return;
+    }
+    list.forEach((r) => {
+        const item = document.createElement("div");
+        item.className = "recent-item";
+        const kw = document.createElement("span");
+        kw.textContent = r.keyword; // 검색어는 사용자 입력이라 textContent로만 넣는다(XSS 방지)
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "recent-item__del";
+        del.textContent = "×";
+        del.setAttribute("aria-label", "삭제");
+        item.appendChild(kw);
+        item.appendChild(del);
+        item.addEventListener("click", () => {
+            input.value = r.keyword;
+            view.keyword = r.keyword;
+            box.hidden = true;
+            render();
+        });
+        del.addEventListener("click", (e) => {
+            e.stopPropagation();
+            fetch("/api/search-logs/" + encodeURIComponent(r.keyword), {
+                method: "DELETE",
+                credentials: "include",
+            }).then(() => loadRecent(box, input)).catch(() => {});
+        });
+        box.appendChild(item);
+    });
+    box.hidden = false;
+}
+
 async function load() {
     const params = new URLSearchParams(location.search);
     view.keyword = (params.get("q") || params.get("keyword") || "").trim();
@@ -128,6 +205,9 @@ async function load() {
     const input = document.querySelector(".app-search input");
     if (input && view.keyword) {
         input.value = view.keyword;
+    }
+    if (view.keyword) {
+        logSearch(view.keyword);
     }
 
     // 전체를 한 번만 받고 검색어·필터는 클라이언트에서 거른다
