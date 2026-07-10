@@ -176,8 +176,12 @@
   vertical-align: middle;
 }
 .data-table tbody tr:first-child td { border-top: 0; }
-.col-num { text-align: right; }
+.col-num { text-align: right; font-variant-numeric: tabular-nums; }
 .col-center { text-align: center; }
+/* 헤더는 '.data-table thead th'(text-align:left)의 명시도가 더 높아 정렬 클래스가 먹지 않는다.
+   숫자·가운데 헤더가 셀과 어긋나지 않도록 헤더에도 같은 명시도로 정렬을 다시 준다. */
+.data-table thead th.col-num { text-align: right; }
+.data-table thead th.col-center { text-align: center; }
 .mono { font-family: var(--mono); }
 
 /* 상태 점 표식 */
