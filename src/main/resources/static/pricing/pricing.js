@@ -4,13 +4,13 @@
   // 표시 가격. 결제 금액의 기준은 서버(PaymentService)이고 여기는 안내 표시만 담당한다.
   var PRICE = {
     YEARLY: {
-      card: "₩39,000", cardSub: "연간 결제 시 · 월간 ₩49,000",
-      amount: 468000, label: "연간",
-      calc: "월 ₩39,000 × 12개월", save: "₩120,000 절약"
+      card: "₩20,000", cardSub: "연간 결제 시 · 월간 ₩24,000",
+      amount: 240000, label: "연간",
+      calc: "월 ₩20,000 × 12개월", save: "₩48,000 절약"
     },
     MONTHLY: {
-      card: "₩49,000", cardSub: "월간 결제 · 연간 전환 시 2개월 무료",
-      amount: 49000, label: "월간",
+      card: "₩24,000", cardSub: "월간 결제 · 연간 전환 시 2개월 무료",
+      amount: 24000, label: "월간",
       calc: "매월 결제 · 언제든 해지", save: ""
     }
   };

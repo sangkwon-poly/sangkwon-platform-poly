@@ -29,8 +29,9 @@ import java.util.UUID;
 public class PaymentService {
 
     // 요금은 화면이 아니라 서버가 결정한다. 요금제 화면(pricing)과 값이 함께 움직여야 한다.
-    private static final long PRO_MONTHLY_AMOUNT = 49_000L;
-    private static final long PRO_YEARLY_AMOUNT = 468_000L; // 39,000원 x 12개월
+    // 연간은 월간 x 10개월(2개월 무료), 월 환산 20,000원.
+    private static final long PRO_MONTHLY_AMOUNT = 24_000L;
+    private static final long PRO_YEARLY_AMOUNT = 240_000L;
 
     private final PaymentOrderRepository paymentOrderRepository;
     private final RestClient restClient;
