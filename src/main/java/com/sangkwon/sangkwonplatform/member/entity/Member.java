@@ -62,6 +62,10 @@ public class Member extends BaseEntity {
     @Column(name = "WITHDRAWN_AT")
     private LocalDateTime withdrawnAt;
 
+    // Pro 구독 만료 시각. NULL이거나 지난 시각이면 무료로 본다(등급 컬럼과 별개로 만료가 최종 판정).
+    @Column(name = "PLAN_UNTIL")
+    private LocalDateTime planUntil;
+
     // 생성은 정적 팩토리로만 → 규칙(기본 role/status, bcrypt 태그)을 한 곳에 모은다
     private Member(String loginId, String passwordHash, String email, String nickname) {
         this.loginId = loginId;
@@ -93,6 +97,17 @@ public class Member extends BaseEntity {
 
     public void recordLogin() {
         this.lastLoginAt = LocalDateTime.now();
+    }
+
+    // Pro 구독 활성화/연장. 만료 시각은 결제 서비스가 남은 기간에 이어붙여 계산해 넘긴다.
+    public void activatePro(LocalDateTime until) {
+        this.role = Role.PREMIUM;
+        this.planUntil = until;
+    }
+
+    // 지금 시점 기준 Pro 이용 자격. 만료가 지나면 등급이 PREMIUM이어도 무효로 본다.
+    public boolean isPro() {
+        return planUntil != null && planUntil.isAfter(LocalDateTime.now());
     }
 
     public void withdraw() {

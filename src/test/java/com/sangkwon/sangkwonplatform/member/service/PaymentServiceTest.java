@@ -9,6 +9,7 @@ import com.sangkwon.sangkwonplatform.member.entity.PaymentOrder;
 import com.sangkwon.sangkwonplatform.member.entity.PaymentStatus;
 import com.sangkwon.sangkwonplatform.member.exception.BusinessException;
 import com.sangkwon.sangkwonplatform.member.exception.ErrorCode;
+import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
 import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.client.RestClient;
@@ -28,10 +29,11 @@ import static org.mockito.Mockito.when;
 class PaymentServiceTest {
 
     private final PaymentOrderRepository paymentOrderRepository = mock(PaymentOrderRepository.class);
+    private final MemberRepository memberRepository = mock(MemberRepository.class);
     private final RestClient restClient = mock(RestClient.class);
 
     private PaymentService service(String clientKey, String secretKey) {
-        return new PaymentService(paymentOrderRepository, restClient, clientKey, secretKey);
+        return new PaymentService(paymentOrderRepository, memberRepository, restClient, clientKey, secretKey);
     }
 
     private static ErrorCode codeOf(Throwable t) {

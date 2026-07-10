@@ -31,7 +31,7 @@ class LlmReportControllerTest {
     void 리포트를_생성해_200으로_반환한다() throws Exception {
         LlmReportResponse r = new LlmReportResponse(
                 "3110001", "20261", "분석 본문", "gemini-2.5-flash", LocalDateTime.now());
-        when(llmReportService.generate(eq("3110001"), any())).thenReturn(r);
+        when(llmReportService.generate(any(), eq("3110001"), any())).thenReturn(r);
 
         mvc.perform(post("/api/llm-reports/3110001"))
                 .andExpect(status().isOk())

@@ -14,6 +14,8 @@ import com.sangkwon.sangkwonplatform.map.repository.SalesRepository;
 import com.sangkwon.sangkwonplatform.map.repository.StoreStatRepository;
 import com.sangkwon.sangkwonplatform.map.repository.StreetPopRepository;
 import com.sangkwon.sangkwonplatform.map.repository.TrdarRepository;
+import com.sangkwon.sangkwonplatform.member.entity.Member;
+import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -29,11 +32,15 @@ import java.util.TreeMap;
 @Service
 public class LlmReportService {
 
+    // 무료 플랜은 회원당 월 3회까지. Pro(유효 구독)면 이 한도를 적용하지 않는다.
+    private static final int FREE_MONTHLY_LIMIT = 3;
+
     private final TrdarRepository trdarRepository;
     private final SalesRepository salesRepository;
     private final StoreStatRepository storeStatRepository;
     private final StreetPopRepository streetPopRepository;
     private final LlmReportRepository llmReportRepository;
+    private final MemberRepository memberRepository;
     private final ApiUsageService apiUsageService;
     private final RestClient restClient;
     private final String apiKey;
@@ -44,6 +51,7 @@ public class LlmReportService {
                             StoreStatRepository storeStatRepository,
                             StreetPopRepository streetPopRepository,
                             LlmReportRepository llmReportRepository,
+                            MemberRepository memberRepository,
                             ApiUsageService apiUsageService,
                             RestClient restClient,
                             @Value("${gemini.api-key}") String apiKey,
@@ -53,6 +61,7 @@ public class LlmReportService {
         this.storeStatRepository = storeStatRepository;
         this.streetPopRepository = streetPopRepository;
         this.llmReportRepository = llmReportRepository;
+        this.memberRepository = memberRepository;
         this.apiUsageService = apiUsageService;
         this.restClient = restClient;
         this.apiKey = apiKey;
@@ -61,7 +70,7 @@ public class LlmReportService {
 
     // 상권 지표를 모아 Gemini로 분석 리포트를 생성하고 이력을 남긴다. indutyCd가 있으면 그 업종 기준.
     // 외부 HTTP(Gemini) 호출 동안 DB 커넥션을 잡지 않도록 트랜잭션으로 묶지 않는다(이력 저장은 마지막 save 한 번).
-    public LlmReportResponse generate(String trdarCd, String indutyCd) {
+    public LlmReportResponse generate(Long memberId, String trdarCd, String indutyCd) {
         if (apiKey == null || apiKey.isBlank()) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Gemini API 키가 설정되지 않았습니다");
         }
@@ -70,6 +79,9 @@ public class LlmReportService {
         String indutyNm = indutyCd == null ? null
                 : llmReportRepository.findIndutyName(indutyCd)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "업종을 찾을 수 없습니다"));
+
+        // 무료 플랜 월 한도. 프롬프트 구성이나 유료 호출 전에 막아 헛일과 슬롯 소모를 피한다.
+        enforceMonthlyQuota(memberId);
 
         PromptData promptData = buildPrompt(trdar, indutyCd, indutyNm);
 
@@ -99,6 +111,7 @@ public class LlmReportService {
         }
 
         LlmReport saved = llmReportRepository.save(LlmReport.builder()
+                .memberId(memberId)
                 .trdarCd(trdarCd)
                 .stdrYyquCd(promptData.quarter())
                 .indutyCd(indutyCd)
@@ -108,6 +121,21 @@ public class LlmReportService {
                 .tokenCnt(res.path("usageMetadata").path("totalTokenCount").asLong(0))
                 .build());
         return LlmReportResponse.from(saved);
+    }
+
+    // Pro면 무제한, 무료면 이번 달 3회까지. 초과하면 402로 업그레이드를 유도한다.
+    private void enforceMonthlyQuota(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "회원 정보를 찾을 수 없습니다"));
+        if (member.isPro()) {
+            return;
+        }
+        long used = llmReportRepository.countByMemberIdAndCreatedAtGreaterThanEqual(
+                memberId, LocalDate.now().withDayOfMonth(1).atStartOfDay());
+        if (used >= FREE_MONTHLY_LIMIT) {
+            throw new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED,
+                    "이번 달 무료 AI 리포트 " + FREE_MONTHLY_LIMIT + "회를 모두 사용했어요. Pro로 업그레이드하면 무제한으로 생성할 수 있어요.");
+        }
     }
 
     // 가장 최근 생성한 리포트. 업종 리포트와 상권 전체 리포트는 따로 관리한다
