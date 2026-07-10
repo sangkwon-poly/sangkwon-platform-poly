@@ -1,22 +1,24 @@
 package com.sangkwon.sangkwonplatform.admin.inquiry.dto.response;
 
 import com.sangkwon.sangkwonplatform.admin.inquiry.entity.Inquiry;
-import com.sangkwon.sangkwonplatform.member.entity.Member;
+import com.sangkwon.sangkwonplatform.admin.inquiry.entity.enums.InquiryStatus;
 
 import java.time.LocalDateTime;
 
+// 회원 본인 문의 목록 행. 본인 목록이라 회원 식별자는 노출하지 않는다.
 public record InquiryUserListResponse(
         Long inquiryId,
-        Long MemberId,
         String title,
+        InquiryStatus status,
+        LocalDateTime createdAt,
         LocalDateTime answeredAt
 ) {
-    public static InquiryUserListResponse from (Inquiry inquiry){
-        Member member = inquiry.getMember();
+    public static InquiryUserListResponse from(Inquiry inquiry) {
         return new InquiryUserListResponse(
                 inquiry.getInquiryId(),
-                member == null ? null : member.getMemberId(),
                 inquiry.getTitle(),
+                inquiry.getStatus(),
+                inquiry.getCreatedAt(),
                 inquiry.getAnsweredAt()
         );
     }
