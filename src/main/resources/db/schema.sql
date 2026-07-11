@@ -923,7 +923,7 @@ CREATE TABLE PAYMENT_ORDER (
                                CONSTRAINT PK_PAYMENT_ORDER PRIMARY KEY (ORDER_ID),
                                CONSTRAINT FK_PAYMENT_ORDER_MEMBER FOREIGN KEY (MEMBER_ID)
                                    REFERENCES MEMBER (MEMBER_ID) ON DELETE SET NULL,
-                               CONSTRAINT CK_PAY_STATUS CHECK (STATUS IN ('PENDING','PAID','FAILED')),
+                               CONSTRAINT CK_PAY_STATUS CHECK (STATUS IN ('PENDING','PAID','FAILED','CANCELED')),
                                CONSTRAINT CK_PAY_CYCLE  CHECK (BILLING_CYCLE IN ('MONTHLY','YEARLY')),
                                CONSTRAINT CK_PAY_AMOUNT CHECK (AMOUNT > 0)
 );
@@ -934,7 +934,7 @@ COMMENT ON COLUMN PAYMENT_ORDER.MEMBER_ID     IS '결제 회원 (하드삭제 �
 COMMENT ON COLUMN PAYMENT_ORDER.PLAN_CD       IS '플랜 코드 (현재 PRO)';
 COMMENT ON COLUMN PAYMENT_ORDER.BILLING_CYCLE IS '결제 주기: MONTHLY / YEARLY';
 COMMENT ON COLUMN PAYMENT_ORDER.AMOUNT        IS '서버가 확정한 결제 금액(원)';
-COMMENT ON COLUMN PAYMENT_ORDER.STATUS        IS 'PENDING(결제창 진입) / PAID(승인) / FAILED(승인 실패)';
+COMMENT ON COLUMN PAYMENT_ORDER.STATUS        IS 'PENDING(결제창 진입) / PAID(승인) / FAILED(승인 실패) / CANCELED(환불)';
 COMMENT ON COLUMN PAYMENT_ORDER.PAYMENT_KEY   IS '토스 paymentKey (승인 후 기록)';
 COMMENT ON COLUMN PAYMENT_ORDER.APPROVED_AT   IS '토스 승인 시각';
 COMMENT ON COLUMN PAYMENT_ORDER.VERSION       IS '낙관적 락 버전 (동시 승인 경합 방지)';

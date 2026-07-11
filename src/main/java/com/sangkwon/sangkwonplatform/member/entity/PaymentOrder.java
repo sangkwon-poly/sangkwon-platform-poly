@@ -78,4 +78,9 @@ public class PaymentOrder extends BaseEntity {
     public void failed() {
         this.status = PaymentStatus.FAILED;
     }
+
+    // 환불(토스 결제취소) 확정. 결제 기록과 paymentKey는 대사용으로 보존한다.
+    public void canceled() {
+        this.status = PaymentStatus.CANCELED;
+    }
 }
