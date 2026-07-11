@@ -112,7 +112,7 @@ public class FranchiseBrandStatLoadService {
                         indutyCd, year, clip(brandNm, 300), clip(text(it, "corpNm"), 300),
                         clip(ftcInduty, 200), frcsCnt,
                         longOrNull(text(it, "avrgSlsAmt")), longOrNull(text(it, "newFrcsRgsCnt")),
-                        longOrNull(text(it, "ctrtEndCnt")), longOrNull(text(it, "ctrtCnclltnCnt")),
+                        longOrNull(text(it, "ctrtEndCnt")), longOrNull(text(it, "ctrtCncltnCnt")),
                         longOrNull(text(it, "nmChgCnt"))});
             }
         }
@@ -136,9 +136,10 @@ public class FranchiseBrandStatLoadService {
         return rows.size();
     }
 
+    // 연도 파라미터는 yr(다른 가맹정보 API의 jngBizCrtraYr와 다름, 실호출로 확인)
     private String pageUrl(int year, int page, int rows) {
         return BASE + "?serviceKey=" + enc(datagokrKey)
-                + "&pageNo=" + page + "&numOfRows=" + rows + "&resultType=json&jngBizCrtraYr=" + year;
+                + "&pageNo=" + page + "&numOfRows=" + rows + "&resultType=json&yr=" + year;
     }
 
     // ── HTTP ──────────────────────────────────────────────

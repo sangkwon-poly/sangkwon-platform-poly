@@ -50,11 +50,11 @@ class FranchiseBrandStatLoadServiceTest {
     }
 
     private String probeUrl(int year) {
-        return BASE + "?serviceKey=test-key&pageNo=1&numOfRows=1&resultType=json&jngBizCrtraYr=" + year;
+        return BASE + "?serviceKey=test-key&pageNo=1&numOfRows=1&resultType=json&yr=" + year;
     }
 
     private String pageUrl(int year, int page) {
-        return BASE + "?serviceKey=test-key&pageNo=" + page + "&numOfRows=500&resultType=json&jngBizCrtraYr=" + year;
+        return BASE + "?serviceKey=test-key&pageNo=" + page + "&numOfRows=500&resultType=json&yr=" + year;
     }
 
     private static String item(String mlsfc, String brand, String corp, String frcsCnt, String avgSales) {
