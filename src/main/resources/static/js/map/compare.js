@@ -218,7 +218,46 @@ function digestSales(rows) {
     return out;
 }
 
+// 상권 비교는 Pro 전용. 로그인/구독 상태를 확인해 비Pro는 안내로 막는다.
+async function fetchMe() {
+    try {
+        const res = await fetch("/api/members/me", { credentials: "include", headers: { Accept: "application/json" } });
+        if (!res.ok) {
+            return null;
+        }
+        const body = await res.json();
+        return (body && body.data) || null;
+    } catch (e) {
+        return null;
+    }
+}
+
+// mode: "login"(비로그인) / "upgrade"(로그인했지만 무료)
+function renderGate(mode) {
+    const login = mode === "login";
+    const href = login
+        ? "/member/login?redirect=" + encodeURIComponent(location.pathname + location.search)
+        : "/pricing";
+    const label = login ? "로그인하고 이용하기" : "요금제 보러가기";
+    const desc = login
+        ? "로그인 후 Pro로 이용할 수 있어요."
+        : "여러 상권을 나란히 비교하려면 Pro가 필요해요.";
+    document.querySelector("main.compare").innerHTML =
+        '<div style="margin:80px auto;max-width:420px;text-align:center;color:#8c7f78">' +
+        '<p style="font-size:17px;font-weight:600;color:#3f342e;margin-bottom:8px">상권 비교는 Pro 전용이에요</p>' +
+        '<p style="font-size:14px;line-height:1.6;margin-bottom:18px">' + desc + "</p>" +
+        '<a class="btn btn-primary" href="' + href + '" ' +
+        'style="display:inline-flex;height:44px;padding:0 22px;align-items:center">' + label + "</a>" +
+        "</div>";
+}
+
 async function load() {
+    const me = await fetchMe();
+    if (!me || !me.pro) {
+        renderGate(me ? "upgrade" : "login");
+        return;
+    }
+
     const q = new URLSearchParams(location.search).get("ids");
     cmp.ids = (q ? q.split(",").filter(Boolean) : cmpList()).slice(0, 4);
 
