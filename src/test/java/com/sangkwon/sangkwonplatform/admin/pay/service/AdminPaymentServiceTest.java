@@ -251,4 +251,113 @@ class AdminPaymentServiceTest {
         verify(paymentOrderRepository).save(order);
         tossServer.verify();
     }
+
+    private static final String QUERY_URL = "https://api.tosspayments.com/v1/payments/orders/o1";
+
+    private static PaymentOrder failedOrder() {
+        PaymentOrder o = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
+        o.failed();
+        return o;
+    }
+
+    private static PaymentOrder pendingOrder() {
+        return PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
+    }
+
+    @Test
+    @DisplayName("대사: FAILED 주문인데 토스가 DONE이면 PAID로 정정하고 구독을 켠다")
+    void reconcile_recoversLostPayment() {
+        PaymentOrder order = failedOrder();
+        Member member = Member.create("user", "hash", "user@test.com", "회원");
+        AdminPaymentService svc = serviceWithToss();
+        when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(order));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        tossServer.expect(requestTo(QUERY_URL))
+                .andRespond(withSuccess("{\"status\":\"DONE\",\"paymentKey\":\"pk-x\",\"approvedAt\":\"2026-07-11T00:00:00+09:00\"}",
+                        MediaType.APPLICATION_JSON));
+
+        AdminPaymentService.ReconcileResult res = svc.reconcile("o1");
+
+        assertThat(res.before()).isEqualTo(PaymentStatus.FAILED);
+        assertThat(res.after()).isEqualTo(PaymentStatus.PAID);
+        assertThat(order.getStatus()).isEqualTo(PaymentStatus.PAID);
+        assertThat(member.isPro()).isTrue();
+        verify(paymentOrderRepository).save(order);
+        tossServer.verify();
+    }
+
+    @Test
+    @DisplayName("대사: PENDING인데 토스에 결제 기록이 없으면 FAILED로 확정한다")
+    void reconcile_notFoundBecomesFailed() {
+        PaymentOrder order = pendingOrder();
+        AdminPaymentService svc = serviceWithToss();
+        when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(order));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(Member.create("user", "hash", "user@test.com", "회원")));
+        tossServer.expect(requestTo(QUERY_URL))
+                .andRespond(withStatus(HttpStatus.NOT_FOUND)
+                        .body("{\"code\":\"NOT_FOUND_PAYMENT\"}")
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        AdminPaymentService.ReconcileResult res = svc.reconcile("o1");
+
+        assertThat(res.after()).isEqualTo(PaymentStatus.FAILED);
+        assertThat(order.getStatus()).isEqualTo(PaymentStatus.FAILED);
+        verify(paymentOrderRepository).save(order);
+        tossServer.verify();
+    }
+
+    @Test
+    @DisplayName("대사: 토스가 진행 중이면 상태를 바꾸지 않는다")
+    void reconcile_inProgressNoChange() {
+        PaymentOrder order = pendingOrder();
+        AdminPaymentService svc = serviceWithToss();
+        when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(order));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(Member.create("user", "hash", "user@test.com", "회원")));
+        tossServer.expect(requestTo(QUERY_URL))
+                .andRespond(withSuccess("{\"status\":\"IN_PROGRESS\"}", MediaType.APPLICATION_JSON));
+
+        AdminPaymentService.ReconcileResult res = svc.reconcile("o1");
+
+        assertThat(res.before()).isEqualTo(PaymentStatus.PENDING);
+        assertThat(res.after()).isEqualTo(PaymentStatus.PENDING);
+        verify(paymentOrderRepository, never()).save(any());
+        tossServer.verify();
+    }
+
+    @Test
+    @DisplayName("대사: PAID인데 토스가 CANCELED면 CANCELED로 정정하고 Pro를 회수한다")
+    void reconcile_paidCanceledAtToss() {
+        PaymentOrder order = paidOrder();
+        Member member = proMember();
+        AdminPaymentService svc = serviceWithToss();
+        when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(order));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        tossServer.expect(requestTo(QUERY_URL))
+                .andRespond(withSuccess("{\"status\":\"CANCELED\"}", MediaType.APPLICATION_JSON));
+
+        AdminPaymentService.ReconcileResult res = svc.reconcile("o1");
+
+        assertThat(res.after()).isEqualTo(PaymentStatus.CANCELED);
+        assertThat(member.isPro()).isFalse();
+        verify(paymentOrderRepository).save(order);
+        tossServer.verify();
+    }
+
+    @Test
+    @DisplayName("대사: PAID인데 토스가 만료라 해도 강등하지 않는다")
+    void reconcile_paidNotDowngraded() {
+        PaymentOrder order = paidOrder();
+        AdminPaymentService svc = serviceWithToss();
+        when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(order));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(proMember()));
+        tossServer.expect(requestTo(QUERY_URL))
+                .andRespond(withSuccess("{\"status\":\"EXPIRED\"}", MediaType.APPLICATION_JSON));
+
+        AdminPaymentService.ReconcileResult res = svc.reconcile("o1");
+
+        assertThat(res.after()).isEqualTo(PaymentStatus.PAID);
+        assertThat(order.getStatus()).isEqualTo(PaymentStatus.PAID);
+        verify(paymentOrderRepository, never()).save(any());
+        tossServer.verify();
+    }
 }

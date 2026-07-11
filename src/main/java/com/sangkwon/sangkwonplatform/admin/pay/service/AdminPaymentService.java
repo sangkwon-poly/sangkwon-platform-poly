@@ -28,6 +28,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Base64;
 import java.util.EnumMap;
 import java.util.List;
@@ -45,6 +46,8 @@ public class AdminPaymentService {
 
     // 토스가 '이미 취소된 결제'라고 알리는 오류 코드. 상태 드리프트를 맞추기 위해 성공으로 취급한다.
     private static final String TOSS_ALREADY_CANCELED = "ALREADY_CANCELED_PAYMENT";
+    // 토스에 결제 기록 자체가 없을 때의 오류 코드(결제창만 열고 완료 안 한 주문).
+    private static final String TOSS_NOT_FOUND = "NOT_FOUND_PAYMENT";
     private static final ObjectMapper ERROR_BODY_MAPPER = new ObjectMapper();
 
     private final PaymentOrderRepository paymentOrderRepository;
@@ -142,6 +145,116 @@ public class AdminPaymentService {
         paymentOrderRepository.save(order);
         revokeSubscription(order.getMemberId());
         return toResponse(order);
+    }
+
+    // 유실 주문 대사: 토스의 실제 결제 상태를 조회해 DB와 맞춘다. 웹훅이 없어 생기는 불일치를 관리자가 정정하는 경로.
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public ReconcileResult reconcile(String orderId) {
+        PaymentOrder order = paymentOrderRepository.findById(orderId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "결제 주문을 찾을 수 없습니다."));
+        PaymentStatus before = order.getStatus();
+
+        JsonNode toss = fetchTossPayment(orderId);
+        // 토스에 결제 기록이 없으면 결제창만 열고 완료 안 한 주문이다. 진행 중이던 PENDING만 실패로 확정한다.
+        PaymentStatus target = (toss == null)
+                ? (before == PaymentStatus.PENDING ? PaymentStatus.FAILED : before)
+                : mapTossStatus(toss.path("status").asText(null));
+
+        if (target == null || target == before || !isSafeTransition(before, target)) {
+            return new ReconcileResult(before, before, toResponse(order));
+        }
+        applyReconciled(order, target, toss);
+        return new ReconcileResult(before, order.getStatus(), toResponse(order));
+    }
+
+    // PAID를 임의로 강등하면 손실이 크다. 토스가 실패/만료라 해도 우리가 PAID면 자동으로 내리지 않는다(수동 확인).
+    private static boolean isSafeTransition(PaymentStatus before, PaymentStatus target) {
+        return !(before == PaymentStatus.PAID && target == PaymentStatus.FAILED);
+    }
+
+    private void applyReconciled(PaymentOrder order, PaymentStatus target, JsonNode toss) {
+        switch (target) {
+            case PAID -> {
+                String key = toss == null ? order.getPaymentKey() : toss.path("paymentKey").asText(order.getPaymentKey());
+                LocalDateTime approvedAt = toss == null
+                        ? LocalDateTime.now() : parseApprovedAt(toss.path("approvedAt").asText(null));
+                order.paid(key, approvedAt);
+                paymentOrderRepository.save(order);
+                activateSubscription(order.getMemberId(), order.getBillingCycle());
+            }
+            case CANCELED -> {
+                order.canceled();
+                paymentOrderRepository.save(order);
+                revokeSubscription(order.getMemberId());
+            }
+            case FAILED -> {
+                order.failed();
+                paymentOrderRepository.save(order);
+            }
+            default -> { }
+        }
+    }
+
+    private JsonNode fetchTossPayment(String orderId) {
+        try {
+            return restClient.get()
+                    .uri("https://api.tosspayments.com/v1/payments/orders/{orderId}", orderId)
+                    .header("Authorization", basicAuth())
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (HttpClientErrorException e) {
+            if (isNotFoundPayment(e)) {
+                return null;
+            }
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "토스 결제 조회에 실패했습니다.");
+        } catch (RestClientException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "토스 결제 조회 요청을 보내지 못했습니다.");
+        }
+    }
+
+    private static PaymentStatus mapTossStatus(String tossStatus) {
+        if (tossStatus == null) {
+            return null;
+        }
+        return switch (tossStatus) {
+            case "DONE" -> PaymentStatus.PAID;
+            case "CANCELED", "PARTIAL_CANCELED" -> PaymentStatus.CANCELED;
+            case "ABORTED", "EXPIRED" -> PaymentStatus.FAILED;
+            default -> null; // READY / IN_PROGRESS / WAITING_FOR_DEPOSIT: 아직 진행 중, 변경하지 않는다
+        };
+    }
+
+    private boolean isNotFoundPayment(HttpClientErrorException e) {
+        try {
+            JsonNode body = ERROR_BODY_MAPPER.readTree(e.getResponseBodyAsString(StandardCharsets.UTF_8));
+            return TOSS_NOT_FOUND.equals(body.path("code").asText(null));
+        } catch (RuntimeException ignore) {
+            return false;
+        }
+    }
+
+    // 결제 확정 시 구독을 켠다. 만료 전이면 남은 기간에 이어붙인다(결제 승인 경로와 같은 규칙).
+    private void activateSubscription(Long memberId, BillingCycle cycle) {
+        if (memberId == null) {
+            return;
+        }
+        memberRepository.findById(memberId).ifPresent(member -> {
+            LocalDateTime base = member.isPro() ? member.getPlanUntil() : LocalDateTime.now();
+            LocalDateTime until = cycle == BillingCycle.YEARLY ? base.plusYears(1) : base.plusMonths(1);
+            member.activatePro(until);
+            memberRepository.save(member);
+        });
+    }
+
+    private LocalDateTime parseApprovedAt(String iso) {
+        if (iso == null || iso.isBlank()) {
+            return LocalDateTime.now();
+        }
+        return OffsetDateTime.parse(iso).toLocalDateTime();
+    }
+
+    // 대사 결과: 이전/이후 상태(감사용)와 정정된 주문.
+    public record ReconcileResult(PaymentStatus before, PaymentStatus after, AdminPaymentResponse order) {
     }
 
     // 환불이면 이 주문으로 부여했던 구독을 회수한다. 하드삭제된 회원의 주문은 대상이 없다.
