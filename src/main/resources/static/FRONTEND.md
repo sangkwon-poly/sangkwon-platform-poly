@@ -31,9 +31,14 @@ static/
 - 새 화면을 만들 때는 화면 폴더 안에 `css/`, `js/` 를 만들고 그 안에만 둔다.
 - 자산이 두 번째 화면에서 필요해지는 순간 `common/` 으로 옮기고 두 화면 모두 절대경로로 참조한다.
 
-### 예외: `member/`
+### 독립 서브시스템: `member/`
 
-회원 영역(`member/`)은 자체 팔레트(`member/css/member.css` 가 `:root` 토큰을 독립 정의)를 쓰는 독립 화면이라 `common.css` 를 로드하지 않고 아래 절대경로 규칙도 따르지 않는다. 자산을 **상대경로**(`css/member.css`, `js/api.js`)로 참조하는데, 이는 의도된 것이다. 랜딩 단축 경로(`/login`, `/member`)가 forward 가 아니라 **redirect** 로 걸려 있어(`PageRoutesConfig`) 브라우저 주소가 항상 `/member/...` 로 확정되기 때문이다. member 화면을 손볼 때 이 상대경로를 절대경로로 바꾸거나 forward 로 전환하지 말 것.
+회원 영역(`member/`)은 `common.css` 를 공유하지 않고 자체 디자인 시스템(`member/css/member.css`)을 통째로 소유하는 독립 화면이다. 규칙 위반이 아니라 '자기 것은 자기가 소유한다'를 끝까지 적용한 형태이며, 그래서 아래 두 가지가 나머지 화면과 다르다.
+
+- **자체 토큰/클래스**: `member.css` 가 `:root` 토큰과 프리미티브를 독자 정의한다. 클래스 규칙도 BEM 더블대시(`.btn--primary`, `.badge--ok`, `.auth-card`)로, common 의 싱글대시(`.btn-primary`)와 다르다. 그래서 member HTML 에 `common.css` 를 얹어도 통일되지 않는다 (없는 클래스를 참조하게 됨).
+- **상대경로 참조**: 자산을 상대경로(`css/member.css`, `js/api.js`)로 부른다. 랜딩 단축 경로(`/login`, `/member`)가 forward 가 아니라 **redirect** 로 걸려(`PageRoutesConfig`) 브라우저 주소가 항상 `/member/...` 로 확정되기 때문에 성립한다.
+
+member 를 손볼 때 이 독립성을 유지할 것: 상대경로를 절대경로로 바꾸거나 forward 로 전환하지 말고, common.css 를 억지로 끌어오지 말 것. 전 화면 디자인을 일원화하려면 auth 페이지 전체를 common 기준으로 재작성해야 하는 별도 작업이다.
 
 ## 작성 규칙
 
