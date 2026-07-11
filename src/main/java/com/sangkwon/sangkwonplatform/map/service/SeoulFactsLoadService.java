@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -21,9 +22,11 @@ import java.util.TreeSet;
 
 // 서울 열린데이터광장 상권 분석 팩트 7종 적재를 앱에서 실행한다. 파이썬 03_load_seoul_facts.py 포팅.
 // 파이썬처럼 테이블 컬럼과 API 필드를 동적 매핑한다(하드코딩 없음). 각 테이블 DELETE 후 재적재하는 전체 스냅샷.
-// 대용량(점포 160만 등)이라 트랜잭션으로 묶지 않고 배치마다 커밋한다(중간 실패 시 부분 적재, 재실행으로 복구).
-// 제약(FK/CHECK) 위반 행은 배치 실패 시 행 단위로 재시도하며 건너뛴다(파이썬은 제약을 비활성화하지만 앱은 DDL을 피함).
+// 재적재를 단일 트랜잭션으로 묶어 원자적으로 교체한다: 커밋 전까지 독자는 Oracle MVCC로 기존 데이터를 보고,
+// 중간 실패 시 롤백되어 이전 스냅샷이 그대로 남는다(빈/부분 데이터 노출·부분 적재 방지). 대용량(점포 160만)이라 undo가 크다.
+// 제약(FK/CHECK) 위반 행은 배치 실패 시 행 단위로 재시도하며 건너뛴다(Oracle은 문 단위 롤백이라 트랜잭션은 유지된다).
 @Service
+@Transactional
 public class SeoulFactsLoadService {
 
     private static final int PAGE = 1000;   // 서울 API 한 번에 최대 1000행
