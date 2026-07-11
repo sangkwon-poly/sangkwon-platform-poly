@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.admin.member.service;
 
 import com.sangkwon.sangkwonplatform.admin.member.dto.response.AdminMemberResponse;
 import com.sangkwon.sangkwonplatform.admin.member.dto.response.MemberCountsResponse;
+import com.sangkwon.sangkwonplatform.global.security.MemberSessionRegistry;
 import com.sangkwon.sangkwonplatform.member.entity.Member;
 import com.sangkwon.sangkwonplatform.member.entity.MemberStatus;
 import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
@@ -23,6 +24,7 @@ import java.util.Map;
 public class AdminMemberService {
 
     private final MemberRepository memberRepository;
+    private final MemberSessionRegistry memberSessionRegistry;
 
     @Transactional(readOnly = true)
     public Page<AdminMemberResponse> getMembers(String keyword, MemberStatus status, Pageable pageable) {
@@ -54,6 +56,10 @@ public class AdminMemberService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 해당 상태입니다.");
         }
         member.changeStatus(status);
+        // 로그인이 막히는 상태(정지/휴면/탈퇴)로 바뀌면 기존 세션을 즉시 만료시켜 계속 이용하는 것을 막는다
+        if (status != MemberStatus.ACTIVE) {
+            memberSessionRegistry.revokeAll(memberId);
+        }
         return new StatusChange(from, AdminMemberResponse.from(member));
     }
 
