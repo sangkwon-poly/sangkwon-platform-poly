@@ -1,5 +1,6 @@
 package com.sangkwon.sangkwonplatform.support.service;
 
+import com.sangkwon.sangkwonplatform.global.config.LoaderHttp;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -34,7 +35,7 @@ public class SupportProgramLoadService {
     private static final DateTimeFormatter YMD = DateTimeFormatter.ofPattern("yyyyMMdd");
     private static final DateTimeFormatter TS = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    private final RestTemplate rest = new RestTemplate();
+    private final RestTemplate rest = LoaderHttp.timed();
     private final ObjectMapper mapper = new ObjectMapper();
     private final NamedParameterJdbcTemplate jdbc;
 

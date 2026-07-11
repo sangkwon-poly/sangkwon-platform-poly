@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.map.service;
 
 import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
 import com.sangkwon.sangkwonplatform.admin.ops.service.ApiUsageService;
+import com.sangkwon.sangkwonplatform.global.config.LoaderHttp;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -28,7 +29,7 @@ public class SeoulFactsLoadService {
     private static final int PAGE = 1000;   // 서울 API 한 번에 최대 1000행
     private static final int BATCH = 5000;  // 인서트 배치 크기
 
-    private final RestTemplate rest = new RestTemplate();
+    private final RestTemplate rest = LoaderHttp.timed();
     private final ObjectMapper mapper = new ObjectMapper();
     private final JdbcTemplate jt;
     private final ApiUsageService apiUsageService;
