@@ -64,6 +64,51 @@ function cmpAdd(trdarCd) {
     cmpSave(ids);
 }
 
+// 로그인/구독 상태(/api/members/me)를 페이지당 한 번만 조회해 재사용한다.
+let _mePromise = null;
+function getMe() {
+    if (!_mePromise) {
+        _mePromise = fetch("/api/members/me", { credentials: "include", headers: { Accept: "application/json" } })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (b) { return (b && b.data) || null; })
+            .catch(function () { return null; });
+    }
+    return _mePromise;
+}
+
+// 비교는 Pro 전용. Pro면 비교함에 담고, 아니면 담지 않고 비교 페이지(게이트)로 보낸다.
+function goCompareWith(trdarCd) {
+    getMe().then(function (me) {
+        if (me && me.pro) {
+            cmpAdd(trdarCd);
+        }
+        location.href = "/map/compare";
+    });
+}
+
+// 비Pro면 비교 담기 버튼에 Pro 전용임을 표시한다(클릭 동작은 goCompareWith가 게이트로 보낸다).
+// showBadge: 텍스트 버튼은 "Pro" 배지, 아이콘 버튼(.sel-add)은 좁아 툴팁만 단다.
+function markCompareLock(el, showBadge) {
+    if (!el) {
+        return;
+    }
+    getMe().then(function (me) {
+        if (me && me.pro) {
+            return;
+        }
+        el.setAttribute("title", "Pro 전용");
+        if (!showBadge || el.querySelector(".cmp-lock-badge")) {
+            return;
+        }
+        var badge = document.createElement("span");
+        badge.className = "cmp-lock-badge";
+        badge.textContent = "Pro";
+        badge.style.cssText = "margin-left:6px;padding:1px 6px;border-radius:999px;"
+            + "background:#f7e9e3;color:#862f1e;font-size:11px;font-weight:700;vertical-align:middle";
+        el.appendChild(badge);
+    });
+}
+
 // 매출 rows를 분기 오름차순 합계 [{q, amt}]로
 function quarterlyTotals(rows) {
     const byQ = new Map();
@@ -167,21 +212,17 @@ function initRecentSearch(onSelect) {
     document.addEventListener("DOMContentLoaded", function () {
         var el = document.querySelector(".app-user");
         if (!el) { return; }
-        fetch("/api/members/me", { credentials: "include", headers: { Accept: "application/json" } })
-            .then(function (r) { return r.ok ? r.json() : null; })
-            .then(function (body) {
-                var me = body && body.data;
-                if (me) {
-                    var initial = (me.nickname || me.loginId || "?").slice(0, 1);
-                    el.setAttribute("href", "/member/mypage");
-                    el.setAttribute("title", "마이페이지");
-                    el.innerHTML = '<span class="app-avatar" aria-hidden="true">' + esc(initial) + "</span>"
-                        + esc(me.nickname || me.loginId);
-                } else {
-                    el.setAttribute("href", "/member/login");
-                    el.innerHTML = '<span class="app-avatar" aria-hidden="true">?</span>로그인';
-                }
-            })
-            .catch(function () { /* 비로그인/오류 시 정적 마크업 유지 */ });
+        getMe().then(function (me) {
+            if (me) {
+                var initial = (me.nickname || me.loginId || "?").slice(0, 1);
+                el.setAttribute("href", "/member/mypage");
+                el.setAttribute("title", "마이페이지");
+                el.innerHTML = '<span class="app-avatar" aria-hidden="true">' + esc(initial) + "</span>"
+                    + esc(me.nickname || me.loginId);
+            } else {
+                el.setAttribute("href", "/member/login");
+                el.innerHTML = '<span class="app-avatar" aria-hidden="true">?</span>로그인';
+            }
+        });
     });
 })();
