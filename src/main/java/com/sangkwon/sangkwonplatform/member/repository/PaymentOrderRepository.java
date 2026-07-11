@@ -18,6 +18,9 @@ public interface PaymentOrderRepository extends JpaRepository<PaymentOrder, Stri
     // 본인 주문만 승인 가능하도록 회원 조건을 함께 건다
     Optional<PaymentOrder> findByOrderIdAndMemberId(String orderId, Long memberId);
 
+    // 관리자 회원 상세: 특정 회원의 결제 이력(최신순)
+    List<PaymentOrder> findByMemberIdOrderByCreatedAtDesc(Long memberId);
+
     // 관리자 결제 목록: 상태·주기 필터(모두 선택). 회원 검색이 있으면 아래 IN 버전을 쓴다.
     @Query("""
             select o from PaymentOrder o

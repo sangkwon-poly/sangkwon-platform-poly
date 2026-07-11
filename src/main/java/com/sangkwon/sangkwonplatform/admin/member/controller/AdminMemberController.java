@@ -5,6 +5,7 @@ import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminRole;
 import com.sangkwon.sangkwonplatform.admin.account.session.LoginAdmin;
 import com.sangkwon.sangkwonplatform.admin.member.dto.request.MemberPlanUpdateRequest;
 import com.sangkwon.sangkwonplatform.admin.member.dto.request.MemberStatusUpdateRequest;
+import com.sangkwon.sangkwonplatform.admin.member.dto.response.AdminMemberDetailResponse;
 import com.sangkwon.sangkwonplatform.admin.member.dto.response.AdminMemberResponse;
 import com.sangkwon.sangkwonplatform.admin.member.dto.response.MemberCountsResponse;
 import com.sangkwon.sangkwonplatform.admin.member.dto.response.MemberPageResponse;
@@ -66,6 +67,14 @@ public class AdminMemberController {
     public ApiResponse<MemberCountsResponse> getCounts(@LoginAdmin AdminSession admin) {
         requireSuperAdmin(admin);
         return ApiResponse.ok(adminMemberService.getCounts());
+    }
+
+    // 회원 상세: 기본정보 + 결제·문의 이력. CS 동선을 한 화면에서 처리한다.
+    @GetMapping("/{memberId}")
+    public ApiResponse<AdminMemberDetailResponse> getDetail(@LoginAdmin AdminSession admin,
+                                                            @PathVariable Long memberId) {
+        requireSuperAdmin(admin);
+        return ApiResponse.ok(adminMemberService.getDetail(memberId));
     }
 
     @PatchMapping("/{memberId}/status")
