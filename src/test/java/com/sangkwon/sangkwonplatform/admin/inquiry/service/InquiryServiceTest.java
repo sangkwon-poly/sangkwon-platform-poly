@@ -141,6 +141,44 @@ class InquiryServiceTest {
     }
 
     @Test
+    @DisplayName("답변: 이미 답변된 문의면 409(덮어쓰기 방지)")
+    void answer_alreadyAnswered() {
+        Inquiry inquiry = openInquiry();
+        inquiry.answerBy(admin(), "먼저 등록된 답변");
+        when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
+
+        assertThatThrownBy(() -> inquiryService.answer(7L, 1L, new InquiryAnswerRequest("나중 답변")))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(t -> assertThat(statusOf(t)).isEqualTo(HttpStatus.CONFLICT));
+        // 먼저 등록된 답변이 덮이지 않는다
+        assertThat(inquiry.getAnswer()).isEqualTo("먼저 등록된 답변");
+    }
+
+    @Test
+    @DisplayName("내 상세: 미확인 답변을 열람하면 확인 처리되어 미확인이 해제된다")
+    void getMyDetail_marksAnswerRead() {
+        Inquiry inquiry = openInquiry();
+        inquiry.setMember(member(5L));
+        inquiry.answerBy(admin(), "답변드립니다");
+        assertThat(inquiry.isAnswerUnread()).isTrue();
+        when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
+
+        inquiryService.getMyDetail(5L, 1L);
+
+        assertThat(inquiry.getAnswerReadAt()).isNotNull();
+        assertThat(inquiry.isAnswerUnread()).isFalse();
+    }
+
+    @Test
+    @DisplayName("미확인 답변 수: 답변완료+미열람 문의를 센다")
+    void getUnreadAnswerCount() {
+        when(inquiryRepository.countByMemberMemberIdAndStatusAndAnswerReadAtIsNull(5L, InquiryStatus.ANSWERED))
+                .thenReturn(3L);
+
+        assertThat(inquiryService.getUnreadAnswerCount(5L)).isEqualTo(3L);
+    }
+
+    @Test
     @DisplayName("내 상세: 다른 회원의 문의 → 404")
     void getMyDetail_notOwner() {
         Inquiry inquiry = openInquiry();

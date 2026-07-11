@@ -856,6 +856,8 @@ CREATE TABLE INQUIRY (
                          ANSWER          CLOB,
                          ANSWERED_BY     NUMBER(19),
                          ANSWERED_AT     TIMESTAMP(6),
+                         ANSWER_READ_AT  TIMESTAMP(6),
+                         VERSION         NUMBER(19)   DEFAULT 0 NOT NULL,
                          CREATED_AT      TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
                          UPDATED_AT      TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
                          CONSTRAINT PK_INQUIRY PRIMARY KEY (INQUIRY_ID),
@@ -878,6 +880,8 @@ COMMENT ON COLUMN INQUIRY.STATUS      IS '상태: OPEN / ANSWERED / CLOSED';
 COMMENT ON COLUMN INQUIRY.ANSWER      IS '답변 본문';
 COMMENT ON COLUMN INQUIRY.ANSWERED_BY IS '답변 관리자 FK -> ADMIN_USER (nullable)';
 COMMENT ON COLUMN INQUIRY.ANSWERED_AT IS '답변 시각 (ANSWERED 상태에서 필수)';
+COMMENT ON COLUMN INQUIRY.ANSWER_READ_AT IS '회원이 답변을 처음 열람한 시각 (NULL이면 미확인 = 새 답변 알림)';
+COMMENT ON COLUMN INQUIRY.VERSION     IS '낙관적 락 버전 (동시 답변 경합 방지)';
 COMMENT ON COLUMN INQUIRY.CREATED_AT  IS '생성 시각';
 COMMENT ON COLUMN INQUIRY.UPDATED_AT  IS '수정 시각';
 

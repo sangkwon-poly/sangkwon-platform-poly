@@ -11,7 +11,8 @@ public record InquiryUserListResponse(
         String title,
         InquiryStatus status,
         LocalDateTime createdAt,
-        LocalDateTime answeredAt
+        LocalDateTime answeredAt,
+        boolean unreadAnswer
 ) {
     public static InquiryUserListResponse from(Inquiry inquiry) {
         return new InquiryUserListResponse(
@@ -19,7 +20,8 @@ public record InquiryUserListResponse(
                 inquiry.getTitle(),
                 inquiry.getStatus(),
                 inquiry.getCreatedAt(),
-                inquiry.getAnsweredAt()
+                inquiry.getAnsweredAt(),
+                inquiry.isAnswerUnread()
         );
     }
 }

@@ -48,12 +48,33 @@ public class Inquiry extends BaseEntity {
     @Column(name = "answered_at")
     private LocalDateTime answeredAt;
 
+    // 회원이 답변을 처음 열람한 시각. null이면 미확인(회원에게 새 답변 알림 표시).
+    @Column(name = "answer_read_at")
+    private LocalDateTime answerReadAt;
+
+    // 동시 답변 경합 방지용 낙관적 락. 두 관리자가 같은 문의에 동시 답변하면 뒤진 저장이 실패한다(덮어쓰기 방지).
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
+
     // 답변 등록: CK_INQ_ANSWERED(답변·답변자·답변시각 동시 필수)를 만족시키며 상태를 ANSWERED로 전이한다.
     public void answerBy(AdminUser admin, String answer) {
         this.admin = admin;
         this.answer = answer;
         this.answeredAt = LocalDateTime.now();
         this.status = InquiryStatus.ANSWERED;
+    }
+
+    // 회원이 답변을 처음 열람하면 확인 시각을 남겨 미확인 알림을 해제한다.
+    public void markAnswerRead() {
+        if (this.status == InquiryStatus.ANSWERED && this.answerReadAt == null) {
+            this.answerReadAt = LocalDateTime.now();
+        }
+    }
+
+    // 회원이 아직 확인하지 않은 답변인가(새 답변 알림 대상).
+    public boolean isAnswerUnread() {
+        return this.status == InquiryStatus.ANSWERED && this.answerReadAt == null;
     }
 
     public void close() {

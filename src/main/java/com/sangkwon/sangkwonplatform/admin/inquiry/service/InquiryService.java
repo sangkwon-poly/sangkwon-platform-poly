@@ -41,12 +41,23 @@ public class InquiryService {
     }
 
     // 답변 등록(OPEN → ANSWERED). 답변자·답변시각을 함께 채워 CK_INQ_ANSWERED를 만족시킨다.
+    // 이미 답변된 문의는 거부하고, 동시 답변 경합은 @Version 낙관적 락이 막는다(뒤진 저장은 409로 실패).
     public InquiryAdminDetailResponse answer(Long adminId, Long inquiryId, InquiryAnswerRequest req) {
         Inquiry inquiry = find(inquiryId);
+        if (inquiry.getStatus() == InquiryStatus.ANSWERED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 답변된 문의입니다.");
+        }
         AdminUser admin = adminUserRepository.findById(adminId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
         inquiry.answerBy(admin, req.answer());
         return InquiryAdminDetailResponse.from(inquiry);
+    }
+
+    // 회원의 미확인 답변 수(새 답변 알림 배지용).
+    @Transactional(readOnly = true)
+    public long getUnreadAnswerCount(Long memberId) {
+        return inquiryRepository.countByMemberMemberIdAndStatusAndAnswerReadAtIsNull(
+                requireLogin(memberId), InquiryStatus.ANSWERED);
     }
 
     public void close(Long inquiryId) {
@@ -71,13 +82,14 @@ public class InquiryService {
     }
 
     // 본인 문의만 열람. 남의 문의는 존재 여부도 숨기려 403 대신 404로 답한다.
-    @Transactional(readOnly = true)
+    // 답변을 처음 열람하면 미확인 알림을 해제한다(쓰기 트랜잭션이라 변경이 자동 반영된다).
     public InquiryUserAnswerResponse getMyDetail(Long memberId, Long inquiryId) {
         requireLogin(memberId);
         Inquiry inquiry = find(inquiryId);
         if (inquiry.getMember() == null || !inquiry.getMember().getMemberId().equals(memberId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "문의를 찾을 수 없습니다.");
         }
+        inquiry.markAnswerRead();
         return InquiryUserAnswerResponse.from(inquiry);
     }
 
