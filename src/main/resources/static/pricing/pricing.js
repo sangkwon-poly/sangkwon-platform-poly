@@ -222,5 +222,18 @@
     }
   });
 
+  // 이미 Pro인 회원에게는 신규 결제를 막고 현재 요금제임을 표시한다(연장은 어드민 부여로만 처리).
+  fetch("/api/members/me", { credentials: "include", headers: { Accept: "application/json" } })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (b) {
+      var me = b && b.data;
+      if (!me || !me.pro) { return; }
+      var cta = $("pc-pro-cta");
+      cta.textContent = "현재 요금제";
+      cta.disabled = true;
+      cta.classList.add("pc-cta-current");
+    })
+    .catch(function () {});
+
   renderCardCycle();
 })();

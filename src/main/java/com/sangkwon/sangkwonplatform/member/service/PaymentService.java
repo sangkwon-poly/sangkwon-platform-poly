@@ -67,6 +67,12 @@ public class PaymentService {
             throw new BusinessException(ErrorCode.INVALID_INPUT);
         }
         BillingCycle cycle = parseCycle(req.billingCycle());
+        // 이미 Pro인 회원은 신규 결제를 막는다. 연장은 어드민 부여로만 처리한다.
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        if (member.isPro()) {
+            throw new BusinessException(ErrorCode.ALREADY_PRO);
+        }
         long amount = cycle == BillingCycle.YEARLY ? PRO_YEARLY_AMOUNT : PRO_MONTHLY_AMOUNT;
         String orderName = "여기콕 Pro " + (cycle == BillingCycle.YEARLY ? "연간" : "월간");
         String orderId = UUID.randomUUID().toString().replace("-", "");
