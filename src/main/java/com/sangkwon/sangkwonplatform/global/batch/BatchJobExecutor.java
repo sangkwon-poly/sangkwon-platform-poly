@@ -10,6 +10,7 @@ import java.util.function.LongSupplier;
 public class BatchJobExecutor {
 
     private final BatchJobLogRepository batchJobLogRepository;
+    private final BatchFailureNotifier batchFailureNotifier;
 
     // task가 실패해도 실패 이력이 남도록 트랜잭션으로 묶지 않는다
     public BatchJobLog run(BatchJobSpec spec, LongSupplier task) {
@@ -27,6 +28,8 @@ public class BatchJobExecutor {
             } catch (Exception saveEx) {
                 e.addSuppressed(saveEx);
             }
+            // 실패를 외부 채널로 알린다(웹훅 미설정이면 no-op, 전송 실패는 내부에서 삼킴)
+            batchFailureNotifier.notifyFailure(spec.jobName(), spec.datasetCd(), e.getMessage());
             throw e;
         }
     }
