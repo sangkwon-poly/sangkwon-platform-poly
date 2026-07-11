@@ -9,6 +9,7 @@ import com.sangkwon.sangkwonplatform.member.entity.PaymentOrder;
 import com.sangkwon.sangkwonplatform.member.entity.PaymentStatus;
 import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
 import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
+import com.sangkwon.sangkwonplatform.member.service.PaymentActivationService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -52,15 +53,18 @@ public class AdminPaymentService {
 
     private final PaymentOrderRepository paymentOrderRepository;
     private final MemberRepository memberRepository;
+    private final PaymentActivationService paymentActivationService;
     private final RestClient restClient;
     private final String tossSecretKey;
 
     public AdminPaymentService(PaymentOrderRepository paymentOrderRepository,
                                MemberRepository memberRepository,
+                               PaymentActivationService paymentActivationService,
                                RestClient restClient,
                                @Value("${toss.secret-key}") String tossSecretKey) {
         this.paymentOrderRepository = paymentOrderRepository;
         this.memberRepository = memberRepository;
+        this.paymentActivationService = paymentActivationService;
         this.restClient = restClient;
         this.tossSecretKey = tossSecretKey;
     }
@@ -178,9 +182,9 @@ public class AdminPaymentService {
                 String key = toss == null ? order.getPaymentKey() : toss.path("paymentKey").asText(order.getPaymentKey());
                 LocalDateTime approvedAt = toss == null
                         ? LocalDateTime.now() : parseApprovedAt(toss.path("approvedAt").asText(null));
-                order.paid(key, approvedAt);
-                paymentOrderRepository.save(order);
-                activateSubscription(order.getMemberId(), order.getBillingCycle());
+                // 주문 PAID 확정 + 구독 활성화를 한 트랜잭션으로 원자화(회원 승인 경로와 동일 규칙).
+                // 전달한 order 객체를 그대로 PAID로 바꾸므로 아래 ReconcileResult가 정정된 상태를 반영한다.
+                paymentActivationService.finalizePaid(order, key, approvedAt);
             }
             case CANCELED -> {
                 order.canceled();
@@ -231,19 +235,6 @@ public class AdminPaymentService {
         } catch (RuntimeException ignore) {
             return false;
         }
-    }
-
-    // 결제 확정 시 구독을 켠다. 만료 전이면 남은 기간에 이어붙인다(결제 승인 경로와 같은 규칙).
-    private void activateSubscription(Long memberId, BillingCycle cycle) {
-        if (memberId == null) {
-            return;
-        }
-        memberRepository.findById(memberId).ifPresent(member -> {
-            LocalDateTime base = member.isPro() ? member.getPlanUntil() : LocalDateTime.now();
-            LocalDateTime until = cycle == BillingCycle.YEARLY ? base.plusYears(1) : base.plusMonths(1);
-            member.activatePro(until);
-            memberRepository.save(member);
-        });
     }
 
     private LocalDateTime parseApprovedAt(String iso) {

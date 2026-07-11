@@ -42,9 +42,13 @@ class PaymentServiceTest {
     private final PaymentOrderRepository paymentOrderRepository = mock(PaymentOrderRepository.class);
     private final MemberRepository memberRepository = mock(MemberRepository.class);
     private final RestClient restClient = mock(RestClient.class);
+    // 승인 확정+구독 활성화 원자화 빈. 실 구현을 같은 목 리포지토리로 묶어 confirm의 위임 결과까지 검증한다.
+    private final PaymentActivationService activationService =
+            new PaymentActivationService(paymentOrderRepository, memberRepository);
 
     private PaymentService service(String clientKey, String secretKey) {
-        return new PaymentService(paymentOrderRepository, memberRepository, restClient, clientKey, secretKey);
+        return new PaymentService(paymentOrderRepository, memberRepository, activationService,
+                restClient, clientKey, secretKey);
     }
 
     private static ErrorCode codeOf(Throwable t) {
