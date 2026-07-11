@@ -73,6 +73,18 @@ public class AdminPaymentController {
         return ApiResponse.ok(res);
     }
 
+    // 유실 주문 대사: 토스의 실제 결제 상태로 DB를 정정한다. 상태 전이를 감사 로그에 남긴다.
+    @PostMapping("/{orderId}/reconcile")
+    public ApiResponse<AdminPaymentResponse> reconcile(@LoginAdmin AdminSession admin,
+                                                       @PathVariable String orderId,
+                                                       HttpServletRequest http) {
+        requireSuperAdmin(admin);
+        AdminPaymentService.ReconcileResult result = adminPaymentService.reconcile(orderId);
+        auditService.record(admin.adminId(), AuditAction.PAYMENT_RECONCILE, "PAYMENT_ORDER",
+                orderId, "before=" + result.before() + ",after=" + result.after(), http);
+        return ApiResponse.ok(result.order());
+    }
+
     private void requireSuperAdmin(AdminSession admin) {
         if (admin.role() != AdminRole.SUPER_ADMIN) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "SUPER_ADMIN 권한이 필요합니다.");

@@ -151,10 +151,15 @@
             + '<span class="pa-login">' + esc(o.loginId || "—") + "</span></div>";
     }
 
-    // 환불은 완료(PAID) 주문에만. 그 외 상태는 조작할 액션이 없다.
+    // 완료(PAID)는 환불, 대기·실패는 토스 실제 상태로 대사(재확인). 환불 완료 건은 조작할 것이 없다.
     function actionHtml(o) {
-        if (o.status !== "PAID") { return '<span class="pa-muted">—</span>'; }
-        return '<button type="button" class="pa-act pa-act-danger" data-refund="' + esc(o.orderId) + '">환불</button>';
+        if (o.status === "PAID") {
+            return '<button type="button" class="pa-act pa-act-danger" data-refund="' + esc(o.orderId) + '">환불</button>';
+        }
+        if (o.status === "PENDING" || o.status === "FAILED") {
+            return '<button type="button" class="pa-act" data-reconcile="' + esc(o.orderId) + '">재확인</button>';
+        }
+        return '<span class="pa-muted">—</span>';
     }
 
     function rowHtml(o) {
@@ -196,6 +201,33 @@
         }, function () {
             btn.disabled = false;
             window.alert("환불 요청에 실패했습니다.");
+        });
+    }
+
+    var STATUS_LABEL = { PENDING: "대기", PAID: "완료", FAILED: "실패", CANCELED: "환불" };
+
+    // 대사(재확인): 토스 실제 상태로 정정하고, 바뀐 결과를 알린 뒤 목록을 새로고침한다.
+    function reconcile(orderId, btn) {
+        if (!window.confirm("토스의 실제 결제 상태로 이 주문을 정정할까요?")) { return; }
+        btn.disabled = true;
+        api("/api/admin/payments/" + encodeURIComponent(orderId) + "/reconcile", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json", Accept: "application/json" }
+        }).then(function (r) {
+            if (r.status === 401) { return; }
+            if (!r.ok || !r.body || !r.body.success) {
+                btn.disabled = false;
+                window.alert((r.body && r.body.message) || "대사에 실패했습니다.");
+                return;
+            }
+            var st = r.body.data && r.body.data.status;
+            window.alert("정정 결과: " + (STATUS_LABEL[st] || st || "변경 없음"));
+            load();
+            loadSummary();
+        }, function () {
+            btn.disabled = false;
+            window.alert("대사 요청에 실패했습니다.");
         });
     }
 
@@ -260,8 +292,11 @@
 
     // 행마다 버튼을 다시 붙이지 않도록 tbody에 위임한다
     tbody.addEventListener("click", function (e) {
-        var btn = e.target.closest ? e.target.closest(".pa-act[data-refund]") : null;
-        if (btn) { refund(btn.getAttribute("data-refund"), btn); }
+        if (!e.target.closest) { return; }
+        var refundBtn = e.target.closest(".pa-act[data-refund]");
+        if (refundBtn) { refund(refundBtn.getAttribute("data-refund"), refundBtn); return; }
+        var reconcileBtn = e.target.closest(".pa-act[data-reconcile]");
+        if (reconcileBtn) { reconcile(reconcileBtn.getAttribute("data-reconcile"), reconcileBtn); }
     });
 
     buildChips();
