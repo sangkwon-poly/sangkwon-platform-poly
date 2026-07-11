@@ -658,8 +658,7 @@ async function init() {
     document.querySelector(".sel-add").addEventListener("click", (e) => {
         e.preventDefault();
         if (state.selected) {
-            cmpAdd(state.selected.trdarCd);
-            location.href = "/map/compare";
+            goCompareWith(state.selected.trdarCd);
         }
     });
     document.getElementById("app-status").textContent = "연동 정상";

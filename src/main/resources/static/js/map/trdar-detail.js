@@ -238,8 +238,7 @@ async function load() {
     if (cmpBtn) {
         cmpBtn.addEventListener("click", (e) => {
             e.preventDefault();
-            cmpAdd(trdarCd);
-            location.href = "/map/compare";
+            goCompareWith(trdarCd);
         });
     }
     // 리포트로 상권 전달
