@@ -17,6 +17,7 @@
     };
     var API_LABELS = {
         SBIZ: "소상공인시장진흥공단", NTS: "국세청", FTC_FRANCHISE: "공정위 가맹사업",
+        KIPRIS: "특허정보넷 KIPRIS",
         REB_RONE: "부동산원 R-ONE", SEOUL: "서울 열린데이터광장", KAKAO: "카카오맵",
         GEMINI: "Gemini · AI 리포트", GEMINI_NEWS: "Gemini · 뉴스 요약"
     };

@@ -413,6 +413,24 @@ COMMENT ON COLUMN FRANCHISE_BRAND_STAT.INDUTY_CD     IS '서울 상권 업종코
 COMMENT ON COLUMN FRANCHISE_BRAND_STAT.FTC_INDUTY_NM IS '공정위 원본 업종 중분류명 (매핑 검증용)';
 COMMENT ON COLUMN FRANCHISE_BRAND_STAT.AVG_SALES_AMT IS '가맹점 평균매출액 (천원, 정보공개서 기준)';
 
+-- 업종별 상표 출원 동향 (KIPRIS)
+CREATE TABLE INDUSTRY_TRADEMARK (
+                                    TM_ID        NUMBER(12,0) GENERATED ALWAYS AS IDENTITY,
+                                    INDUTY_CD    VARCHAR2(20 CHAR)  NOT NULL,
+                                    APPL_NO      VARCHAR2(30 CHAR)  NOT NULL,
+                                    TITLE        VARCHAR2(300 CHAR) NOT NULL,
+                                    APPLICANT_NM VARCHAR2(300 CHAR),
+                                    APPL_DATE    DATE,
+                                    STATUS       VARCHAR2(30 CHAR),
+                                    CREATED_AT   TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
+                                    UPDATED_AT   TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
+                                    CONSTRAINT PK_INDUSTRY_TRADEMARK PRIMARY KEY (TM_ID),
+                                    CONSTRAINT UK_INDTM UNIQUE (INDUTY_CD, APPL_NO)
+);
+COMMENT ON TABLE  INDUSTRY_TRADEMARK           IS '업종별 상표 출원 동향 (KIPRIS 지정상품 검색). 업종당 최신 출원 5건만 저장';
+COMMENT ON COLUMN INDUSTRY_TRADEMARK.INDUTY_CD IS '서울 상권 업종코드 (INDUTY 마스터의 업종명을 검색어로 정제)';
+COMMENT ON COLUMN INDUSTRY_TRADEMARK.STATUS    IS 'KIPRIS 출원 상태 (출원/등록/거절 등 원문 그대로)';
+
 -- 창업지원 사업: SUPPORT_PROGRAM (공통 마스터)
 CREATE TABLE SUPPORT_PROGRAM (
                                  PROGRAM_ID       VARCHAR2(50 CHAR)   NOT NULL,
@@ -782,14 +800,14 @@ CREATE TABLE API_USAGE_LOG (
                                CONSTRAINT PK_API_USAGE_LOG PRIMARY KEY (USAGE_ID),
                                CONSTRAINT UK_API_USAGE_LOG_NAME_DATE UNIQUE (API_NAME, USAGE_DATE),
                                CONSTRAINT CK_API_NAME CHECK (API_NAME IN
-                                                             ('SBIZ','NTS','FTC_FRANCHISE','REB_RONE','SEOUL','KAKAO','GEMINI','GEMINI_NEWS')),
+                                                             ('SBIZ','NTS','FTC_FRANCHISE','REB_RONE','SEOUL','KAKAO','GEMINI','GEMINI_NEWS','KIPRIS')),
                                CONSTRAINT CK_API_CALL_CNT    CHECK (CALL_CNT >= 0),
                                CONSTRAINT CK_API_DAILY_LIMIT CHECK (DAILY_LIMIT > 0),
                                CONSTRAINT CK_API_USAGE_DATE_TRUNC CHECK (USAGE_DATE = TRUNC(USAGE_DATE))
 );
 COMMENT ON TABLE  API_USAGE_LOG IS '외부 API 일자별 호출량 집계, 일 한도 알림(예: SBIZ 10,000/일) 모니터링';
 COMMENT ON COLUMN API_USAGE_LOG.USAGE_ID    IS '집계 행 PK (IDENTITY 대체키)';
-COMMENT ON COLUMN API_USAGE_LOG.API_NAME    IS 'API 코드: SBIZ / NTS / FTC_FRANCHISE / REB_RONE / SEOUL / KAKAO / GEMINI(AI 리포트) / GEMINI_NEWS(뉴스 요약)';
+COMMENT ON COLUMN API_USAGE_LOG.API_NAME    IS 'API 코드: SBIZ / NTS / FTC_FRANCHISE / REB_RONE / SEOUL / KAKAO / GEMINI(AI 리포트) / GEMINI_NEWS(뉴스 요약) / KIPRIS(상표검색)';
 COMMENT ON COLUMN API_USAGE_LOG.USAGE_DATE  IS '사용 일자 (시간 성분 없음, API당 하루 1행; 조회는 USAGE_DATE = TRUNC(SYSDATE))';
 COMMENT ON COLUMN API_USAGE_LOG.CALL_CNT    IS '당일 누적 호출 수 (MERGE로 증분)';
 COMMENT ON COLUMN API_USAGE_LOG.DAILY_LIMIT IS '당일 호출 한도 (>0, 예: SBIZ=10000)';

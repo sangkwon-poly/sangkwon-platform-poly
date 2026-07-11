@@ -67,15 +67,19 @@ function initTrends() {
     const updateTime = document.getElementById("updateTime");
     const franchiseChip = document.getElementById("franchiseChip");
     const franchiseList = document.getElementById("franchiseList");
+    const patentChip = document.getElementById("patentChip");
+    const patentList = document.getElementById("patentList");
 
     if (!industrySelect) return;
 
     loadInsight();
     loadFranchise();
+    loadTrademarks();
 
     industrySelect.addEventListener("change", () => {
         loadInsight();
         loadFranchise();
+        loadTrademarks();
     });
 
     async function loadInsight() {
@@ -174,6 +178,66 @@ function initTrends() {
             franchiseChip.textContent = `${indutyNm} · 조회 실패`;
             franchiseList.innerHTML = '<li class="franchise-empty">가맹점 현황을 불러오지 못했습니다.</li>';
         }
+    }
+
+    // 특허·상표 카드: 선택 업종의 최신 상표 출원 (KIPRIS)
+    async function loadTrademarks() {
+        const indutyCd = industrySelect.value;
+        const indutyNm = industrySelect.selectedOptions[0].textContent;
+
+        patentChip.textContent = `${indutyNm} · 불러오는 중`;
+        patentList.innerHTML = '<li class="patent-empty">상표 출원 동향을 불러오고 있습니다.</li>';
+
+        try {
+            const res = await fetch(`/api/industry-trademarks?indutyCd=${encodeURIComponent(indutyCd)}`);
+
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}`);
+            }
+
+            const json = await res.json();
+            const rows = json.data ?? [];
+
+            // 응답 대기 중 업종이 바뀌었으면 늦게 온 이전 업종 응답은 버린다
+            if (industrySelect.value !== indutyCd) {
+                return;
+            }
+
+            if (!rows.length) {
+                patentChip.textContent = `${indutyNm} · 데이터 없음`;
+                patentList.innerHTML = '<li class="patent-empty">이 업종은 집계된 상표 출원이 없습니다.</li>';
+                return;
+            }
+
+            patentChip.textContent = `${indutyNm} · 상표 출원 동향`;
+            patentList.innerHTML = rows.map((r) =>
+                "<li><div><strong>" + esc(r.title) + "</strong><p>" + esc(r.applicantNm ?? "-")
+                + " · 출원 " + esc(r.applDate ?? "-") + "</p></div>"
+                + '<em class="badge ' + badgeClass(r.status) + '">' + esc(r.status ?? "-") + "</em></li>").join("");
+
+        } catch (e) {
+            console.error("상표 출원 동향 조회 실패:", e);
+
+            if (industrySelect.value !== indutyCd) {
+                return;
+            }
+            patentChip.textContent = `${indutyNm} · 조회 실패`;
+            patentList.innerHTML = '<li class="patent-empty">상표 출원 동향을 불러오지 못했습니다.</li>';
+        }
+    }
+
+    // KIPRIS 상태 문자열 -> 배지 색 (등록 초록 / 탈락 계열 빨강 / 진행 중 노랑)
+    function badgeClass(status) {
+        if (!status) {
+            return "yellow";
+        }
+        if (status.includes("등록")) {
+            return "green";
+        }
+        if (["거절", "취하", "포기", "소멸", "무효"].some((s) => status.includes(s))) {
+            return "red";
+        }
+        return "yellow";
     }
 
     // 평균매출은 천원 단위(정보공개서 기준)로 온다

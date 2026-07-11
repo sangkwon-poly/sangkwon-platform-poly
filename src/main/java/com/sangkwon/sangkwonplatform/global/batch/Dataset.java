@@ -61,7 +61,11 @@ public enum Dataset {
     INDUSTRY_NEWS("산업뉴스 인사이트", Tier.APP, "INDUSTRY_NEWS_INSIGHT",
             "YEAR_MONTH", PeriodKind.MONTH,
             "업종별 뉴스 요약(네이버 검색 + Gemini)",
-            "https://developers.naver.com/docs/serviceapi/search/news/news.md");
+            "https://developers.naver.com/docs/serviceapi/search/news/news.md"),
+    INDUSTRY_TRADEMARK("업종 상표 동향", Tier.APP, "INDUSTRY_TRADEMARK",
+            "APPL_DATE", PeriodKind.DATE,
+            "업종별 상표 출원 동향(KIPRIS)",
+            "https://plus.kipris.or.kr");
 
     public enum Tier { APP, OFFLINE }
 
