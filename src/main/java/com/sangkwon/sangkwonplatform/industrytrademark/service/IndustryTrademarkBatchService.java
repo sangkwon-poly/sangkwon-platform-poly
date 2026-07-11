@@ -34,17 +34,27 @@ import java.util.Set;
 public class IndustryTrademarkBatchService {
 
     private static final int TOP_PER_INDUTY = 5;
-    // 상표명/출원번호가 빈 행을 감안해 여유 있게 받는다
-    private static final int FETCH_ROWS = 10;
+    // 최근 출원에는 상표명이 빈 행(국제상표 등)이 많아 여유 있게 받는다
+    private static final int FETCH_ROWS = 20;
     private static final long CALL_INTERVAL_MS = 300;
     private static final String BASE =
             "https://plus.kipris.or.kr/kipo-api/kipi/trademarkInfoSearchService/getAdvancedSearch";
 
+    // 고급검색은 상표 유형/구분/상태 플래그가 전부 필수다(빠지면 resultCode 10, 실호출 확인). 전체를 켠다.
+    private static final String SEARCH_FLAGS =
+            "&trademark=true&serviceMark=true&trademarkServiceMark=true&businessEmblem=true"
+                    + "&collectiveMark=true&geoOrgMark=true&certMark=true&geoCertMark=true&internationalMark=true"
+                    + "&character=true&figure=true&compositionCharacter=true&figureComposition=true"
+                    + "&sound=true&color=true&dimension=true&hologram=true&motion=true&visual=true&invisible=true"
+                    + "&application=true&registration=true&refused=true&expiration=true&withdrawal=true"
+                    + "&publication=true&cancel=true&abandonment=true";
+
     // 업종명 정제만으로는 지정상품 검색어가 어색한 업종의 예외 (뉴스 배치의 키워드 정제와 같은 취지)
-    // 일반의원/한의원은 접미사 정제가 '일반'/'한' 같은 범용어를 만들어 따로 잡는다.
+    // 일반의원/한의원은 접미사 정제가 '일반'/'한' 같은 범용어를 만들어 따로 잡고,
+    // 분식은 지정상품 명칭으로는 2013년 이후 출원이 안 잡혀 떡볶이로 대체한다(실호출 확인).
     private static final Map<String, String> KEYWORD_OVERRIDE = Map.of(
             "CS100007", "치킨",
-            "CS100008", "분식",
+            "CS100008", "떡볶이",
             "CS100009", "주점",
             "CS100010", "커피",
             "CS200006", "병원",
@@ -138,13 +148,12 @@ public class IndustryTrademarkBatchService {
                 .trim();
     }
 
-    // 최신 출원순으로 상표를 검색한다. 상태 플래그는 전부 켜 출원/등록/거절 등을 모두 받는다.
+    // 지정상품 기준 최신 출원순 검색. 정렬은 sortSpec=AD만 동작한다(applicationDate는 무시됨, 실호출 확인).
     private List<Element> fetchItems(String keyword) {
         String url = BASE + "?ServiceKey=" + enc(kiprisKey)
                 + "&asignProduct=" + enc(keyword)
-                + "&application=true&registration=true&refused=true&expiration=true"
-                + "&withdrawal=true&publication=true&cancel=true&abandonment=true"
-                + "&sortSpec=applicationDate&descSort=true"
+                + SEARCH_FLAGS
+                + "&sortSpec=AD&descSort=true"
                 + "&pageNo=1&numOfRows=" + FETCH_ROWS;
         Document doc = parseXml(getBytes(url));
         // 파싱 불가(점검 페이지 등)나 헤더 없는 응답은 원천 장애라 업종마다 반복된다.

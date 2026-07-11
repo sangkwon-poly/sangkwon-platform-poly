@@ -55,9 +55,13 @@ class IndustryTrademarkBatchServiceTest {
 
     private static String searchUrl(String keyword) {
         return BASE + "?ServiceKey=test-key&asignProduct=" + URLEncoder.encode(keyword, StandardCharsets.UTF_8)
-                + "&application=true&registration=true&refused=true&expiration=true"
-                + "&withdrawal=true&publication=true&cancel=true&abandonment=true"
-                + "&sortSpec=applicationDate&descSort=true&pageNo=1&numOfRows=10";
+                + "&trademark=true&serviceMark=true&trademarkServiceMark=true&businessEmblem=true"
+                + "&collectiveMark=true&geoOrgMark=true&certMark=true&geoCertMark=true&internationalMark=true"
+                + "&character=true&figure=true&compositionCharacter=true&figureComposition=true"
+                + "&sound=true&color=true&dimension=true&hologram=true&motion=true&visual=true&invisible=true"
+                + "&application=true&registration=true&refused=true&expiration=true&withdrawal=true"
+                + "&publication=true&cancel=true&abandonment=true"
+                + "&sortSpec=AD&descSort=true&pageNo=1&numOfRows=20";
     }
 
     private static String item(String applNo, String title, String applicant, String date, String status) {
