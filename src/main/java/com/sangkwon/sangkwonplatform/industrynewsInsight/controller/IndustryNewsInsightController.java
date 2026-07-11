@@ -4,6 +4,7 @@ import com.sangkwon.sangkwonplatform.global.common.ApiResponse;
 import com.sangkwon.sangkwonplatform.industrynewsInsight.dto.response.IndustryNewsInsightResponse;
 import com.sangkwon.sangkwonplatform.industrynewsInsight.service.IndustryNewsInsightService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,10 +19,11 @@ public class IndustryNewsInsightController {
 
     @GetMapping("/latest")
     public ApiResponse<IndustryNewsInsightResponse> getLatestInsight(
+            @AuthenticationPrincipal Long memberId,
             @RequestParam String indutyCd
     ) {
         return ApiResponse.ok(
-                industryNewsInsightService.getLatestInsight(indutyCd)
+                industryNewsInsightService.getLatestInsight(memberId, indutyCd)
         );
     }
 }
