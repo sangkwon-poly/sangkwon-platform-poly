@@ -18,8 +18,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,6 +43,8 @@ class AdminUserServiceTest {
     AdminLoginAttemptService loginAttemptService;
     @Mock
     TrustedDeviceService trustedDeviceService;
+    @Mock
+    AdminLoginRateLimiter rateLimiter;
 
     @InjectMocks
     AdminUserService adminUserService;
@@ -65,7 +69,7 @@ class AdminUserServiceTest {
         when(adminUserRepository.findByLoginIdForUpdate("admin")).thenReturn(Optional.of(activeAdmin()));
         when(passwordEncoder.matches("pw", "hash")).thenReturn(true);
 
-        AdminSession session = adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), null);
+        AdminSession session = adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), null, "1.1.1.1");
 
         assertThat(session.loginId()).isEqualTo("admin");
         verify(loginAttemptService, never()).recordFailure(any());
@@ -76,7 +80,7 @@ class AdminUserServiceTest {
         when(adminUserRepository.findByLoginIdForUpdate("admin")).thenReturn(Optional.of(activeAdmin()));
         when(passwordEncoder.matches("wrong", "hash")).thenReturn(false);
 
-        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "wrong", null, false), null))
+        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "wrong", null, false), null, "1.1.1.1"))
                 .isInstanceOf(ResponseStatusException.class)
                 .satisfies(e -> assertThat(status(e)).isEqualTo(401));
         verify(loginAttemptService).recordFailure(any());
@@ -86,7 +90,7 @@ class AdminUserServiceTest {
     void 존재하지_않는_아이디도_같은_401_메시지로_응답하고_실패기록은_없다() {
         when(adminUserRepository.findByLoginIdForUpdate("nope")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("nope", "pw", null, false), null))
+        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("nope", "pw", null, false), null, "1.1.1.1"))
                 .isInstanceOf(ResponseStatusException.class)
                 .satisfies(e -> assertThat(status(e)).isEqualTo(401));
         verify(loginAttemptService, never()).recordFailure(any());
@@ -98,7 +102,43 @@ class AdminUserServiceTest {
         locked.updateStatus(AdminStatus.LOCKED);
         when(adminUserRepository.findByLoginIdForUpdate("admin")).thenReturn(Optional.of(locked));
 
-        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), null))
+        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), null, "1.1.1.1"))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(status(e)).isEqualTo(403));
+    }
+
+    @Test
+    void IP가_레이트리밋에_걸리면_계정_조회_없이_429로_거절한다() {
+        when(rateLimiter.isBlocked("9.9.9.9")).thenReturn(true);
+
+        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), null, "9.9.9.9"))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(status(e)).isEqualTo(429));
+        verify(adminUserRepository, never()).findByLoginIdForUpdate(any());
+    }
+
+    @Test
+    void 쿨다운이_지난_자동잠금은_자동_해제되고_로그인이_진행된다() {
+        AdminUser locked = activeAdmin();
+        locked.lockForFailedLogin();
+        // 자동 잠금 시각을 쿨다운(15분) 이전으로 되돌려 자동 해제 대상으로 만든다
+        ReflectionTestUtils.setField(locked, "lockedAt", LocalDateTime.now().minusMinutes(20));
+        when(adminUserRepository.findByLoginIdForUpdate("admin")).thenReturn(Optional.of(locked));
+        when(passwordEncoder.matches("pw", "hash")).thenReturn(true);
+
+        AdminSession session = adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), null, "1.1.1.1");
+
+        assertThat(session.loginId()).isEqualTo("admin");
+        assertThat(locked.getStatus()).isEqualTo(AdminStatus.ACTIVE);
+    }
+
+    @Test
+    void 쿨다운이_지나지_않은_자동잠금은_여전히_403이다() {
+        AdminUser locked = activeAdmin();
+        locked.lockForFailedLogin(); // 방금 자동 잠금(lockedAt=now)
+        when(adminUserRepository.findByLoginIdForUpdate("admin")).thenReturn(Optional.of(locked));
+
+        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), null, "1.1.1.1"))
                 .isInstanceOf(ResponseStatusException.class)
                 .satisfies(e -> assertThat(status(e)).isEqualTo(403));
     }
@@ -108,7 +148,7 @@ class AdminUserServiceTest {
         when(adminUserRepository.findByLoginIdForUpdate("admin")).thenReturn(Optional.of(otpAdmin()));
         when(passwordEncoder.matches("pw", "hash")).thenReturn(true);
 
-        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), null))
+        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), null, "1.1.1.1"))
                 .isInstanceOf(OtpRequiredException.class);
     }
 
@@ -118,7 +158,7 @@ class AdminUserServiceTest {
         when(passwordEncoder.matches("pw", "hash")).thenReturn(true);
         when(trustedDeviceService.verify(any(), any())).thenReturn(true);
 
-        AdminSession session = adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), "trusted-token");
+        AdminSession session = adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), "trusted-token", "1.1.1.1");
 
         assertThat(session.loginId()).isEqualTo("admin");
     }
@@ -152,7 +192,7 @@ class AdminUserServiceTest {
     void 존재하지_않는_아이디도_더미해시_비교로_응답_시간을_맞춘다() {
         when(adminUserRepository.findByLoginIdForUpdate("nope")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("nope", "pw", null, false), null))
+        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("nope", "pw", null, false), null, "1.1.1.1"))
                 .isInstanceOf(ResponseStatusException.class)
                 .satisfies(e -> assertThat(status(e)).isEqualTo(401));
         // 계정이 없어도 비밀번호 비교(더미 해시)를 수행해 타이밍 차이를 없앤다

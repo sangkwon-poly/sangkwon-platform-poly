@@ -3,6 +3,7 @@ package com.sangkwon.sangkwonplatform.admin.account.controller;
 import com.sangkwon.sangkwonplatform.admin.account.dto.request.AdminLoginRequest;
 import com.sangkwon.sangkwonplatform.admin.account.dto.session.AdminSession;
 import com.sangkwon.sangkwonplatform.admin.account.otp.OtpRequiredException;
+import com.sangkwon.sangkwonplatform.admin.account.security.ClientIpResolver;
 import com.sangkwon.sangkwonplatform.admin.account.security.TrustedDeviceService;
 import com.sangkwon.sangkwonplatform.admin.account.service.AdminUserService;
 import com.sangkwon.sangkwonplatform.admin.account.session.LoginAdmin;
@@ -32,13 +33,14 @@ public class AdminAuthController {
     private final AdminUserService adminUserService;
     private final AdminAuditService auditService;
     private final TrustedDeviceService trustedDeviceService;
+    private final ClientIpResolver clientIpResolver;
 
     @PostMapping("/login")
     public ApiResponse<AdminSession> login(@Valid @RequestBody AdminLoginRequest request,
                                            HttpServletRequest httpRequest,
                                            HttpServletResponse httpResponse) {
         String trustToken = readTrustToken(httpRequest);
-        AdminSession adminSession = adminUserService.login(request, trustToken);
+        AdminSession adminSession = adminUserService.login(request, trustToken, clientIpResolver.resolve(httpRequest));
 
         // 세션 고정 방지: 로그인 성공 시 세션 ID를 회전시킨 뒤 인증 정보를 담는다
         httpRequest.getSession(true);

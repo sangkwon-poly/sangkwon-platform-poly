@@ -42,6 +42,10 @@ public class AdminUser {
     @Column(name="failed_login_cnt", nullable = false)
     private int failedLoginCnt = 0;
 
+    // 연속 실패로 자동 잠긴 시각(쿨다운 자동 해제 판정용). 관리자 수동 잠금은 null이라 자동 해제 대상이 아니다.
+    @Column(name = "locked_at")
+    private LocalDateTime lockedAt;
+
     // 비밀번호가 바뀔 때마다 증가한다. 세션에 담아두고 요청마다 비교해, 비번 변경/재설정 시 기존 세션을 무효화한다.
     @Column(name = "PW_VERSION", nullable = false)
     private int pwVersion = 0;
@@ -106,6 +110,8 @@ public class AdminUser {
     public void updateStatus(AdminStatus status) {
         if (status != null) {
             this.status = status;
+            // 관리자 수동 상태 변경은 자동 잠금 마커를 지운다(수동 잠금은 자동 해제 대상이 아니다)
+            this.lockedAt = null;
             // 잠금 해제(활성 전환) 시 실패 카운트를 초기화해 즉시 재잠금되지 않도록 한다
             if (status == AdminStatus.ACTIVE) {
                 this.failedLoginCnt = 0;
@@ -115,6 +121,26 @@ public class AdminUser {
 
     public void increaseFailedLoginCnt() {
         this.failedLoginCnt++;
+    }
+
+    // 로그인 연속 실패에 의한 자동 잠금. 쿨다운 자동 해제 대상이 되도록 잠금 시각을 남긴다.
+    public void lockForFailedLogin() {
+        this.status = AdminStatus.LOCKED;
+        this.lockedAt = LocalDateTime.now();
+    }
+
+    // 자동 잠금 해제: 활성 복귀 + 실패 카운트/잠금 시각 초기화.
+    public void unlock() {
+        this.status = AdminStatus.ACTIVE;
+        this.failedLoginCnt = 0;
+        this.lockedAt = null;
+    }
+
+    // 자동 잠금이 쿨다운을 지났는지. 관리자 수동 잠금(lockedAt 없음)은 자동 해제 대상이 아니다.
+    public boolean isAutoUnlockable(java.time.Duration cooldown) {
+        return this.status == AdminStatus.LOCKED
+                && this.lockedAt != null
+                && this.lockedAt.plus(cooldown).isBefore(LocalDateTime.now());
     }
 
     public void loginSuccess() {

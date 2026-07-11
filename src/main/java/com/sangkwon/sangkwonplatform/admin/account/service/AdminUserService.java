@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Duration;
 import java.util.List;
 
 @Service
@@ -26,11 +27,14 @@ import java.util.List;
 public class AdminUserService {
 
     private static final String OTP_ISSUER = "여기콕 ADMIN";
+    // 자동 잠금 쿨다운. 경과하면 다음 로그인 시 자동 해제해 계정 잠금 DoS를 완화한다.
+    private static final Duration LOCK_COOLDOWN = Duration.ofMinutes(15);
 
     private final AdminUserRepository adminUserRepository;
     private final PasswordEncoder passwordEncoder;
     private final AdminLoginAttemptService loginAttemptService;
     private final TrustedDeviceService trustedDeviceService;
+    private final AdminLoginRateLimiter rateLimiter;
 
     // 존재하지 않는 아이디의 응답 시간을 실제 계정과 맞추기 위한 더미 해시(아이디 열거 방지).
     // 실제 인코더로 한 번만 만들어 재사용한다.
@@ -68,19 +72,31 @@ public class AdminUserService {
     // 실패 카운트/OTP 소비는 이 트랜잭션에서 확정한다. 자격 실패 예외로는 롤백하지 않아(noRollbackFor)
     // 행 락을 쥔 채 별도 트랜잭션(REQUIRES_NEW)으로 같은 행을 갱신하다 생기던 자기 교착을 피한다.
     @Transactional(noRollbackFor = {ResponseStatusException.class, OtpRequiredException.class})
-    public AdminSession login(AdminLoginRequest request, String trustToken) {
+    public AdminSession login(AdminLoginRequest request, String trustToken, String clientIp) {
+        // 접속 IP 기준 레이트리밋: 계정 단위 잠금이 못 막는 password-spraying을 완화한다(임계 초과 시 429)
+        if (rateLimiter.isBlocked(clientIp)) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.");
+        }
+
         // 행 잠금으로 조회해 같은 계정의 동시 로그인을 직렬화한다(OTP 리플레이 방지)
         AdminUser adminUser = adminUserRepository.findByLoginIdForUpdate(request.loginId())
                 .orElse(null);
         if (adminUser == null) {
             // 계정이 없어도 실제 계정과 비슷한 시간(더미 해시 비교)을 쓰게 해 아이디 열거를 막는다
             passwordEncoder.matches(request.password(), dummyHash());
+            rateLimiter.recordFailure(clientIp); // 없는 계정 시도(스프레잉)도 IP 카운트에 넣는다
             throw invalidCredentials();
         }
 
         if (adminUser.getStatus() == AdminStatus.LOCKED) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "로그인 실패가 반복되어 계정이 잠겼습니다. 관리자에게 문의하세요.");
+            // 쿨다운이 지난 자동 잠금은 여기서 자동 해제하고 인증을 계속한다(잠금 DoS 완화). 수동 잠금은 대상 아님.
+            if (adminUser.isAutoUnlockable(LOCK_COOLDOWN)) {
+                adminUser.unlock();
+            } else {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "로그인 실패가 반복되어 계정이 잠겼습니다. 잠시 후 다시 시도하거나 관리자에게 문의하세요.");
+            }
         }
         if (adminUser.getStatus() == AdminStatus.DISABLED) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "비활성화된 관리자 계정입니다.");
@@ -92,6 +108,7 @@ public class AdminUserService {
         if (!passwordEncoder.matches(request.password(), adminUser.getPasswordHash())) {
             // 실패 카운트는 이 트랜잭션에서 올리고 커밋한다(noRollbackFor로 자격 실패에도 유지)
             loginAttemptService.recordFailure(adminUser.getAdminId());
+            rateLimiter.recordFailure(clientIp);
             throw invalidCredentials();
         }
 
@@ -105,11 +122,14 @@ public class AdminUserService {
             long step = Totp.matchedStep(adminUser.getOtpSecret(), otp);
             if (step == Long.MIN_VALUE || !adminUser.consumeOtpStep(step)) {
                 loginAttemptService.recordFailure(adminUser.getAdminId());
+                rateLimiter.recordFailure(clientIp);
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "OTP 인증코드가 올바르지 않습니다.");
             }
         }
 
         adminUser.loginSuccess();
+        // 성공해도 IP 실패 카운터를 리셋하지 않는다: 유효한 저권한 자격으로 로그인을 끼워넣어
+        // 카운터를 지우고 스프레잉을 이어가는 우회를 막는다. 정상 실패는 슬라이딩 윈도로 자연히 만료된다.
         return AdminSession.from(adminUser);
     }
 
