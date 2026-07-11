@@ -24,8 +24,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 유료 Gemini 호출을 트리거하는 리포트 생성은 로그인 회원만(비용 남용·예산 소진 방지)
                         .requestMatchers(HttpMethod.POST, "/api/llm-reports/**").authenticated()
-                        // 업종·상권 동향은 Pro 전용(여기선 로그인만 요구, Pro 판정은 서비스에서 402)
-                        .requestMatchers(HttpMethod.GET, "/api/industry-news-insights/**").authenticated()
+                        // 업종·상권 동향은 Pro 전용(여기선 로그인만 요구, Pro 판정은 서비스에서 402).
+                        // 메서드를 한정하면 HEAD가 매처를 비껴가 익명으로 핸들러에 도달하므로 전 메서드에 건다.
+                        .requestMatchers("/api/industry-news-insights/**", "/api/franchise-brand-stats/**").authenticated()
                         .anyRequest().permitAll()
                 );
         return http.build();

@@ -232,6 +232,62 @@ body {
     gap: 12px;
 }
 
+/* 주요 프랜차이즈: 왼쪽 브랜드/법인, 오른쪽 가맹점수/평균매출 */
+.franchise-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid #f0e6e0;
+}
+
+.franchise-list li {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f0e6e0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.franchise-list strong {
+    display: block;
+    font-size: 13px;
+    color: #332b27;
+    margin-bottom: 7px;
+}
+
+.franchise-list p {
+    margin: 0;
+    font-size: 12px;
+    color: #9a8c84;
+    line-height: 1.45;
+}
+
+.franchise-nums {
+    flex: 0 0 auto;
+    text-align: right;
+}
+
+.franchise-nums span {
+    display: block;
+    font-size: 12px;
+    font-weight: 800;
+    color: #332b27;
+}
+
+.franchise-nums small {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    color: #b8aaa2;
+}
+
+.franchise-list .franchise-empty {
+    justify-content: center;
+    color: #9a8c84;
+    font-size: 13px;
+}
+
 .badge {
     font-style: normal;
     font-size: 10px;

@@ -387,6 +387,32 @@ CREATE TABLE FRANCHISE_DISCLOSURE (
 COMMENT ON TABLE FRANCHISE_DISCLOSURE IS '정보공개서 목록 (공정위). 본문은 저장 안 함(실시간 API 조회)';
 CREATE INDEX IX_FDISC_BRAND ON FRANCHISE_DISCLOSURE (BRAND_NM);
 
+-- 업종별 주요 프랜차이즈 (브랜드 단위 가맹점수/평균매출)
+CREATE TABLE FRANCHISE_BRAND_STAT (
+                                      STAT_ID          NUMBER(12,0) GENERATED ALWAYS AS IDENTITY,
+                                      INDUTY_CD        VARCHAR2(20 CHAR)  NOT NULL,
+                                      BASE_YEAR        NUMBER(4,0)        NOT NULL,
+                                      BRAND_NM         VARCHAR2(300 CHAR) NOT NULL,
+                                      CORP_NM          VARCHAR2(300 CHAR),
+                                      FTC_INDUTY_NM    VARCHAR2(200 CHAR),
+                                      FRCS_CNT         NUMBER(10,0)       NOT NULL,
+                                      AVG_SALES_AMT    NUMBER(15,0),
+                                      NEW_FRCS_RGS_CNT NUMBER(10,0),
+                                      CTRT_END_CNT     NUMBER(10,0),
+                                      CTRT_CNCLTN_CNT  NUMBER(10,0),
+                                      NM_CHG_CNT       NUMBER(10,0),
+                                      CREATED_AT       TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
+                                      UPDATED_AT       TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
+                                      CONSTRAINT PK_FRANCHISE_BRAND_STAT PRIMARY KEY (STAT_ID),
+                                      CONSTRAINT UK_FBSTAT UNIQUE (INDUTY_CD, BASE_YEAR, BRAND_NM),
+                                      CONSTRAINT CK_FBSTAT_YEAR CHECK (BASE_YEAR BETWEEN 2000 AND 2100),
+                                      CONSTRAINT CK_FBSTAT_CNT  CHECK (FRCS_CNT >= 0)
+);
+COMMENT ON TABLE  FRANCHISE_BRAND_STAT               IS '업종별 주요 프랜차이즈 (공정위 브랜드별 가맹점 현황). 서울 업종코드당 가맹점수 상위 5개만 저장';
+COMMENT ON COLUMN FRANCHISE_BRAND_STAT.INDUTY_CD     IS '서울 상권 업종코드 (적재 시 공정위 중분류를 매핑)';
+COMMENT ON COLUMN FRANCHISE_BRAND_STAT.FTC_INDUTY_NM IS '공정위 원본 업종 중분류명 (매핑 검증용)';
+COMMENT ON COLUMN FRANCHISE_BRAND_STAT.AVG_SALES_AMT IS '가맹점 평균매출액 (천원, 정보공개서 기준)';
+
 -- 창업지원 사업: SUPPORT_PROGRAM (공통 마스터)
 CREATE TABLE SUPPORT_PROGRAM (
                                  PROGRAM_ID       VARCHAR2(50 CHAR)   NOT NULL,

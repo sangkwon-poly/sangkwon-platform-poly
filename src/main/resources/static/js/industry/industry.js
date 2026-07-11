@@ -64,14 +64,19 @@ function initTrends() {
     const summaryText = document.getElementById("summaryText");
     const opportunityText = document.getElementById("opportunityText");
     const warningText = document.getElementById("warningText");
-    const insightMeta = document.getElementById("insightMeta");
     const updateTime = document.getElementById("updateTime");
+    const franchiseChip = document.getElementById("franchiseChip");
+    const franchiseList = document.getElementById("franchiseList");
 
     if (!industrySelect) return;
 
     loadInsight();
+    loadFranchise();
 
-    industrySelect.addEventListener("change", loadInsight);
+    industrySelect.addEventListener("change", () => {
+        loadInsight();
+        loadFranchise();
+    });
 
     async function loadInsight() {
         const indutyCd = industrySelect.value;
@@ -89,6 +94,11 @@ function initTrends() {
             const json = await res.json();
             const data = json.data ?? json;
 
+            // 응답 대기 중 업종이 바뀌었으면 늦게 온 이전 업종 응답은 버린다
+            if (industrySelect.value !== indutyCd) {
+                return;
+            }
+
             const parsed = parseInsightText(data.insightText);
 
             insightChip.textContent = `${data.indutyNm ?? indutyNm} · ${data.yearMonth ?? "최신"}`;
@@ -102,6 +112,9 @@ function initTrends() {
         } catch (e) {
             console.error("인사이트 조회 실패:", e);
 
+            if (industrySelect.value !== indutyCd) {
+                return;
+            }
             insightChip.textContent = `${indutyNm} · 조회 실패`;
             summaryText.textContent = "인사이트를 불러오지 못했습니다.";
             opportunityText.textContent = "-";
@@ -115,6 +128,73 @@ function initTrends() {
         summaryText.textContent = "업황 요약을 불러오고 있습니다.";
         opportunityText.textContent = "기회 요인을 불러오고 있습니다.";
         warningText.textContent = "주의 요인을 불러오고 있습니다.";
+    }
+
+    // 주요 프랜차이즈 카드: 선택 업종의 가맹점수 상위 브랜드 (공정위 브랜드별 가맹점 현황)
+    async function loadFranchise() {
+        const indutyCd = industrySelect.value;
+        const indutyNm = industrySelect.selectedOptions[0].textContent;
+
+        franchiseChip.textContent = `${indutyNm} · 불러오는 중`;
+        franchiseList.innerHTML = '<li class="franchise-empty">가맹점 현황을 불러오고 있습니다.</li>';
+
+        try {
+            const res = await fetch(`/api/franchise-brand-stats?indutyCd=${encodeURIComponent(indutyCd)}`);
+
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}`);
+            }
+
+            const json = await res.json();
+            const rows = json.data ?? [];
+
+            // 응답 대기 중 업종이 바뀌었으면 늦게 온 이전 업종 응답은 버린다
+            if (industrySelect.value !== indutyCd) {
+                return;
+            }
+
+            if (!rows.length) {
+                franchiseChip.textContent = `${indutyNm} · 데이터 없음`;
+                franchiseList.innerHTML = '<li class="franchise-empty">이 업종은 집계된 프랜차이즈가 없습니다.</li>';
+                return;
+            }
+
+            franchiseChip.textContent = `${indutyNm} · ${rows[0].baseYear}년 기준 상위 ${rows.length}개`;
+            franchiseList.innerHTML = rows.map((r) =>
+                "<li><div><strong>" + esc(r.brandNm) + "</strong><p>" + esc(r.corpNm ?? "-") + "</p></div>" +
+                '<div class="franchise-nums"><span>가맹점 ' + Number(r.frcsCnt).toLocaleString() + "개</span>" +
+                "<small>" + fmtAvgSales(r.avgSalesAmt) + "</small></div></li>").join("");
+
+        } catch (e) {
+            console.error("주요 프랜차이즈 조회 실패:", e);
+
+            if (industrySelect.value !== indutyCd) {
+                return;
+            }
+            franchiseChip.textContent = `${indutyNm} · 조회 실패`;
+            franchiseList.innerHTML = '<li class="franchise-empty">가맹점 현황을 불러오지 못했습니다.</li>';
+        }
+    }
+
+    // 평균매출은 천원 단위(정보공개서 기준)로 온다
+    function fmtAvgSales(thousandWon) {
+        if (thousandWon == null) {
+            return "평균매출 -";
+        }
+        const eok = thousandWon / 100000;
+        if (eok >= 10) {
+            return "평균매출 " + Math.round(eok).toLocaleString() + "억 원";
+        }
+        if (eok >= 1) {
+            return "평균매출 " + eok.toFixed(1) + "억 원";
+        }
+        return "평균매출 " + Math.round(thousandWon / 10).toLocaleString() + "만 원";
+    }
+
+    function esc(s) {
+        const d = document.createElement("div");
+        d.textContent = s == null ? "" : String(s);
+        return d.innerHTML;
     }
 
     function parseInsightText(text) {
