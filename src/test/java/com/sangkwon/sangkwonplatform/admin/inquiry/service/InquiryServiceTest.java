@@ -22,11 +22,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -155,7 +157,7 @@ class InquiryServiceTest {
     }
 
     @Test
-    @DisplayName("내 상세: 미확인 답변을 열람하면 확인 처리되어 미확인이 해제된다")
+    @DisplayName("내 상세: 미확인 답변을 열람하면 멱등 벌크 업데이트로 확인 처리한다(동시 첫 열람 409 방지)")
     void getMyDetail_marksAnswerRead() {
         Inquiry inquiry = openInquiry();
         inquiry.setMember(member(5L));
@@ -165,8 +167,21 @@ class InquiryServiceTest {
 
         inquiryService.getMyDetail(5L, 1L);
 
-        assertThat(inquiry.getAnswerReadAt()).isNotNull();
-        assertThat(inquiry.isAnswerUnread()).isFalse();
+        // 엔티티를 수정하지 않고(=@Version 안 올림) DB에서 직접 확인 처리 → 동시 첫 열람에도 409가 안 난다
+        verify(inquiryRepository).markAnswerReadIfUnread(eq(1L), any(LocalDateTime.class));
+    }
+
+    @Test
+    @DisplayName("답변: 종료(CLOSED)된 문의는 답변할 수 없다 → 409")
+    void answer_closed() {
+        Inquiry inquiry = openInquiry();
+        inquiry.close(); // CLOSED
+        when(inquiryRepository.findById(1L)).thenReturn(Optional.of(inquiry));
+
+        assertThatThrownBy(() -> inquiryService.answer(7L, 1L, new InquiryAnswerRequest("답변")))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(t -> assertThat(statusOf(t)).isEqualTo(HttpStatus.CONFLICT));
+        assertThat(inquiry.getStatus()).isEqualTo(InquiryStatus.CLOSED); // 상태 불변
     }
 
     @Test

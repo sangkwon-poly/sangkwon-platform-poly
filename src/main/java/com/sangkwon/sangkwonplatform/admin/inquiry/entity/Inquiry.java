@@ -65,13 +65,6 @@ public class Inquiry extends BaseEntity {
         this.status = InquiryStatus.ANSWERED;
     }
 
-    // 회원이 답변을 처음 열람하면 확인 시각을 남겨 미확인 알림을 해제한다.
-    public void markAnswerRead() {
-        if (this.status == InquiryStatus.ANSWERED && this.answerReadAt == null) {
-            this.answerReadAt = LocalDateTime.now();
-        }
-    }
-
     // 회원이 아직 확인하지 않은 답변인가(새 답변 알림 대상).
     public boolean isAnswerUnread() {
         return this.status == InquiryStatus.ANSWERED && this.answerReadAt == null;
