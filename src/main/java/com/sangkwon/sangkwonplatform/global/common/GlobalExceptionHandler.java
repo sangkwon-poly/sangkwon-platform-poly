@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.global.common;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -64,6 +65,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleDataIntegrity(DataIntegrityViolationException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ApiResponse.error("CONFLICT", "이미 존재하거나 제약에 맞지 않는 값입니다."));
+    }
+
+    // 낙관적 락 충돌(동시 수정) -> 409. 문의 동시 답변 등에서 뒤진 저장이 덮어쓰지 않고 실패한다.
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ApiResponse<Void>> handleOptimisticLock(OptimisticLockingFailureException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error("CONFLICT", "다른 관리자가 먼저 처리했습니다. 새로고침 후 다시 시도해 주세요."));
     }
 
     // 위에서 잡지 못한 런타임 예외(진짜 서버 오류)는 스택트레이스를 로그로 남기고 일반 500을 봉투로 내린다.

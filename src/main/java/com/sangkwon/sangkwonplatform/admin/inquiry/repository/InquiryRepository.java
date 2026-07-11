@@ -27,4 +27,7 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
 
     // 관리자 회원 상세: 특정 회원의 문의 이력(최신순)
     List<Inquiry> findByMemberMemberIdOrderByCreatedAtDesc(Long memberId);
+
+    // 회원의 미확인 답변 수: 답변 완료됐지만 아직 열람하지 않은 문의(새 답변 알림 배지용)
+    long countByMemberMemberIdAndStatusAndAnswerReadAtIsNull(Long memberId, InquiryStatus status);
 }

@@ -43,6 +43,15 @@ public class InquiryUserController {
         return ApiResponse.ok(InquiryUserPageResponse.from(inquiryService.getMyList(memberId, pageable)));
     }
 
+    // 미확인 답변 수(새 답변 알림 배지). 비로그인은 0으로 답해 화면이 조용히 넘어가게 한다.
+    @GetMapping("/unread-count")
+    public ApiResponse<Long> unreadCount(@AuthenticationPrincipal Long memberId) {
+        if (memberId == null) {
+            return ApiResponse.ok(0L);
+        }
+        return ApiResponse.ok(inquiryService.getUnreadAnswerCount(memberId));
+    }
+
     @GetMapping("/{inquiryId}")
     public ApiResponse<InquiryUserAnswerResponse> myDetail(@AuthenticationPrincipal Long memberId,
                                                            @PathVariable Long inquiryId) {

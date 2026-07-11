@@ -46,10 +46,13 @@
   function itemHtml(q) {
     const esc = MemberUI.escapeHtml;
     const s = STATUS[q.status] || { label: q.status, badge: 'badge--muted' };
+    // 아직 확인하지 않은 새 답변이면 NEW 배지로 알린다. 답변을 펼쳐 보면 서버에서 확인 처리된다.
+    const isNew = q.unreadAnswer === true;
     return '' +
-      '<div class="iq-row" data-id="' + esc(q.inquiryId) + '">' +
+      '<div class="iq-row' + (isNew ? ' iq-row--new' : '') + '" data-id="' + esc(q.inquiryId) + '">' +
         '<button type="button" class="iq-row__head" aria-expanded="false">' +
           '<span class="badge ' + s.badge + '">' + esc(s.label) + '</span>' +
+          (isNew ? '<span class="iq-new" aria-label="새 답변">NEW</span>' : '') +
           '<span class="iq-row__title">' + esc(q.title) + '</span>' +
           '<span class="iq-row__date text-muted">' + esc(MemberUI.formatDate(q.createdAt)) + '</span>' +
           '<span class="iq-row__arrow" aria-hidden="true"></span>' +
@@ -85,6 +88,10 @@
         .then(function (q) {
           body.dataset.loaded = '1';
           body.innerHTML = detailHtml(q);
+          // 답변을 열람했으니 NEW 표시를 제거한다(서버에서도 확인 처리됨)
+          row.classList.remove('iq-row--new');
+          const badge = row.querySelector('.iq-new');
+          if (badge) { badge.remove(); }
         })
         .catch(function (err) {
           MemberUI.handleError(err, '문의 내용을 불러오지 못했습니다.');
