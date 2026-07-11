@@ -1,11 +1,14 @@
 package com.sangkwon.sangkwonplatform.admin.member.service;
 
+import com.sangkwon.sangkwonplatform.admin.inquiry.repository.InquiryRepository;
+import com.sangkwon.sangkwonplatform.admin.member.dto.response.AdminMemberDetailResponse;
 import com.sangkwon.sangkwonplatform.admin.member.dto.response.AdminMemberResponse;
 import com.sangkwon.sangkwonplatform.admin.member.dto.response.MemberCountsResponse;
 import com.sangkwon.sangkwonplatform.global.security.MemberSessionRegistry;
 import com.sangkwon.sangkwonplatform.member.entity.Member;
 import com.sangkwon.sangkwonplatform.member.entity.MemberStatus;
 import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
+import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,6 +28,8 @@ public class AdminMemberService {
 
     private final MemberRepository memberRepository;
     private final MemberSessionRegistry memberSessionRegistry;
+    private final PaymentOrderRepository paymentOrderRepository;
+    private final InquiryRepository inquiryRepository;
 
     @Transactional(readOnly = true)
     public Page<AdminMemberResponse> getMembers(String keyword, MemberStatus status, Pageable pageable) {
@@ -33,6 +38,15 @@ public class AdminMemberService {
     }
 
     // 상태 필터 칩에 표시할 상태별 회원 수. group by 한 번으로 집계하고, 행이 없는 상태는 0으로 채운다.
+    // 회원 상세: 기본정보 + 결제 이력 + 문의 이력. CS(환불·문의 확인)를 한 화면에서 처리하도록 묶는다.
+    @Transactional(readOnly = true)
+    public AdminMemberDetailResponse getDetail(Long memberId) {
+        Member member = find(memberId);
+        return AdminMemberDetailResponse.from(member,
+                paymentOrderRepository.findByMemberIdOrderByCreatedAtDesc(memberId),
+                inquiryRepository.findByMemberMemberIdOrderByCreatedAtDesc(memberId));
+    }
+
     @Transactional(readOnly = true)
     public MemberCountsResponse getCounts() {
         Map<MemberStatus, Long> byStatus = new EnumMap<>(MemberStatus.class);

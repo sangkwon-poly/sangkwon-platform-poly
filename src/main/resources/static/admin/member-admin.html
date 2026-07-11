@@ -99,6 +99,28 @@
     </div>
   </div>
 
+  <!-- 회원 상세: 결제·문의 이력 -->
+  <div class="ma-modal" id="ma-modal" hidden>
+    <div class="ma-modal-backdrop" data-close></div>
+    <div class="ma-modal-panel" role="dialog" aria-modal="true" aria-labelledby="ma-modal-title">
+      <div class="ma-modal-head">
+        <h2 class="ma-modal-title" id="ma-modal-title">회원 상세</h2>
+        <button type="button" class="ma-modal-close" data-close aria-label="닫기">&times;</button>
+      </div>
+      <div class="ma-modal-body">
+        <dl class="ma-modal-info" id="ma-modal-info"></dl>
+        <section class="ma-modal-sec">
+          <h3>결제 이력</h3>
+          <div class="ma-modal-tablewrap"><table class="ma-modal-table" id="ma-modal-payments"></table></div>
+        </section>
+        <section class="ma-modal-sec">
+          <h3>문의 이력</h3>
+          <div class="ma-modal-tablewrap"><table class="ma-modal-table" id="ma-modal-inquiries"></table></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
   <script src="/admin/js/admin-shell.js"></script>
   <script src="/admin/js/member-admin.js"></script>
 </body>

@@ -1,11 +1,17 @@
 package com.sangkwon.sangkwonplatform.admin.member.service;
 
+import com.sangkwon.sangkwonplatform.admin.inquiry.entity.Inquiry;
+import com.sangkwon.sangkwonplatform.admin.inquiry.repository.InquiryRepository;
+import com.sangkwon.sangkwonplatform.admin.member.dto.response.AdminMemberDetailResponse;
 import com.sangkwon.sangkwonplatform.admin.member.dto.response.AdminMemberResponse;
 import com.sangkwon.sangkwonplatform.admin.member.dto.response.MemberCountsResponse;
 import com.sangkwon.sangkwonplatform.global.security.MemberSessionRegistry;
+import com.sangkwon.sangkwonplatform.member.entity.BillingCycle;
 import com.sangkwon.sangkwonplatform.member.entity.Member;
 import com.sangkwon.sangkwonplatform.member.entity.MemberStatus;
+import com.sangkwon.sangkwonplatform.member.entity.PaymentOrder;
 import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
+import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,6 +44,8 @@ class AdminMemberServiceTest {
 
     @Mock MemberRepository memberRepository;
     @Mock MemberSessionRegistry memberSessionRegistry;
+    @Mock PaymentOrderRepository paymentOrderRepository;
+    @Mock InquiryRepository inquiryRepository;
     @InjectMocks AdminMemberService adminMemberService;
 
     private Member member() {
@@ -53,6 +61,26 @@ class AdminMemberServiceTest {
             @Override public MemberStatus getStatus() { return status; }
             @Override public long getCnt() { return cnt; }
         };
+    }
+
+    @Test
+    @DisplayName("상세: 회원 + 결제 이력 + 문의 이력을 한 번에 묶어 돌려준다")
+    void getDetail_aggregates() {
+        Member m = member();
+        Inquiry inquiry = new Inquiry();
+        inquiry.setTitle("결제가 안돼요");
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(m));
+        when(paymentOrderRepository.findByMemberIdOrderByCreatedAtDesc(1L)).thenReturn(List.of(
+                PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간")));
+        when(inquiryRepository.findByMemberMemberIdOrderByCreatedAtDesc(1L)).thenReturn(List.of(inquiry));
+
+        AdminMemberDetailResponse res = adminMemberService.getDetail(1L);
+
+        assertThat(res.member().loginId()).isEqualTo("hong");
+        assertThat(res.payments()).singleElement()
+                .satisfies(p -> assertThat(p.amount()).isEqualTo(240_000L));
+        assertThat(res.inquiries()).singleElement()
+                .satisfies(i -> assertThat(i.title()).isEqualTo("결제가 안돼요"));
     }
 
     @Test

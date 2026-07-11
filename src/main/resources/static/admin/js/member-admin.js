@@ -201,7 +201,8 @@
     function rowHtml(m) {
         var s = statusMeta(m.status);
         var badge = '<span class="badge ' + s.badge + '"><span class="dot ' + s.dot + '" aria-hidden="true"></span>' + esc(s.label) + "</span>";
-        var acts = actionsFor(m.status).map(function (a) {
+        var acts = '<button type="button" class="ma-act" data-detail="' + m.memberId + '">상세</button>'
+            + actionsFor(m.status).map(function (a) {
             return '<button type="button" class="ma-act' + (a.danger ? " ma-act-danger" : "") + '" data-id="' + m.memberId + '" data-status="' + a.to + '">' + esc(a.label) + "</button>";
         }).concat(planActionsFor(m).map(function (a) {
             return '<button type="button" class="ma-act' + (a.danger ? " ma-act-danger" : "") + '" data-id="' + m.memberId + '" data-plan="' + a.op + '">' + esc(a.label) + "</button>";
@@ -241,6 +242,9 @@
     }
 
     function wireRows() {
+        Array.prototype.forEach.call(tbody.querySelectorAll(".ma-act[data-detail]"), function (btn) {
+            btn.addEventListener("click", function () { openDetail(Number(btn.getAttribute("data-detail"))); });
+        });
         Array.prototype.forEach.call(tbody.querySelectorAll(".ma-act[data-status]"), function (btn) {
             btn.addEventListener("click", function () {
                 changeStatus(Number(btn.getAttribute("data-id")), btn.getAttribute("data-status"), btn);
@@ -251,6 +255,70 @@
                 changePlan(Number(btn.getAttribute("data-id")), btn.getAttribute("data-plan"), btn);
             });
         });
+    }
+
+    // ── 회원 상세 모달: 결제·문의 이력 ────────────────────
+    var modal = document.getElementById("ma-modal");
+    var PAY_STATUS = { PENDING: "대기", PAID: "완료", FAILED: "실패", CANCELED: "환불" };
+    var INQ_STATUS = { OPEN: "접수", ANSWERED: "답변완료", CLOSED: "종료" };
+
+    function closeDetail() { if (modal) { modal.hidden = true; } }
+
+    function openDetail(id) {
+        if (!modal) { return; }
+        var info = document.getElementById("ma-modal-info");
+        info.innerHTML = '<div class="ma-modal-row"><dt>불러오는 중…</dt><dd></dd></div>';
+        document.getElementById("ma-modal-payments").innerHTML = "";
+        document.getElementById("ma-modal-inquiries").innerHTML = "";
+        modal.hidden = false;
+        api("/api/admin/members/" + id).then(function (r) {
+            if (r.status === 401) { return; }
+            if (!r.ok || !r.body || !r.body.data) {
+                info.innerHTML = '<div class="ma-modal-row"><dt>회원 정보를 불러오지 못했습니다.</dt><dd></dd></div>';
+                return;
+            }
+            renderDetail(r.body.data);
+        }, function () {
+            info.innerHTML = '<div class="ma-modal-row"><dt>회원 정보를 불러오지 못했습니다.</dt><dd></dd></div>';
+        });
+    }
+
+    function infoRow(k, v) { return '<div class="ma-modal-row"><dt>' + esc(k) + "</dt><dd>" + v + "</dd></div>"; }
+
+    function renderDetail(d) {
+        var m = d.member;
+        document.getElementById("ma-modal-title").textContent = (m.nickname || m.loginId) + " 상세";
+        var s = statusMeta(m.status);
+        document.getElementById("ma-modal-info").innerHTML =
+            infoRow("아이디", esc(m.loginId)) +
+            infoRow("이메일", esc(m.email)) +
+            infoRow("상태", '<span class="badge ' + s.badge + '">' + esc(s.label) + "</span>") +
+            infoRow("구독", m.pro ? ("Pro (~" + fmtDate(m.planUntil) + ")") : "무료") +
+            infoRow("가입일", fmtDate(m.createdAt)) +
+            infoRow("최근 로그인", fmtDateTime(m.lastLoginAt));
+
+        var pays = d.payments || [];
+        document.getElementById("ma-modal-payments").innerHTML = pays.length
+            ? ('<thead><tr><th>주문명</th><th>금액</th><th>상태</th><th>신청</th></tr></thead><tbody>'
+                + pays.map(function (p) {
+                    return "<tr><td>" + esc(p.orderName) + '</td><td class="ma-num">₩' + Number(p.amount).toLocaleString()
+                        + "</td><td>" + esc(PAY_STATUS[p.status] || p.status) + "</td><td>" + fmtDate(p.createdAt) + "</td></tr>";
+                }).join("") + "</tbody>")
+            : '<tbody><tr><td class="ma-modal-empty">결제 이력이 없습니다.</td></tr></tbody>';
+
+        var inqs = d.inquiries || [];
+        document.getElementById("ma-modal-inquiries").innerHTML = inqs.length
+            ? ('<thead><tr><th>제목</th><th>상태</th><th>접수</th><th>답변</th></tr></thead><tbody>'
+                + inqs.map(function (i) {
+                    return "<tr><td>" + esc(i.title) + "</td><td>" + esc(INQ_STATUS[i.status] || i.status)
+                        + "</td><td>" + fmtDate(i.createdAt) + "</td><td>" + (i.answeredAt ? fmtDate(i.answeredAt) : "-") + "</td></tr>";
+                }).join("") + "</tbody>")
+            : '<tbody><tr><td class="ma-modal-empty">문의 이력이 없습니다.</td></tr></tbody>';
+    }
+
+    if (modal) {
+        modal.addEventListener("click", function (e) { if (e.target.closest("[data-close]")) { closeDetail(); } });
+        document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modal.hidden) { closeDetail(); } });
     }
 
     function changeStatus(id, status, btn) {
