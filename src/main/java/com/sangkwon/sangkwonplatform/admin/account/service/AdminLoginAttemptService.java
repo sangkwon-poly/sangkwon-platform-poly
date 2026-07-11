@@ -1,6 +1,5 @@
 package com.sangkwon.sangkwonplatform.admin.account.service;
 
-import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminStatus;
 import com.sangkwon.sangkwonplatform.admin.account.repository.AdminUserRepository;
 import com.sangkwon.sangkwonplatform.admin.ops.AuditAction;
 import com.sangkwon.sangkwonplatform.admin.ops.service.AdminAuditService;
@@ -32,7 +31,8 @@ public class AdminLoginAttemptService {
             admin.increaseFailedLoginCnt();
             boolean locked = admin.getFailedLoginCnt() >= MAX_FAILED;
             if (locked) {
-                admin.updateStatus(AdminStatus.LOCKED);
+                // 자동 잠금: 쿨다운 경과 후 자동 해제되도록 잠금 시각을 남긴다(수동 잠금과 구분)
+                admin.lockForFailedLogin();
             }
             // 무차별 대입 시도를 감사 로그에서 추적할 수 있도록 실패/잠금을 남긴다(IP는 현재 요청에서 얻는다)
             HttpServletRequest request = currentRequest();
