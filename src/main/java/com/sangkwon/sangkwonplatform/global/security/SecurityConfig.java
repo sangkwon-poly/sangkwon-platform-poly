@@ -26,6 +26,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/llm-reports/**").authenticated()
                         // 업종·상권 동향은 Pro 전용(여기선 로그인만 요구, Pro 판정은 서비스에서 402)
                         .requestMatchers(HttpMethod.GET, "/api/industry-news-insights/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/franchise-brand-stats/**").authenticated()
                         .anyRequest().permitAll()
                 );
         return http.build();
