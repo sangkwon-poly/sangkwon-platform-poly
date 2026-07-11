@@ -7,6 +7,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -50,6 +51,11 @@ public class PaymentOrder extends BaseEntity {
 
     @Column(name = "APPROVED_AT")
     private LocalDateTime approvedAt;
+
+    // 동시 승인 경합에서 낡은 상태 저장이 PAID를 덮지 못하게 하는 낙관적 락 버전
+    @Version
+    @Column(name = "VERSION", nullable = false)
+    private long version;
 
     public static PaymentOrder create(String orderId, Long memberId, String planCd,
                                       BillingCycle billingCycle, long amount, String orderName) {

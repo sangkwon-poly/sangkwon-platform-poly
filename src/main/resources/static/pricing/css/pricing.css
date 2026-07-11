@@ -304,6 +304,7 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
   font-size: 24px; font-weight: 800;
 }
 .co-result-icon-fail { background: var(--danger-bg); color: var(--danger); }
+.co-result-icon-pending { background: var(--warn-bg); color: var(--warn); }
 .co-result-title { margin-top: 16px; font-size: 21px; font-weight: 800; color: var(--ink); letter-spacing: -.02em; }
 .co-result-sub { margin-top: 8px; font-size: 13.5px; color: var(--muted); }
 .co-result-rows { margin-top: 24px; text-align: left; }
