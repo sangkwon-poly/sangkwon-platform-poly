@@ -94,6 +94,7 @@ class IndustryTrademarkBatchServiceTest {
                 item("40-0", "날짜없음상표", "영법인", "", "출원"),
                 item("40-1", "가상표", "가법인", "20260619", "출원"),
                 item("40-2", "나상표", "나법인", "20260528", "등록"),
+                item("40-9", "나상표", "다류출원법인", "20260527", "출원"),
                 item(null, "번호없음", "다법인", "20260501", "출원"),
                 item("40-3", "라상표", "라법인", "20260422", "거절"),
                 item("40-1", "중복출원번호", "마법인", "20260401", "출원"),
@@ -112,7 +113,7 @@ class IndustryTrademarkBatchServiceTest {
         verify(jt).batchUpdate(anyString(), captor.capture());
         List<Object[]> rows = captor.getValue();
 
-        // 출원일 없는 행/번호 없는 행/중복 출원번호는 빠지고 응답 순서대로 5건까지만 남는다
+        // 출원일 없는 행/번호 없는 행/중복 출원번호/다류 출원의 중복 제목은 빠지고 응답 순서대로 5건까지만 남는다
         assertThat(rows).extracting(r -> (String) r[1])
                 .containsExactly("40-1", "40-2", "40-3", "40-4", "40-5");
         assertThat(rows.get(0)[0]).isEqualTo("CS100007");
@@ -120,6 +121,19 @@ class IndustryTrademarkBatchServiceTest {
         assertThat(rows.get(2)[5]).isEqualTo("거절");
         // HTTP는 치킨 1회뿐(한 글자 업종은 스킵), 호출마다 집계된다
         verify(apiUsageService, times(1)).record(ExternalApi.KIPRIS);
+        server.verify();
+    }
+
+    @Test
+    void 음식점_접미사는_정제되어_검색된다() {
+        stubInduties(Map.of("CS100001", "한식음식점"));
+        server.expect(requestTo(searchUrl("한식")))
+                .andRespond(withSuccess(okXml(item("40-1", "가상표", "가법인", "20260202", "출원")),
+                        MediaType.TEXT_XML));
+
+        long loaded = service.load();
+
+        assertThat(loaded).isEqualTo(1);
         server.verify();
     }
 

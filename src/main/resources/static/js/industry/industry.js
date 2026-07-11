@@ -111,7 +111,7 @@ function initTrends() {
             warningText.textContent = parsed.warning;
 
 
-            updateTime.textContent = `수집 ${data.yearMonth ?? "-"}`;
+            updateTime.textContent = `뉴스 수집 ${data.yearMonth ?? "-"}`;
 
         } catch (e) {
             console.error("인사이트 조회 실패:", e);
@@ -123,7 +123,7 @@ function initTrends() {
             summaryText.textContent = "인사이트를 불러오지 못했습니다.";
             opportunityText.textContent = "-";
             warningText.textContent = "-";
-            updateTime.textContent = "수집 -";
+            updateTime.textContent = "뉴스 수집 -";
         }
     }
 
@@ -209,7 +209,8 @@ function initTrends() {
                 return;
             }
 
-            patentChip.textContent = `${indutyNm} · 상표 출원 동향`;
+            // 원천(지정상품 색인)이 오래된 업종도 있어 최신 출원 시점을 그대로 밝힌다
+            patentChip.textContent = `${indutyNm} · 최신 출원 ${String(rows[0].applDate ?? "-").slice(0, 7)}`;
             patentList.innerHTML = rows.map((r) =>
                 "<li><div><strong>" + esc(r.title) + "</strong><p>" + esc(r.applicantNm ?? "-")
                 + " · 출원 " + esc(r.applDate ?? "-") + "</p></div>"

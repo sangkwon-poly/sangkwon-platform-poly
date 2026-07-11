@@ -51,15 +51,21 @@ public class IndustryTrademarkBatchService {
 
     // 업종명 정제만으로는 지정상품 검색어가 어색한 업종의 예외 (뉴스 배치의 키워드 정제와 같은 취지)
     // 일반의원/한의원은 접미사 정제가 '일반'/'한' 같은 범용어를 만들어 따로 잡고,
-    // 분식은 지정상품 명칭으로는 2013년 이후 출원이 안 잡혀 떡볶이로 대체한다(실호출 확인).
-    private static final Map<String, String> KEYWORD_OVERRIDE = Map.of(
-            "CS100007", "치킨",
-            "CS100008", "떡볶이",
-            "CS100009", "주점",
-            "CS100010", "커피",
-            "CS200006", "병원",
-            "CS200008", "한의원",
-            "CS300043", "전자상거래");
+    // 중식/일식/분식은 지정상품 명칭으로는 최근 출원이 안 잡혀 실측으로 신선한 표현을 골랐다
+    // (중국음식 5,729건/2020, 일본음식 6,189건/2024, 떡볶이 158건/2025. 중식은 10건/2011로 사실상 사어).
+    private static final Map<String, String> KEYWORD_OVERRIDE = Map.ofEntries(
+            Map.entry("CS100002", "중국음식"),
+            Map.entry("CS100003", "일본음식"),
+            Map.entry("CS100004", "서양식"),
+            Map.entry("CS100005", "제과"),
+            Map.entry("CS100006", "패스트푸드"),
+            Map.entry("CS100007", "치킨"),
+            Map.entry("CS100008", "떡볶이"),
+            Map.entry("CS100009", "주점"),
+            Map.entry("CS100010", "커피"),
+            Map.entry("CS200006", "병원"),
+            Map.entry("CS200008", "한의원"),
+            Map.entry("CS300043", "전자상거래"));
 
     private final RestTemplate rest = timeoutRestTemplate();
     private final JdbcTemplate jt;
@@ -90,7 +96,8 @@ public class IndustryTrademarkBatchService {
                 "SELECT INDUTY_CD, INDUTY_CD_NM FROM INDUTY ORDER BY INDUTY_CD");
 
         List<Object[]> rows = new ArrayList<>();
-        Set<String> seen = new HashSet<>();
+        Set<String> seenNo = new HashSet<>();
+        Set<String> seenTitle = new HashSet<>();
         for (Map<String, Object> induty : induties) {
             String indutyCd = String.valueOf(induty.get("INDUTY_CD"));
             String keyword = searchKeyword(indutyCd, String.valueOf(induty.get("INDUTY_CD_NM")));
@@ -103,8 +110,11 @@ public class IndustryTrademarkBatchService {
                 String title = childText(item, "title");
                 String applNo = childText(item, "applicationNumber");
                 LocalDate applDate = toDate(childText(item, "applicationDate"));
-                // 출원일이 없으면 최신순 정렬이 성립하지 않으므로 건너뛴다(가맹점수 없는 브랜드를 거르는 것과 같은 취지)
-                if (title == null || applNo == null || applDate == null || !seen.add(indutyCd + "|" + applNo)) {
+                // 출원일이 없으면 최신순 정렬이 성립하지 않으므로 건너뛴다(가맹점수 없는 브랜드를 거르는 것과 같은 취지).
+                // 같은 상표를 류별로 따로 출원하면 같은 제목이 연달아 오므로 제목 기준으로도 걸러낸다.
+                if (title == null || applNo == null || applDate == null
+                        || !seenNo.add(indutyCd + "|" + applNo)
+                        || !seenTitle.add(indutyCd + "|" + title)) {
                     continue;
                 }
                 rows.add(new Object[]{indutyCd, clip(applNo, 30), clip(title, 300),
@@ -127,7 +137,8 @@ public class IndustryTrademarkBatchService {
         return rows.size();
     }
 
-    // 서울 업종명 -> 지정상품 검색어. 뉴스 배치와 같은 규칙으로 접미사를 걷어낸다.
+    // 서울 업종명 -> 지정상품 검색어. 뉴스 배치와 같은 규칙에 음식점 접미사 정제를 더했다
+    // (한식음식점을 그대로 검색하면 옛 지정상품 명칭만 잡혀 2014년에서 끊긴다. 한식은 2026년까지 신선).
     private String searchKeyword(String indutyCd, String indutyNm) {
         String override = KEYWORD_OVERRIDE.get(indutyCd);
         if (override != null) {
@@ -138,6 +149,7 @@ public class IndustryTrademarkBatchService {
             nm = nm.substring(0, nm.length() - 1);
         }
         return nm
+                .replace("음식점", "")
                 .replace("전문점", "")
                 .replace("사무소", "")
                 .replace("의원", "")
