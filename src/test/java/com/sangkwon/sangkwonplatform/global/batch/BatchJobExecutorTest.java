@@ -20,6 +20,9 @@ class BatchJobExecutorTest {
     @Mock
     BatchJobLogRepository batchJobLogRepository;
 
+    @Mock
+    BatchFailureNotifier batchFailureNotifier;
+
     @InjectMocks
     BatchJobExecutor batchJobExecutor;
 
@@ -49,5 +52,16 @@ class BatchJobExecutorTest {
         BatchJobLog saved = captor.getValue();
         assertThat(saved.getStatus()).isEqualTo(BatchStatus.FAILED);
         assertThat(saved.getErrorMsg()).isEqualTo("연동 실패");
+        // 실패는 외부 알림 채널로도 밀어준다
+        verify(batchFailureNotifier).notifyFailure("매출 적재", "SALES", "연동 실패");
+    }
+
+    @Test
+    void 성공하면_실패_알림을_보내지_않는다() {
+        when(batchJobLogRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        batchJobExecutor.run(spec, () -> 10L);
+
+        org.mockito.Mockito.verifyNoInteractions(batchFailureNotifier);
     }
 }
