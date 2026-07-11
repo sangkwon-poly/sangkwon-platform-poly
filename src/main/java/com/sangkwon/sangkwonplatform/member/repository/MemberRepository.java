@@ -5,14 +5,27 @@ import com.sangkwon.sangkwonplatform.member.entity.MemberStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
+
+    // 휴면 자동 전환: 임계 시각 이전에 마지막 접속(없으면 가입)한 ACTIVE 회원을 DORMANT로 일괄 전환한다.
+    // 로그인 차단 로직(MemberService)과 어드민 카운트는 이미 DORMANT를 다루므로 부여 주체만 채운다.
+    @Transactional
+    @Modifying
+    @Query("""
+            update Member m set m.status = com.sangkwon.sangkwonplatform.member.entity.MemberStatus.DORMANT
+            where m.status = com.sangkwon.sangkwonplatform.member.entity.MemberStatus.ACTIVE
+              and coalesce(m.lastLoginAt, m.createdAt) < :cutoff
+            """)
+    int markInactiveMembersDormant(@Param("cutoff") LocalDateTime cutoff);
 
     boolean existsByLoginId(String loginId);
 
