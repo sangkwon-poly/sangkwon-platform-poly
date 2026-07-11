@@ -2,9 +2,10 @@
     "use strict";
 
     var STATUSES = [
-        { value: "PENDING", label: "대기", badge: "badge-warn",   dot: "dot-warn" },
-        { value: "PAID",    label: "완료", badge: "badge-ok",     dot: "dot-ok" },
-        { value: "FAILED",  label: "실패", badge: "badge-danger", dot: "dot-danger" }
+        { value: "PENDING",  label: "대기", badge: "badge-warn",   dot: "dot-warn" },
+        { value: "PAID",     label: "완료", badge: "badge-ok",     dot: "dot-ok" },
+        { value: "FAILED",   label: "실패", badge: "badge-danger", dot: "dot-danger" },
+        { value: "CANCELED", label: "환불", badge: "badge-muted",  dot: "dot-muted" }
     ];
     function statusMeta(v) {
         for (var i = 0; i < STATUSES.length; i++) { if (STATUSES[i].value === v) { return STATUSES[i]; } }
@@ -47,7 +48,7 @@
     // 요청 순번. 필터 조작이 겹칠 때 늦게 온 낡은 응답이 최신 화면을 덮지 않게 한다.
     var reqSeq = 0;
 
-    function emptyRow(msg) { return '<tr><td colspan="7" class="pa-empty">' + esc(msg) + "</td></tr>"; }
+    function emptyRow(msg) { return '<tr><td colspan="8" class="pa-empty">' + esc(msg) + "</td></tr>"; }
     function set(id, text) { var el = document.getElementById(id); if (el) { el.textContent = text; } }
     function setBusy(on) {
         tbody.classList.toggle("is-busy", on);
@@ -85,7 +86,7 @@
         set("pa-stat-failed", num(d.failedCount) + "건");
         var subFail = document.getElementById("pa-sub-failed");
         if (subFail) { subFail.textContent = "결제 대기 " + num(d.pendingCount) + "건"; }
-        var map = { ALL: d.totalCount, PENDING: d.pendingCount, PAID: d.paidCount, FAILED: d.failedCount };
+        var map = { ALL: d.totalCount, PENDING: d.pendingCount, PAID: d.paidCount, FAILED: d.failedCount, CANCELED: d.canceledCount };
         Array.prototype.forEach.call(chipsEl.querySelectorAll("b[data-count]"), function (b) {
             var k = b.getAttribute("data-count");
             b.textContent = map[k] != null ? num(map[k]) : "0";
@@ -150,6 +151,12 @@
             + '<span class="pa-login">' + esc(o.loginId || "—") + "</span></div>";
     }
 
+    // 환불은 완료(PAID) 주문에만. 그 외 상태는 조작할 액션이 없다.
+    function actionHtml(o) {
+        if (o.status !== "PAID") { return '<span class="pa-muted">—</span>'; }
+        return '<button type="button" class="pa-act pa-act-danger" data-refund="' + esc(o.orderId) + '">환불</button>';
+    }
+
     function rowHtml(o) {
         var s = statusMeta(o.status);
         var badge = '<span class="badge ' + s.badge + '"><span class="dot ' + s.dot + '" aria-hidden="true"></span>' + esc(s.label) + "</span>";
@@ -161,7 +168,35 @@
             + '<td class="col-center">' + badge + "</td>"
             + '<td class="pa-muted">' + fmtDateTime(o.createdAt) + "</td>"
             + '<td class="pa-muted">' + fmtDateTime(o.approvedAt) + "</td>"
+            + '<td class="col-center">' + actionHtml(o) + "</td>"
             + "</tr>";
+    }
+
+    // 환불 실행: 사유를 받아 토스 취소를 호출하고, 성공하면 목록과 지표를 다시 불러온다.
+    function refund(orderId, btn) {
+        var reason = window.prompt("환불 사유를 입력하세요. (회원 Pro 구독도 회수됩니다)");
+        if (reason == null) { return; }
+        reason = reason.trim();
+        if (!reason) { window.alert("환불 사유를 입력해야 합니다."); return; }
+        btn.disabled = true;
+        api("/api/admin/payments/" + encodeURIComponent(orderId) + "/cancel", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json", Accept: "application/json" },
+            body: JSON.stringify({ reason: reason })
+        }).then(function (r) {
+            if (r.status === 401) { return; }
+            if (!r.ok || !r.body || !r.body.success) {
+                btn.disabled = false;
+                window.alert((r.body && r.body.message) || "환불에 실패했습니다.");
+                return;
+            }
+            load();
+            loadSummary();
+        }, function () {
+            btn.disabled = false;
+            window.alert("환불 요청에 실패했습니다.");
+        });
     }
 
     function renderTable() {
@@ -222,6 +257,12 @@
             }, 300);
         });
     }
+
+    // 행마다 버튼을 다시 붙이지 않도록 tbody에 위임한다
+    tbody.addEventListener("click", function (e) {
+        var btn = e.target.closest ? e.target.closest(".pa-act[data-refund]") : null;
+        if (btn) { refund(btn.getAttribute("data-refund"), btn); }
+    });
 
     buildChips();
     load();

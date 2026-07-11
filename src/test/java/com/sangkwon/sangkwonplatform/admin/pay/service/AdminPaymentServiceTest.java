@@ -1,5 +1,6 @@
 package com.sangkwon.sangkwonplatform.admin.pay.service;
 
+import com.sangkwon.sangkwonplatform.admin.pay.dto.response.AdminPaymentResponse;
 import com.sangkwon.sangkwonplatform.admin.pay.dto.response.PaymentPageResponse;
 import com.sangkwon.sangkwonplatform.admin.pay.dto.response.PaymentSummaryResponse;
 import com.sangkwon.sangkwonplatform.member.entity.BillingCycle;
@@ -17,10 +18,18 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
@@ -28,6 +37,10 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 // AdminPaymentService 단위 테스트. 회원 검색 분기와 표시명 매핑, 요약 집계 조합을 검증.
 @ExtendWith(MockitoExtension.class)
@@ -125,5 +138,117 @@ class AdminPaymentServiceTest {
         adminPaymentService.getOrders("HONG_1", null, null, pageable);
 
         verify(memberRepository).findIdsByKeyword(eq("%hong\\_1%"), any(Pageable.class));
+    }
+
+    // 환불은 토스 취소 API를 호출하므로 실제 RestClient를 MockRestServiceServer로 스텁한다.
+    private static final String CANCEL_URL = "https://api.tosspayments.com/v1/payments/pk-1/cancel";
+    private MockRestServiceServer tossServer;
+
+    private AdminPaymentService serviceWithToss() {
+        RestClient.Builder builder = RestClient.builder();
+        tossServer = MockRestServiceServer.bindTo(builder).build();
+        return new AdminPaymentService(paymentOrderRepository, memberRepository, builder.build(), "test-sk");
+    }
+
+    private static PaymentOrder paidOrder() {
+        PaymentOrder o = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
+        o.paid("pk-1", LocalDateTime.now());
+        return o;
+    }
+
+    private static Member proMember() {
+        Member m = Member.create("user", "hash", "user@test.com", "회원");
+        m.activatePro(LocalDateTime.now().plusMonths(12));
+        return m;
+    }
+
+    @Test
+    @DisplayName("환불: PAID 주문이면 토스 취소 후 CANCELED로 바꾸고 Pro를 회수한다")
+    void cancel_paidOrder() {
+        PaymentOrder order = paidOrder();
+        Member member = proMember();
+        AdminPaymentService svc = serviceWithToss();
+        when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(order));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        tossServer.expect(requestTo(CANCEL_URL)).andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+
+        AdminPaymentResponse res = svc.cancel("o1", "중복 결제");
+
+        assertThat(res.status()).isEqualTo(PaymentStatus.CANCELED);
+        assertThat(order.getStatus()).isEqualTo(PaymentStatus.CANCELED);
+        assertThat(member.isPro()).isFalse();
+        verify(paymentOrderRepository).save(order);
+        verify(memberRepository).save(member);
+        tossServer.verify();
+    }
+
+    @Test
+    @DisplayName("환불: PAID가 아니면 토스 호출 없이 거절한다")
+    void cancel_rejectsNonPaid() {
+        PaymentOrder pending = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
+        AdminPaymentService svc = serviceWithToss();
+        when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(pending));
+
+        assertThatThrownBy(() -> svc.cancel("o1", "사유"))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(((ResponseStatusException) e).getStatusCode()).isEqualTo(HttpStatus.CONFLICT));
+
+        assertThat(pending.getStatus()).isEqualTo(PaymentStatus.PENDING);
+        verify(paymentOrderRepository, never()).save(any());
+        tossServer.verify();
+    }
+
+    @Test
+    @DisplayName("환불: 이미 CANCELED면 토스 호출 없이 멱등하게 응답한다")
+    void cancel_idempotentWhenAlreadyCanceled() {
+        PaymentOrder order = paidOrder();
+        order.canceled();
+        AdminPaymentService svc = serviceWithToss();
+        when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(order));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(proMember()));
+
+        AdminPaymentResponse res = svc.cancel("o1", "사유");
+
+        assertThat(res.status()).isEqualTo(PaymentStatus.CANCELED);
+        verify(paymentOrderRepository, never()).save(any());
+        tossServer.verify();
+    }
+
+    @Test
+    @DisplayName("환불: 토스 취소가 실패하면 502를 던지고 상태를 바꾸지 않는다")
+    void cancel_tossFailureKeepsPaid() {
+        PaymentOrder order = paidOrder();
+        AdminPaymentService svc = serviceWithToss();
+        when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(order));
+        tossServer.expect(requestTo(CANCEL_URL)).andRespond(withServerError());
+
+        assertThatThrownBy(() -> svc.cancel("o1", "사유"))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(((ResponseStatusException) e).getStatusCode()).isEqualTo(HttpStatus.BAD_GATEWAY));
+
+        assertThat(order.getStatus()).isEqualTo(PaymentStatus.PAID);
+        verify(paymentOrderRepository, never()).save(any());
+        tossServer.verify();
+    }
+
+    @Test
+    @DisplayName("환불: 토스가 이미 취소됨이면 상태만 맞추고 환불 처리한다")
+    void cancel_alreadyCanceledAtToss() {
+        PaymentOrder order = paidOrder();
+        Member member = proMember();
+        AdminPaymentService svc = serviceWithToss();
+        when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(order));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        tossServer.expect(requestTo(CANCEL_URL))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST)
+                        .body("{\"code\":\"ALREADY_CANCELED_PAYMENT\"}")
+                        .contentType(MediaType.APPLICATION_JSON));
+
+        AdminPaymentResponse res = svc.cancel("o1", "사유");
+
+        assertThat(res.status()).isEqualTo(PaymentStatus.CANCELED);
+        assertThat(member.isPro()).isFalse();
+        verify(paymentOrderRepository).save(order);
+        tossServer.verify();
     }
 }

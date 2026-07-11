@@ -56,6 +56,16 @@
 .pa-amount { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 12.5px; }
 .pa-muted { font-size: 12px; color: var(--faint); }
 
+/* 행 액션(환불) 버튼. 회원 관리의 ma-act와 같은 톤 */
+.pa-act {
+  font-size: 12px; font-weight: 700;
+  border: 1px solid var(--line); border-radius: var(--radius-sm);
+  background: var(--bg); color: var(--text-soft);
+  padding: 6px 12px; cursor: pointer; white-space: nowrap;
+}
+.pa-act.pa-act-danger:hover { border-color: var(--danger); color: var(--danger); }
+.pa-act:disabled { cursor: default; color: var(--faint); border-color: var(--line-soft); }
+
 .pa-table .badge { gap: 6px; font-size: 11px; padding: 4px 10px; }
 .pa-table .dot { width: 6px; height: 6px; }
 .dot-muted { background: var(--faint); }

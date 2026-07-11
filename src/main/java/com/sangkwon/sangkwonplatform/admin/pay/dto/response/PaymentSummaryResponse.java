@@ -9,6 +9,7 @@ public record PaymentSummaryResponse(
         long totalCount,
         long pendingCount,
         long paidCount,
-        long failedCount
+        long failedCount,
+        long canceledCount
 ) {
 }
