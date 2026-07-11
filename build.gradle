@@ -24,6 +24,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     // 운영 관측성: 헬스체크 엔드포인트(/actuator/health)로 LB/업타임 모니터가 상태를 확인한다
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    // 세션 영속화: 세션을 DB(SPRING_SESSION)에 저장해 재배포/재시작에도 로그인이 유지되고 다중 인스턴스가 가능하다.
+    // Boot 4는 세션 저장소별 자동설정을 기본 제공하지 않아 SessionConfig에서 @EnableJdbcHttpSession으로 명시 활성화한다.
+    implementation 'org.springframework.session:spring-session-jdbc'
     // 회원 인증 (김민혁 · WBS 4.2): Spring Security(세션 기반). 주의: 공용 파일이라 머지 전 조장 합의 필요.
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'com.oracle.database.jdbc:ojdbc11'
