@@ -1,5 +1,7 @@
 package com.sangkwon.sangkwonplatform.map.service;
 
+import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
+import com.sangkwon.sangkwonplatform.admin.ops.service.ApiUsageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -29,12 +31,14 @@ public class SeoulFactsLoadService {
     private final RestTemplate rest = new RestTemplate();
     private final ObjectMapper mapper = new ObjectMapper();
     private final JdbcTemplate jt;
+    private final ApiUsageService apiUsageService;
 
     @Value("${seoul.opendata.key:}")
     private String seoulKey;
 
-    public SeoulFactsLoadService(JdbcTemplate jt) {
+    public SeoulFactsLoadService(JdbcTemplate jt, ApiUsageService apiUsageService) {
         this.jt = jt;
+        this.apiUsageService = apiUsageService;
     }
 
     public long loadSales() {
@@ -199,6 +203,12 @@ public class SeoulFactsLoadService {
     private JsonNode getJson(String url) {
         RuntimeException last = null;
         for (int attempt = 1; attempt <= 4; attempt++) {
+            // 재시도 포함 시도마다 집계한다. 집계 실패가 적재를 막으면 안 되므로 따로 삼킨다.
+            try {
+                apiUsageService.record(ExternalApi.SEOUL);
+            } catch (RuntimeException e) {
+                System.out.println("서울 오픈API 사용량 집계 실패(적재는 계속 진행): " + e.getMessage());
+            }
             try {
                 return mapper.readTree(rest.getForObject(URI.create(url), String.class));
             } catch (RuntimeException e) {

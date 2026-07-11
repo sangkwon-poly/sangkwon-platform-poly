@@ -53,7 +53,8 @@ class OpsServiceTest {
 
         List<ApiUsageResponse> res = opsService.todayApiUsage();
 
-        assertThat(res).extracting(ApiUsageResponse::apiName).contains("GEMINI", "GEMINI_NEWS");
+        assertThat(res).extracting(ApiUsageResponse::apiName)
+                .contains("GEMINI", "GEMINI_NEWS", "SEOUL", "REB_RONE", "FTC_FRANCHISE");
         assertThat(res).allSatisfy(a -> assertThat(a.callCnt()).isZero());
     }
 
