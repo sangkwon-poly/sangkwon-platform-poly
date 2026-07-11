@@ -73,6 +73,7 @@ class PaymentServiceTest {
 
     @Test
     void 주문_생성은_서버가_주기별_금액을_확정한다() {
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(Member.create("user", "hash", "user@test.com", "회원")));
         when(paymentOrderRepository.save(any(PaymentOrder.class))).thenAnswer(inv -> inv.getArgument(0));
 
         PaymentOrderResponse yearly = service("ck", "sk").createOrder(1L, new PaymentOrderCreateRequest("PRO", "YEARLY"));
@@ -91,6 +92,18 @@ class PaymentServiceTest {
                 .satisfies(t -> assertThat(codeOf(t)).isEqualTo(ErrorCode.INVALID_INPUT));
         assertThatThrownBy(() -> service("ck", "sk").createOrder(1L, new PaymentOrderCreateRequest("PRO", "WEEKLY")))
                 .satisfies(t -> assertThat(codeOf(t)).isEqualTo(ErrorCode.INVALID_INPUT));
+    }
+
+    @Test
+    void 이미_Pro인_회원은_주문_생성에서_M017을_던지고_토스를_호출하지_않는다() {
+        Member pro = Member.create("user", "hash", "user@test.com", "회원");
+        pro.activatePro(LocalDateTime.now().plusMonths(1));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(pro));
+
+        assertThatThrownBy(() -> service("ck", "sk").createOrder(1L, new PaymentOrderCreateRequest("PRO", "YEARLY")))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(t -> assertThat(codeOf(t)).isEqualTo(ErrorCode.ALREADY_PRO));
+        verifyNoInteractions(restClient);
     }
 
     @Test

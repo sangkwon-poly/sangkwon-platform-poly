@@ -20,6 +20,7 @@ public enum ErrorCode {
     PAYMENT_AMOUNT_MISMATCH(HttpStatus.BAD_REQUEST, "M014", "결제 금액이 주문 금액과 일치하지 않습니다."),
     PAYMENT_CONFIRM_FAILED(HttpStatus.BAD_GATEWAY, "M015", "결제 승인에 실패했습니다."),
     PAYMENT_NOT_CONFIGURED(HttpStatus.SERVICE_UNAVAILABLE, "M016", "결제 기능이 아직 설정되지 않았습니다."),
+    ALREADY_PRO(HttpStatus.CONFLICT, "M017", "이미 Pro를 이용 중입니다."),
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "M400", "입력값이 올바르지 않습니다."),
     TOO_MANY_LOGIN_ATTEMPTS(HttpStatus.TOO_MANY_REQUESTS, "M429", "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.");
 

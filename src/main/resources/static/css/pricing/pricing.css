@@ -134,6 +134,12 @@ body { display: flex; flex-direction: column; min-height: 100vh; }
 .pc-per { font-size: 14px; color: var(--muted); font-weight: 600; }
 .pc-price-sub { margin-top: 5px; font-size: 12.5px; color: var(--faint); min-height: 1.2em; }
 .pc-cta { margin-top: 22px; height: 46px; font-size: 14px; width: 100%; }
+/* 이미 Pro인 회원: 신규 결제 대신 현재 요금제임을 알리는 비활성 상태 */
+.pc-cta-current,
+.pc-cta-current:hover {
+  background: var(--brand-tint); color: var(--brand-dark);
+  cursor: default; filter: none; box-shadow: none; opacity: 1;
+}
 .pc-features {
   margin-top: 24px; padding-top: 20px;
   border-top: 1px solid var(--line-soft);

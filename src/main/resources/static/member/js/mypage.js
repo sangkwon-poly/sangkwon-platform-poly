@@ -79,7 +79,6 @@
             '<span class="text-muted">AI 리포트 무제한, 모든 분석 기능을 제한 없이 쓸 수 있어요.</span>' +
             '<span class="text-muted" style="font-size:13px">만료일 ' + esc(fmt(me.planUntil)) + '</span>' +
           '</div>' +
-          '<a class="btn btn--ghost" href="/pricing">구독 연장</a>' +
         '</div>';
     } else {
       body.innerHTML =
