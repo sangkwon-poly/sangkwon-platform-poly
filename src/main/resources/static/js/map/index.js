@@ -655,12 +655,14 @@ async function init() {
         closeDrawer();
     });
     document.querySelector(".sel-close").addEventListener("click", closeDrawer);
-    document.querySelector(".sel-add").addEventListener("click", (e) => {
+    const selAdd = document.querySelector(".sel-add");
+    selAdd.addEventListener("click", (e) => {
         e.preventDefault();
         if (state.selected) {
             goCompareWith(state.selected.trdarCd);
         }
     });
+    markCompareLock(selAdd, false);
     document.getElementById("app-status").textContent = "연동 정상";
 }
 

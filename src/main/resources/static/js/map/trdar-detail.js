@@ -240,6 +240,7 @@ async function load() {
             e.preventDefault();
             goCompareWith(trdarCd);
         });
+        markCompareLock(cmpBtn, true);
     }
     // 리포트로 상권 전달
     const reportBtn = document.querySelector(".detail-btn-primary");

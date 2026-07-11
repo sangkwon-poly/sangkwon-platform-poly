@@ -86,6 +86,29 @@ function goCompareWith(trdarCd) {
     });
 }
 
+// 비Pro면 비교 담기 버튼에 Pro 전용임을 표시한다(클릭 동작은 goCompareWith가 게이트로 보낸다).
+// showBadge: 텍스트 버튼은 "Pro" 배지, 아이콘 버튼(.sel-add)은 좁아 툴팁만 단다.
+function markCompareLock(el, showBadge) {
+    if (!el) {
+        return;
+    }
+    getMe().then(function (me) {
+        if (me && me.pro) {
+            return;
+        }
+        el.setAttribute("title", "Pro 전용");
+        if (!showBadge || el.querySelector(".cmp-lock-badge")) {
+            return;
+        }
+        var badge = document.createElement("span");
+        badge.className = "cmp-lock-badge";
+        badge.textContent = "Pro";
+        badge.style.cssText = "margin-left:6px;padding:1px 6px;border-radius:999px;"
+            + "background:#f7e9e3;color:#862f1e;font-size:11px;font-weight:700;vertical-align:middle";
+        el.appendChild(badge);
+    });
+}
+
 // 매출 rows를 분기 오름차순 합계 [{q, amt}]로
 function quarterlyTotals(rows) {
     const byQ = new Map();
