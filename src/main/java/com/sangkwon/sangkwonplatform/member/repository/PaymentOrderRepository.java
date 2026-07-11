@@ -6,14 +6,26 @@ import com.sangkwon.sangkwonplatform.member.entity.PaymentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 public interface PaymentOrderRepository extends JpaRepository<PaymentOrder, String> {
+
+    // 방치 결제 정리: 결제창만 진입하고 승인 안 된 채 오래된 PENDING 주문을 FAILED로 마킹(중단된 결제).
+    @Transactional
+    @Modifying
+    @Query("""
+            update PaymentOrder o set o.status = com.sangkwon.sangkwonplatform.member.entity.PaymentStatus.FAILED
+            where o.status = com.sangkwon.sangkwonplatform.member.entity.PaymentStatus.PENDING
+              and o.createdAt < :cutoff
+            """)
+    int markStalePendingAsFailed(@Param("cutoff") LocalDateTime cutoff);
 
     // 본인 주문만 승인 가능하도록 회원 조건을 함께 건다
     Optional<PaymentOrder> findByOrderIdAndMemberId(String orderId, Long memberId);
