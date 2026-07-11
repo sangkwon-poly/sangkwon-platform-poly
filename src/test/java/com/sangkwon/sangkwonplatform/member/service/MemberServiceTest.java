@@ -125,7 +125,8 @@ class MemberServiceTest {
     @DisplayName("로그인: 탈퇴 회원 → M007")
     void login_withdrawn() {
         Member m = activeMember();
-        m.withdraw();
+        // 상태 가드만 격리 검증한다(login_banned와 동일 방식). withdraw()는 PII 익명화까지 하므로 여기선 상태만 세팅.
+        ReflectionTestUtils.setField(m, "status", MemberStatus.WITHDRAWN);
         var req = new MemberLoginRequest("minhyuk", "password1", false);
         when(memberRepository.findByLoginId("minhyuk")).thenReturn(Optional.of(m));
         when(passwordEncoder.matches("password1", "hashed-pw")).thenReturn(true);
@@ -221,15 +222,23 @@ class MemberServiceTest {
     // ---------- 탈퇴 ----------
 
     @Test
-    @DisplayName("탈퇴: 상태를 WITHDRAWN으로 변경 + 탈퇴시각 기록")
+    @DisplayName("탈퇴: 상태를 WITHDRAWN으로 변경 + 탈퇴시각 기록 + PII 익명화")
     void withdraw_success() {
         Member m = activeMember();
+        org.springframework.test.util.ReflectionTestUtils.setField(m, "memberId", 1L);
+        String beforeLoginId = m.getLoginId();
+        String beforeEmail = m.getEmail();
         when(memberRepository.findById(1L)).thenReturn(Optional.of(m));
 
         memberService.withdraw(1L);
 
         assertThat(m.getStatus()).isEqualTo(MemberStatus.WITHDRAWN);
         assertThat(m.getWithdrawnAt()).isNotNull();
+        // PII가 톰스톤 값으로 파기되어 원래 아이디·이메일이 재가입용으로 해제된다
+        assertThat(m.getLoginId()).isNotEqualTo(beforeLoginId).isEqualTo("withdrawn_1");
+        assertThat(m.getEmail()).isNotEqualTo(beforeEmail).isEqualTo("withdrawn_1@deleted.local");
+        assertThat(m.getNickname()).isEqualTo("탈퇴회원");
+        assertThat(m.getPasswordHash()).isEqualTo("WITHDRAWN");
     }
 
     @Test

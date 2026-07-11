@@ -119,6 +119,18 @@ public class Member extends BaseEntity {
     public void withdraw() {
         this.status = MemberStatus.WITHDRAWN; // 탈퇴 처리
         this.withdrawnAt = LocalDateTime.now();  // 스키마 CHECK: WITHDRAWN이면 WITHDRAWN_AT 필수 => 탈퇴 시각 필수
+        anonymize();
+    }
+
+    // 탈퇴 시 개인정보(PII)를 즉시 파기(익명화)한다. 결제·문의 정합성을 위해 회원 레코드 자체는 보존하되,
+    // 로그인ID/이메일/닉네임/비밀번호를 회원별 톰스톤 값으로 치환한다. UNIQUE가 풀려 같은 이메일·아이디로 재가입도 가능해진다.
+    private void anonymize() {
+        String tombstone = "withdrawn_" + this.memberId;
+        this.loginId = tombstone;                       // UNIQUE, 원래 아이디 해제
+        this.email = tombstone + "@deleted.local";      // UNIQUE, 원래 이메일 해제
+        this.nickname = "탈퇴회원";
+        this.passwordHash = "WITHDRAWN";                // 유효한 해시가 아니라 어떤 비밀번호와도 일치하지 않음
+        this.passwordSalt = null;
     }
 
     // 관리자 회원 상태 변경(정지/휴면/해제/강제탈퇴). WITHDRAWN이면 탈퇴 시각을 채워 CK_MBR_WITHDRAWN을 만족시킨다.
