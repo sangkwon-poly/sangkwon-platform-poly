@@ -124,14 +124,18 @@ public class SeoulFactsLoadService {
 
         Map<String, String> induty = new LinkedHashMap<>();
         long loaded = 0;
+        long fetched = 0;
         List<Object[]> batch = new ArrayList<>();
         for (int start = 1; start <= total; start += PAGE) {
             JsonNode block = fetchBlock(svc, start, start + PAGE - 1);
             JsonNode rows = block == null ? null : block.path("row");
             if (rows == null || !rows.isArray() || rows.isEmpty()) {
+                // 페이지 도중 빈/에러 블록(HTTP 200에 결과 없음 포함)은 정상 종료가 아니라 수신 중단이다.
+                // 여기서 멈추면 잘린 스냅샷이 커밋되므로, 아래 완결성 검사에서 예외로 롤백시킨다.
                 break;
             }
             for (JsonNode r : rows) {
+                fetched++;
                 if (hasInduty) {
                     String code = text(r, "SVC_INDUTY_CD");
                     if (code != null) {
@@ -152,6 +156,18 @@ public class SeoulFactsLoadService {
         }
         if (!batch.isEmpty()) {
             loaded += insertBatch(sql, batch);
+        }
+
+        // 완결성 검사: API가 예고한 total 행을 다 못 받았으면(중간 빈/에러 블록) 부분 스냅샷이다.
+        // 예외를 던져 클래스 @Transactional을 롤백시키면 DELETE도 함께 취소돼 기존 데이터가 보존된다.
+        if (fetched < total) {
+            throw new IllegalStateException(
+                    table + " 적재 미완: 기대 " + total + "행 중 " + fetched + "행만 수신(부분 스냅샷 방지, 롤백)");
+        }
+        // 제약 위반 등으로 insertBatch가 조용히 건너뛴 행은 SUCCESS로 묻히지 않게 경고로 남긴다.
+        long skipped = fetched - loaded;
+        if (skipped > 0) {
+            log.warn("{} 부분 적재: 수신 {}행 중 {}행 스킵(제약 위반 등), 적재 {}행", table, fetched, skipped, loaded);
         }
 
         if (hasInduty && !induty.isEmpty()) {
