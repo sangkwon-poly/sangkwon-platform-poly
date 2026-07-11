@@ -4,6 +4,7 @@ import com.sangkwon.sangkwonplatform.global.batch.BatchJobExecutor;
 import com.sangkwon.sangkwonplatform.global.batch.BatchJobSpec;
 import com.sangkwon.sangkwonplatform.global.batch.Dataset;
 import com.sangkwon.sangkwonplatform.industrynewsInsight.service.IndustryNewsInsightBatchService;
+import com.sangkwon.sangkwonplatform.industrytrademark.service.IndustryTrademarkBatchService;
 import com.sangkwon.sangkwonplatform.map.service.CommercialRentLoadService;
 import com.sangkwon.sangkwonplatform.map.service.FranchiseBrandStatLoadService;
 import com.sangkwon.sangkwonplatform.map.service.FranchiseLoadService;
@@ -21,6 +22,7 @@ public class BatchAsyncRunner {
 
     private final BatchJobExecutor batchJobExecutor;
     private final IndustryNewsInsightBatchService industryNewsInsightBatchService;
+    private final IndustryTrademarkBatchService industryTrademarkBatchService;
     private final SupportProgramLoadService supportProgramLoadService;
     private final FranchiseLoadService franchiseLoadService;
     private final FranchiseBrandStatLoadService franchiseBrandStatLoadService;
@@ -43,6 +45,7 @@ public class BatchAsyncRunner {
     private long loader(Dataset dataset) {
         return switch (dataset) {
             case INDUSTRY_NEWS -> industryNewsInsightBatchService.generateAllIndustryInsights();
+            case INDUSTRY_TRADEMARK -> industryTrademarkBatchService.load();
             case SUPPORT_PROGRAM -> supportProgramLoadService.load();
             case FRANCHISE -> franchiseLoadService.load();
             case FRANCHISE_STAT -> franchiseBrandStatLoadService.load();
