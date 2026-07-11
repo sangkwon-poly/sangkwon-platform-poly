@@ -20,6 +20,10 @@ public class AsyncConfig {
         executor.setMaxPoolSize(2);
         executor.setQueueCapacity(4);
         executor.setThreadNamePrefix("batch-");
+        // 종료를 유한하게 만든다: 실행 중 배치는 인터럽트하고 최대 대기 시간을 둔다.
+        // 인터럽트로 남은 RUNNING은 다음 기동 시 BatchStartupRecovery가 FAILED로 정리한다.
+        executor.setWaitForTasksToCompleteOnShutdown(false);
+        executor.setAwaitTerminationSeconds(20);
         executor.initialize();
         return executor;
     }

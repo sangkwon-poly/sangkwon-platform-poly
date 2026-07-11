@@ -72,6 +72,15 @@ public class OpsController {
         return ApiResponse.ok(null);
     }
 
+    // 스테일 RUNNING 초기화. 중단된 좀비로 재적재가 막혔을 때 수동으로 푼다.
+    @PostMapping("/batch/{code}/reset")
+    public ApiResponse<Integer> batchReset(@LoginAdmin AdminSession admin,
+                                           @PathVariable String code,
+                                           HttpServletRequest request) {
+        requireSuperAdmin(admin);
+        return ApiResponse.ok(batchAdminService.reset(code, admin, request));
+    }
+
     @GetMapping("/api-usage")
     public ApiResponse<List<ApiUsageResponse>> apiUsage(@LoginAdmin AdminSession admin) {
         requireSuperAdmin(admin);

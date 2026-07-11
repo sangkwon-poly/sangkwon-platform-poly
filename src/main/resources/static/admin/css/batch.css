@@ -114,6 +114,14 @@
 }
 .bt-run-lg:hover { filter: brightness(1.06); }
 .bt-run-lg:disabled { background: var(--warn-bg); color: var(--warn); box-shadow: none; cursor: default; filter: none; }
+/* 스테일 RUNNING 초기화: 흔한 동작이 아니라 위험색 아웃라인으로 구분 */
+.bt-reset {
+  height: 40px; width: 100%; margin-top: 8px;
+  border: 1px solid var(--danger); border-radius: var(--radius-sm);
+  background: transparent; color: var(--danger); font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.bt-reset:hover { background: var(--danger-bg); }
+.bt-reset:disabled { opacity: .6; cursor: default; }
 
 /* 원본 출처 링크 */
 .bt-source {

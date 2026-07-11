@@ -161,6 +161,14 @@
             runBtn.dataset.code = r.code;
             runBtn.disabled = !!r.running;
             runBtn.textContent = r.running ? "진행 중…" : "지금 적재";
+            // 진행 중일 때만 초기화(스테일 RUNNING 탈출구)를 노출한다
+            var resetBtn = q('[data-modal="reset"]');
+            var resetNote = q('[data-modal="reset-note"]');
+            resetBtn.dataset.code = r.code;
+            resetBtn.hidden = !r.running;
+            resetBtn.disabled = false;
+            resetBtn.textContent = "진행 중 상태 초기화";
+            resetNote.hidden = !r.running;
         }
 
         renderHistory([{ loading: true }]);
@@ -210,6 +218,26 @@
         });
     }
 
+    // 스테일 RUNNING 초기화: 중단된 좀비로 적재가 막혔을 때 서버 재시작 없이 푼다.
+    function resetStuck(code, btn) {
+        if (!window.confirm("이 데이터셋의 '진행 중' 상태를 초기화할까요? 실제 적재가 돌고 있지 않을 때만 사용하세요.")) { return; }
+        if (btn) { btn.disabled = true; btn.textContent = "초기화 중…"; }
+        api("/api/admin/ops/batch/" + encodeURIComponent(code) + "/reset", jsonOpts("POST")).then(function (r) {
+            if (r.status === 401) { return; }
+            if (r.ok) {
+                flash("진행 중 상태를 초기화했습니다. 다시 적재할 수 있습니다.");
+                closeModal();
+                loadCatalog(true);
+                return;
+            }
+            flash((r.body && r.body.message) || "초기화하지 못했습니다.");
+            if (btn) { btn.disabled = false; btn.textContent = "진행 중 상태 초기화"; }
+        }, function () {
+            flash("초기화 요청에 실패했습니다.");
+            if (btn) { btn.disabled = false; btn.textContent = "진행 중 상태 초기화"; }
+        });
+    }
+
     // ── 이벤트 ────────────────────────────────────────────
     if (refreshBtn) { refreshBtn.addEventListener("click", function () { loadCatalog(false); }); }
 
@@ -229,6 +257,8 @@
             if (e.target.closest("[data-close]")) { closeModal(); return; }
             var runBtn = e.target.closest('[data-modal="run"]');
             if (runBtn) { trigger(runBtn.dataset.code, runBtn); return; }
+            var resetBtn = e.target.closest('[data-modal="reset"]');
+            if (resetBtn) { resetStuck(resetBtn.dataset.code, resetBtn); return; }
         });
     }
     document.addEventListener("keydown", function (e) {

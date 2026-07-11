@@ -4,6 +4,7 @@ import com.sangkwon.sangkwonplatform.admin.account.dto.session.AdminSession;
 import com.sangkwon.sangkwonplatform.admin.ops.AuditAction;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.BatchCatalogResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.BatchLogResponse;
+import com.sangkwon.sangkwonplatform.global.batch.BatchJobLog;
 import com.sangkwon.sangkwonplatform.global.batch.BatchJobLogRepository;
 import com.sangkwon.sangkwonplatform.global.batch.BatchStatus;
 import com.sangkwon.sangkwonplatform.global.batch.Dataset;
@@ -74,6 +75,20 @@ public class BatchAdminService {
             inFlight.remove(dataset.code()); // 트리거 실패 시 예약 해제(성공 시엔 실행 종료 후 해제)
             throw e;
         }
+    }
+
+    // 스테일 RUNNING 초기화: 프로세스는 살아 있는데 배치만 멈춰 재적재가 막힌 경우의 수동 탈출구.
+    // 해당 데이터셋의 RUNNING 이력을 FAILED로 내리고 인프로세스 예약도 해제한다.
+    @Transactional
+    public int reset(String code, AdminSession admin, HttpServletRequest request) {
+        Dataset dataset = require(code);
+        List<BatchJobLog> running = batchJobLogRepository.findByDatasetCdAndStatus(dataset.code(), BatchStatus.RUNNING);
+        running.forEach(log -> log.fail("관리자 수동 초기화"));
+        batchJobLogRepository.saveAll(running);
+        inFlight.remove(dataset.code());
+        adminAuditService.record(admin.adminId(), AuditAction.BATCH_RESET,
+                "BATCH_JOB", dataset.code(), "RUNNING " + running.size() + "건 초기화", request);
+        return running.size();
     }
 
     private Dataset require(String code) {
