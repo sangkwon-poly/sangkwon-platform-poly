@@ -36,6 +36,20 @@
       "</div>";
   }
 
+  // 승인 결과가 불확실한 경우(타임아웃 등). 결제됐을 수 있으므로 재시도를 막고 확인을 안내한다.
+  function renderPending(msg) {
+    root.innerHTML =
+      '<div class="co-result-card">' +
+        '<span class="co-result-icon co-result-icon-pending" aria-hidden="true">…</span>' +
+        '<h1 class="co-result-title">결제 결과를 확인하고 있어요</h1>' +
+        '<p class="co-result-sub">' + esc(msg || "중복 결제를 막기 위해 다시 시도하지 마시고, 잠시 후 마이페이지에서 확인해 주세요.") + "</p>" +
+        '<div class="co-result-actions">' +
+          '<a class="btn btn-primary" href="/member/mypage">마이페이지로</a>' +
+          '<a class="btn btn-ghost" href="/">홈으로</a>' +
+        "</div>" +
+      "</div>";
+  }
+
   function renderSuccess(p) {
     var cycleLabel = p.billingCycle === "YEARLY" ? "연간" : "월간";
     root.innerHTML =
@@ -71,6 +85,11 @@
   })
     .then(function (r) { return r.json().then(function (b) { return { ok: r.ok, body: b }; }); })
     .then(function (res) {
+      // 승인 결과 불확실(M018): 실패로 오인시키지 않고 확인 안내를 띄운다
+      if (res.body && res.body.code === "M018") {
+        renderPending(res.body.message);
+        return;
+      }
       if (!res.ok || !res.body || !res.body.success) {
         renderFail(res.body && res.body.message);
         return;

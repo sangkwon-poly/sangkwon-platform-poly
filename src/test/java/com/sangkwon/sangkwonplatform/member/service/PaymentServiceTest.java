@@ -13,10 +13,16 @@ import com.sangkwon.sangkwonplatform.member.exception.ErrorCode;
 import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
 import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -25,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -154,9 +161,77 @@ class PaymentServiceTest {
         verify(memberRepository).save(member);
     }
 
+    @Test
+    void 타임아웃이면_FAILED로_단정하지_않고_PENDING을_유지한다() {
+        PaymentOrder order = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
+        when(paymentOrderRepository.findByOrderIdAndMemberId("o1", 1L)).thenReturn(Optional.of(order));
+        stubToss().thenThrow(new ResourceAccessException("read timed out"));
+
+        assertThatThrownBy(() -> service("ck", "sk").confirm(1L, new PaymentConfirmRequest("pk-1", "o1", 240_000L)))
+                .satisfies(t -> assertThat(codeOf(t)).isEqualTo(ErrorCode.PAYMENT_CONFIRM_PENDING));
+
+        // 결제됐을 수 있으므로 실패로 확정하지 않고 PENDING 그대로 둔다(대사에 맡김)
+        assertThat(order.getStatus()).isEqualTo(PaymentStatus.PENDING);
+        verify(paymentOrderRepository, never()).save(any());
+        verify(memberRepository, never()).save(any());
+    }
+
+    @Test
+    void 토스_4xx_거절이면_주문을_FAILED로_내린다() {
+        PaymentOrder order = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
+        when(paymentOrderRepository.findByOrderIdAndMemberId("o1", 1L)).thenReturn(Optional.of(order));
+        when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(order));
+        stubToss().thenThrow(tossError(HttpStatus.BAD_REQUEST, "{\"code\":\"REJECT_CARD_COMPANY\"}"));
+
+        assertThatThrownBy(() -> service("ck", "sk").confirm(1L, new PaymentConfirmRequest("pk-1", "o1", 240_000L)))
+                .satisfies(t -> assertThat(codeOf(t)).isEqualTo(ErrorCode.PAYMENT_CONFIRM_FAILED));
+
+        assertThat(order.getStatus()).isEqualTo(PaymentStatus.FAILED);
+        verify(paymentOrderRepository).save(order);
+        verify(memberRepository, never()).save(any());
+    }
+
+    @Test
+    void ALREADY_PROCESSED_응답은_실패가_아니라_멱등_성공으로_처리한다() {
+        PaymentOrder order = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
+        when(paymentOrderRepository.findByOrderIdAndMemberId("o1", 1L)).thenReturn(Optional.of(order));
+        when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(order));
+        Member member = Member.create("user", "hash", "user@test.com", "회원");
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        stubToss().thenThrow(tossError(HttpStatus.BAD_REQUEST, "{\"code\":\"ALREADY_PROCESSED_PAYMENT\"}"));
+
+        PaymentConfirmResponse res = service("ck", "sk").confirm(1L, new PaymentConfirmRequest("pk-1", "o1", 240_000L));
+
+        assertThat(res.status()).isEqualTo(PaymentStatus.PAID);
+        assertThat(order.getStatus()).isEqualTo(PaymentStatus.PAID);
+        assertThat(member.isPro()).isTrue();
+        verify(memberRepository).save(member);
+    }
+
+    @Test
+    void 저장_시_낙관적_락_충돌이면_승자_상태로_멱등_응답하고_구독을_다시_켜지_않는다() {
+        PaymentOrder order = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
+        PaymentOrder winner = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
+        winner.paid("pk-1", LocalDateTime.now());
+        when(paymentOrderRepository.findByOrderIdAndMemberId("o1", 1L)).thenReturn(Optional.of(order));
+        when(paymentOrderRepository.save(order)).thenThrow(new OptimisticLockingFailureException("conflict"));
+        when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(winner));
+        stubToss().thenReturn(new ObjectMapper().readTree("{\"approvedAt\":\"2026-07-11T00:00:00+09:00\"}"));
+
+        PaymentConfirmResponse res = service("ck", "sk").confirm(1L, new PaymentConfirmRequest("pk-1", "o1", 240_000L));
+
+        assertThat(res.status()).isEqualTo(PaymentStatus.PAID);
+        // 승자가 이미 구독을 켰으므로 중복 활성화하지 않는다
+        verify(memberRepository, never()).save(any());
+    }
+
     // 토스 승인 응답을 흉내 낸다. 승인 성공 경로(주문 PAID + 구독 활성화)를 검증하기 위한 최소 스텁.
     private void stubTossConfirm(String json) {
-        JsonNode node = new ObjectMapper().readTree(json);
+        stubToss().thenReturn(new ObjectMapper().readTree(json));
+    }
+
+    // RestClient 플루언트 체인을 배선하고, 마지막 body(JsonNode) 호출에 반환/예외를 지정할 훅을 돌려준다.
+    private org.mockito.stubbing.OngoingStubbing<JsonNode> stubToss() {
         RestClient.RequestBodyUriSpec uriSpec = mock(RestClient.RequestBodyUriSpec.class);
         RestClient.RequestBodySpec bodySpec = mock(RestClient.RequestBodySpec.class);
         RestClient.ResponseSpec respSpec = mock(RestClient.ResponseSpec.class);
@@ -166,6 +241,11 @@ class PaymentServiceTest {
         when(bodySpec.contentType(any())).thenReturn(bodySpec);
         when(bodySpec.body(any(Object.class))).thenReturn(bodySpec);
         when(bodySpec.retrieve()).thenReturn(respSpec);
-        when(respSpec.body(JsonNode.class)).thenReturn(node);
+        return when(respSpec.body(JsonNode.class));
+    }
+
+    private static HttpClientErrorException tossError(HttpStatus status, String body) {
+        return HttpClientErrorException.create(status, status.getReasonPhrase(), HttpHeaders.EMPTY,
+                body.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8);
     }
 }

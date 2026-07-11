@@ -917,6 +917,7 @@ CREATE TABLE PAYMENT_ORDER (
                                ORDER_NAME    VARCHAR2(100 CHAR) NOT NULL,
                                PAYMENT_KEY   VARCHAR2(200 CHAR),
                                APPROVED_AT   TIMESTAMP(6),
+                               VERSION       NUMBER(19)   DEFAULT 0 NOT NULL,
                                CREATED_AT    TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
                                UPDATED_AT    TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
                                CONSTRAINT PK_PAYMENT_ORDER PRIMARY KEY (ORDER_ID),
@@ -936,3 +937,4 @@ COMMENT ON COLUMN PAYMENT_ORDER.AMOUNT        IS '서버가 확정한 결제 금
 COMMENT ON COLUMN PAYMENT_ORDER.STATUS        IS 'PENDING(결제창 진입) / PAID(승인) / FAILED(승인 실패)';
 COMMENT ON COLUMN PAYMENT_ORDER.PAYMENT_KEY   IS '토스 paymentKey (승인 후 기록)';
 COMMENT ON COLUMN PAYMENT_ORDER.APPROVED_AT   IS '토스 승인 시각';
+COMMENT ON COLUMN PAYMENT_ORDER.VERSION       IS '낙관적 락 버전 (동시 승인 경합 방지)';
