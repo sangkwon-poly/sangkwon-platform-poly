@@ -1,106 +1,94 @@
-body {
-    margin: 0;
-    font-family: Pretendard, sans-serif;
-    background: #f7f2ef;
-    color: #3a322e;
-}
+/* 업종·상권 동향 전용 스타일
+   공통 토큰·프리미티브(.container/.btn/.brand)는 common.css 에서 로드됨 */
 
-.trend-page {
-    min-height: 100vh;
-    padding: 8px;
+/* 헤더 (지원사업/랜딩과 동일 패턴) */
+.site-header {
+    position: sticky; top: 0; z-index: 20;
+    background: #fff;
+    border-bottom: 1px solid var(--line-soft);
+}
+.header-inner {
+    height: 66px;
+    display: flex; align-items: center; gap: 14px;
+}
+.site-nav {
+    flex: 1;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 30px;
+}
+.nav-menu {
+    flex: 1;
+    display: flex; justify-content: center; gap: 30px;
+    font-size: 13.5px; font-weight: 600; color: var(--text-soft);
+}
+.nav-menu a:hover { color: var(--brand); }
+.nav-menu a[aria-current="page"] { color: var(--brand); }
+.nav-actions { display: flex; align-items: center; gap: 14px; }
+.link-login { font-size: 13.5px; font-weight: 600; color: var(--text-soft); }
+.link-login:hover { color: var(--brand); }
+.nav-toggle-btn { display: none; }
+.nav-toggle { position: absolute; opacity: 0; pointer-events: none; }
+@media (min-width: 641px) { .nav-toggle { display: none; } }
+
+/* 본문 래퍼 */
+.trend-main {
+    padding: 30px 0 56px;
+    background: var(--surface-2);
+    min-height: calc(100vh - 66px);
     box-sizing: border-box;
 }
+.trend-inner { display: flex; flex-direction: column; gap: 16px; padding: 0 24px; }
 
-.trend-panel {
-    min-height: calc(100vh - 16px);
-    background: #fffaf7;
-    border: 1px solid #e5d4cc;
-    border-radius: 18px;
-    overflow: hidden;
-}
-
-.trend-header {
-    height: 58px;
-    background: #a83f2b;
-    color: #fff;
+/* 상단: 제목 + 업종 선택 */
+.trend-head {
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: space-between;
-    padding: 0 22px;
+    gap: 16px;
+    flex-wrap: wrap;
 }
-
-.trend-title-wrap {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 14px;
-    font-weight: 700;
-}
-.trend-title-wrap > span:last-child { margin-left: 8px; }
-
-.trend-header .brand-name-kok { color: #fff; }
-
-.trend-user {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: #fff4ef;
-    color: #a83f2b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    font-weight: 800;
-    font-size: 13px;
-}
+.trend-title { font-size: 23px; font-weight: 800; letter-spacing: -.02em; color: var(--ink); }
+.trend-sub { margin-top: 4px; font-size: 13px; color: var(--muted); }
 
 .trend-filter {
-    height: 66px;
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 0 24px;
 }
 
 .filter-select {
     height: 36px;
     min-width: 150px;
     padding: 0 15px;
-    border: 1px solid #ead7cf;
+    border: 1px solid var(--line);
     border-radius: 9px;
     background: #fff;
-    color: #3a322e;
+    color: var(--text);
     font-size: 13px;
     font-weight: 700;
     outline: none;
 }
 
-.filter-desc {
-    font-size: 11px;
-    color: #b7aaa3;
-}
-
 .update-time {
-    margin-left: auto;
     font-size: 11px;
-    color: #b7aaa3;
+    color: var(--faint);
 }
 
 .trend-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 14px;
-    padding: 0 24px 24px;
 }
 
 .trend-card {
     min-height: 462px;
-    background: #fffaf7;
-    border: 1px solid #eadbd4;
+    background: #fff;
+    border: 1px solid var(--card-line);
     border-radius: 14px;
     overflow: hidden;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 1px 2px rgba(90, 45, 28, .05);
 }
 
 .card-head {
@@ -334,25 +322,16 @@ body {
 }
 
 @media (max-width: 640px) {
-    .trend-panel {
-        border-radius: 12px;
+    .trend-inner {
+        padding: 0 16px;
     }
 
     .trend-filter {
-        height: auto;
-        padding: 16px;
+        width: 100%;
         flex-wrap: wrap;
     }
 
     .filter-select {
-        width: 100%;
-    }
-
-    .update-time {
-        margin-left: 0;
-    }
-
-    .trend-grid {
-        padding: 0 16px 16px;
+        flex: 1;
     }
 }

@@ -4,34 +4,59 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>업종·상권 동향 · 여기콕</title>
+    <meta name="description" content="업종별 뉴스 요약과 주요 프랜차이즈, 상표 출원 동향을 한 화면에서 확인하세요.">
 
+    <meta name="theme-color" content="#a8412c">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
     <link rel="stylesheet" href="/css/common.css">
-    <link rel="stylesheet" href="/css/map/shell.css">
     <link rel="stylesheet" href="/css/industry/industry.css">
     <link rel="icon" href="/favicon/favicon.ico" sizes="any">
 </head>
 <body>
-<div class="trend-page">
-    <section class="trend-panel">
 
-        <header class="trend-header">
-            <div class="trend-title-wrap">
-                <span class="brand-mark-tag" aria-hidden="true">여기</span>
-                <span class="brand-name-kok">콕</span>
-                <span>업종·상권 동향</span>
-            </div>
-            <a href="/login" class="trend-user">이</a>
-        </header>
+<a class="skip-link" href="#main">본문 바로가기</a>
 
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="/" aria-label="여기콕 홈">
+        <span class="brand-mark-tag" aria-hidden="true">여기</span>
+        <span class="brand-name-kok">콕</span>
+      </a>
+
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-label="주요 메뉴 열기/닫기">
+      <label for="nav-toggle" class="nav-toggle-btn" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </label>
+
+      <nav class="site-nav" aria-label="주요 메뉴">
+        <ul class="nav-menu">
+          <li><a href="/map">상권분석</a></li>
+          <li><a href="/support">지원사업</a></li>
+          <li><a href="/industry/industry.html" aria-current="page">업계동향</a></li>
+        </ul>
+        <div class="nav-actions">
+          <a class="link-login" href="/login">로그인</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="trend-main" aria-label="업종·상권 동향">
+    <div class="container trend-inner">
+
+      <section class="trend-head">
+        <div>
+          <h1 class="trend-title">업종·상권 동향</h1>
+          <p class="trend-sub">업종별 뉴스 요약과 주요 프랜차이즈, 상표 출원 동향을 모아봅니다.</p>
+        </div>
         <div class="trend-filter">
-            <select id="industrySelect" class="filter-select"></select>
-
-
+            <select id="industrySelect" class="filter-select" aria-label="업종 선택"></select>
             <span class="update-time" id="updateTime">수집 -</span>
         </div>
+      </section>
 
-        <main class="trend-grid">
+      <div class="trend-grid">
 
             <section class="trend-card">
                 <div class="card-head">
@@ -87,10 +112,35 @@
                 </ul>
             </section>
 
-        </main>
-    </section>
-</div>
-<script src="/js/map/induty-map.js"></script>
-<script src="/js/industry/industry.js" defer></script>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // 로그인 세션을 헤더 액션 영역에 반영 (지원사업 페이지와 동일 패턴)
+    (function () {
+      var actions = document.querySelector('.nav-actions');
+      if (!actions) return;
+      function esc(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;}
+      fetch('/api/members/me', { credentials: 'include', headers: { Accept: 'application/json' } })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (b) {
+          var me = b && b.data;
+          if (!me) return;
+          actions.innerHTML =
+            '<a class="link-login" href="/member/mypage">' + esc(me.nickname || me.loginId) + '님</a>' +
+            '<button type="button" class="btn btn-primary btn-sm" id="nav-logout">로그아웃</button>';
+          var btn = document.getElementById('nav-logout');
+          if (btn) btn.addEventListener('click', function () {
+            fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+              .then(function () { location.reload(); }, function () { location.reload(); });
+          });
+        })
+        .catch(function () {});
+    })();
+  </script>
+  <script src="/js/map/induty-map.js"></script>
+  <script src="/js/industry/industry.js" defer></script>
 </body>
 </html>
