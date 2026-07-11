@@ -1,35 +1,6 @@
 /* 업종·상권 동향 전용 스타일
    공통 토큰·프리미티브(.container/.btn/.brand)는 common.css 에서 로드됨 */
 
-/* 헤더 (지원사업/랜딩과 동일 패턴) */
-.site-header {
-    position: sticky; top: 0; z-index: 20;
-    background: #fff;
-    border-bottom: 1px solid var(--line-soft);
-}
-.header-inner {
-    height: 66px;
-    display: flex; align-items: center; gap: 14px;
-}
-.site-nav {
-    flex: 1;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 30px;
-}
-.nav-menu {
-    flex: 1;
-    display: flex; justify-content: center; gap: 30px;
-    font-size: 13.5px; font-weight: 600; color: var(--text-soft);
-}
-.nav-menu a:hover { color: var(--brand); }
-.nav-menu a[aria-current="page"] { color: var(--brand); }
-.nav-actions { display: flex; align-items: center; gap: 14px; }
-.link-login { font-size: 13.5px; font-weight: 600; color: var(--text-soft); }
-.link-login:hover { color: var(--brand); }
-.nav-toggle-btn { display: none; }
-.nav-toggle { position: absolute; opacity: 0; pointer-events: none; }
-@media (min-width: 641px) { .nav-toggle { display: none; } }
-
 /* 본문 래퍼 */
 .trend-main {
     padding: 30px 0 56px;

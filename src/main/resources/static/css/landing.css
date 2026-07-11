@@ -1,45 +1,7 @@
 /* 랜딩(LANDING-01) 전용 스타일
    공통 토큰·프리미티브(.container/.btn/.brand)는 common.css 에서 로드됨 */
 
-/* 1. 헤더 */
-.site-header {
-  position: sticky; top: 0; z-index: 20;
-  background: #fff;
-  border-bottom: 1px solid var(--line-soft);
-}
-.header-inner {
-  height: 66px;
-  display: flex; align-items: center; gap: 14px;
-}
-.site-nav {
-  flex: 1;
-  display: flex; align-items: center; justify-content: space-between;
-  gap: 30px;
-}
-.nav-menu {
-  flex: 1;
-  display: flex; justify-content: center; gap: 30px;
-  font-size: 13.5px; font-weight: 600; color: var(--text-soft);
-}
-.nav-menu a:hover { color: var(--brand); }
-.nav-actions { display: flex; align-items: center; gap: 14px; }
-.link-login { font-size: 13.5px; font-weight: 600; color: var(--text-soft); }
-.link-login:hover { color: var(--brand); }
 .btn-ghost { padding: 0 24px; }
-
-/* 로그인 후: 아바타 버튼(마이페이지) + 닉네임 */
-.nav-user { display: inline-flex; align-items: center; gap: 8px; }
-.nav-avatar {
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  display: grid; place-items: center;
-  background: var(--brand); color: #fff;
-  font-size: 13px; font-weight: 800;
-  transition: filter .15s ease;
-}
-.nav-user:hover .nav-avatar { filter: brightness(1.08); }
-.nav-user-name { font-size: 13.5px; font-weight: 600; color: var(--text-soft); }
-.nav-user:hover .nav-user-name { color: var(--brand); }
 
 /* 서울 지도 코로플레스 데모 (히어로의 .hero-visual 안에서만 쓰임)
    ⚠ body, *{box-sizing} 같은 전역 규칙은 페이지 전체 레이아웃을 깨뜨리므로 넣지 않음.
@@ -121,20 +83,70 @@
   border-top-color: rgba(30,20,15,0.88);
 }
 
-/* 햄버거 (기본 숨김, 모바일에서만 노출) */
-.nav-toggle-btn { display: none; }
-/* 토글 체크박스: 화면에선 숨기되 모바일에서 키보드 포커스는 유지한다 (hidden 대신) */
-.nav-toggle { position: absolute; opacity: 0; pointer-events: none; }
-@media (min-width: 641px) { .nav-toggle { display: none; } }
-
 /* 2. 히어로 */
-.hero { background: linear-gradient(var(--surface-2), #fff); }
+/* 헤더(66px)를 뺀 첫 화면을 히어로가 꽉 채워, 화면 크기와 무관하게
+   지표 바(.stats)가 스크롤 전에는 보이지 않도록 한다. */
+.hero {
+  background: linear-gradient(var(--surface-2), #fff);
+  min-height: calc(100svh - 66px);
+  display: flex;
+  align-items: center;
+}
 .hero-inner {
+  width: 100%;
   display: grid;
   grid-template-columns: 1.02fr .98fr;
   gap: 40px;
   align-items: center;
-  padding: 210px 24px 230px;
+  padding: 48px 24px;
+}
+
+/* 히어로 진입 모션: 로드되면 아래에서 위로 순차적으로 떠오른다 */
+@keyframes heroRise {
+  from { opacity: 0; transform: translateY(26px); }
+  to   { opacity: 1; transform: none; }
+}
+.hero-copy > *,
+.hero-visual {
+  animation: heroRise .7s cubic-bezier(.22, 1, .36, 1) both;
+}
+.hero-copy .eyebrow { animation-delay: .05s; }
+.hero-title        { animation-delay: .15s; }
+.hero-lead         { animation-delay: .25s; }
+.hero-cta          { animation-delay: .35s; }
+.hero-trust        { animation-delay: .45s; }
+.hero-visual       { animation-delay: .30s; }
+
+/* 스크롤 등장 모션: JS(IntersectionObserver)가 .is-visible 을 붙이면 나타난다 */
+.reveal,
+.reveal-left,
+.reveal-right {
+  opacity: 0;
+  transition: opacity .7s ease, transform .7s cubic-bezier(.22, 1, .36, 1);
+  transition-delay: var(--reveal-delay, 0s);
+  will-change: opacity, transform;
+}
+.reveal       { transform: translateY(34px); }
+.reveal-left  { transform: translateX(-44px); }
+.reveal-right { transform: translateX(44px); }
+.reveal.is-visible,
+.reveal-left.is-visible,
+.reveal-right.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* 모션 최소화 선호 시 애니메이션 제거 (접근성) */
+@media (prefers-reduced-motion: reduce) {
+  .hero-copy > *,
+  .hero-visual { animation: none; }
+  .reveal,
+  .reveal-left,
+  .reveal-right {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 .eyebrow {
   display: inline-flex; align-items: center; gap: 7px;
@@ -279,6 +291,10 @@
   border-radius: var(--radius);
   padding: 22px;
 }
+/* 카드가 순차적으로 떠오르도록 등장 딜레이를 준다 */
+.feature-sub-card.reveal:nth-child(1){ --reveal-delay: .05s; }
+.feature-sub-card.reveal:nth-child(2){ --reveal-delay: .15s; }
+.feature-sub-card.reveal:nth-child(3){ --reveal-delay: .25s; }
 .feature-sub-icon{
   width: 40px; height: 40px;
   display: flex; align-items: center; justify-content: center;
@@ -373,29 +389,6 @@
 
 /* 반응형 · 모바일 (명세: 1열 · 햄버거) */
 @media (max-width: 640px) {
-  .nav-toggle-btn {
-    display: flex; flex-direction: column; justify-content: center; gap: 5px;
-    width: 40px; height: 40px; margin-left: auto;
-  }
-  .nav-toggle-btn span {
-    display: block; width: 20px; height: 2px; margin: 0 auto;
-    background: var(--ink); border-radius: 2px;
-  }
-  .site-nav {
-    position: absolute; left: 0; right: 0; top: 66px;
-    flex-direction: column; align-items: stretch; gap: 0;
-    background: #fff;
-    border-bottom: 1px solid var(--line-soft);
-    box-shadow: 0 16px 30px rgba(90, 45, 28, .08);
-    padding: 8px 24px 20px;
-    display: none;
-  }
-  .nav-toggle:checked ~ .site-nav { display: flex; }  /* 체크박스 켜지면 메뉴 표시 */
-  .nav-toggle:focus-visible + .nav-toggle-btn { outline: 2px solid var(--brand); outline-offset: 3px; }
-  .nav-menu { flex-direction: column; gap: 0; font-size: 15px; }
-  .nav-menu li { border-bottom: 1px solid var(--line-soft); }
-  .nav-menu a { display: block; padding: 13px 0; }
-  .nav-actions { margin-top: 16px; justify-content: space-between; }
   .hero-title { font-size: 32px; }
   .hero-cta .btn { flex: 1; }
   .stats-inner { grid-template-columns: 1fr 1fr; }

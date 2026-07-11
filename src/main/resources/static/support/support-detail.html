@@ -28,11 +28,16 @@
       </label>
       <nav class="site-nav" aria-label="주요 메뉴">
         <ul class="nav-menu">
-          <li><a href="/map">상권분석</a></li>
+          <li><a href="/#features">기능</a></li>
+          <li><a href="/pricing">요금제</a></li>
           <li><a href="/support" aria-current="page">지원사업</a></li>
+          <li><a href="/industry/industry.html">업계동향</a></li>
+          <li><a href="/notice">공지사항</a></li>
+          <li><a href="/inquiry">문의하기</a></li>
         </ul>
         <div class="nav-actions">
           <a class="link-login" href="/login">로그인</a>
+          <a class="link-login" href="/signup">회원가입</a>
         </div>
       </nav>
     </div>
@@ -65,8 +70,12 @@
         .then(function (b) {
           var me = b && b.data;
           if (!me) return;
+          var initial = esc((me.nickname || me.loginId || '?').slice(0, 1));
           actions.innerHTML =
-            '<a class="link-login" href="/member/mypage">' + esc(me.nickname || me.loginId) + '님</a>' +
+            '<a class="nav-user" href="/member/mypage" title="마이페이지">' +
+              '<span class="nav-avatar" aria-hidden="true">' + initial + '</span>' +
+              '<span class="nav-user-name">' + esc(me.nickname || me.loginId) + '님</span>' +
+            '</a>' +
             '<button type="button" class="btn btn-primary btn-sm" id="nav-logout">로그아웃</button>';
           var btn = document.getElementById('nav-logout');
           if (btn) btn.addEventListener('click', function () {

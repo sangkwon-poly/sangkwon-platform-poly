@@ -26,8 +26,8 @@
   <!-- 폰트: 목업과 동일한 Pretendard. CDN 사전 연결로 폰트 로딩을 앞당긴다 -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
-  <link rel="stylesheet" href="/css/common.css?v=20260710">
-  <link rel="stylesheet" href="/css/landing.css?v=20260710">
+  <link rel="stylesheet" href="/css/common.css?v=20260711">
+  <link rel="stylesheet" href="/css/landing.css?v=20260711">
 
   <!-- 배포 도메인이 정해지면 절대 URL canonical을 추가한다 (상대경로는 Lighthouse에서 무효 처리) -->
   <link rel="icon" href="/favicon/favicon.ico" sizes="any">
@@ -137,12 +137,12 @@
   <!-- 5-1. 지도 비교 기능 -->
   <section class="feature-map" id="features" aria-label="지도 비교 기능">
     <div class="container">
-      <div class="feature-map-head">
+      <div class="feature-map-head reveal">
         <h2 class="section-title">상권 데이터를 지도로<br>한눈에 비교해요</h2>
         <p class="section-lead">서울시 공식 데이터를 기반으로, 원하는 조건의 상권을 지도 위에서 바로 찾아보세요.</p>
       </div>
 
-      <div class="map-demo">
+      <div class="map-demo reveal">
         <div class="map-demo-bar">
           <span class="map-demo-dot" aria-hidden="true"></span>서울 상권 지도
           <span class="map-demo-tag">서울 전체 · 25개 자치구</span>
@@ -174,21 +174,21 @@
       </div>
 
       <div class="feature-sub-grid">
-        <div class="feature-sub-card">
+        <div class="feature-sub-card reveal">
           <div class="feature-sub-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h10M4 18h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           </div>
           <h3>원하는 필터링으로 상권 보기</h3>
           <p>업종, 추정 매출 등 여러가지 키워드로 필터링이 가능해요.</p>
         </div>
-        <div class="feature-sub-card">
+        <div class="feature-sub-card reveal">
           <div class="feature-sub-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none"><path d="M4 20V10M12 20V4M20 20v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           </div>
           <h3>추정 매출 기준, 자치구 랭킹</h3>
           <p>추정 매출이 높은 자치구의 순위를 실시간으로 확인할 수 있어요.</p>
         </div>
-        <div class="feature-sub-card">
+        <div class="feature-sub-card reveal">
           <div class="feature-sub-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
           </div>
@@ -202,7 +202,7 @@
   <!-- 5-2. 상세 리포트 기능 -->
   <section class="feature-report" aria-label="상세 리포트 기능">
     <div class="container feature-report-inner">
-      <div class="feature-report-copy">
+      <div class="feature-report-copy reveal-left">
         <h2 class="section-title">상세 리포트로 상권에 대해<br>자세히 파악해 보세요</h2>
         <p class="section-lead">숫자로만 보던 상권 데이터를, 읽기 쉬운 리포트 한 장으로 정리해드려요.</p>
 
@@ -234,7 +234,7 @@
         </div>
       </div>
 
-      <div class="feature-report-visual" aria-hidden="true">
+      <div class="feature-report-visual reveal-right" aria-hidden="true">
         <div class="report-mock">
           <div class="report-mock-kicker">SEOUL TRDAR REPORT</div>
           <div class="report-mock-title">사근동 살곶이상점가 상권 분석 리포트</div>
@@ -263,7 +263,7 @@
   <!-- 5-3. 지원사업 매칭 -->
   <section class="feature-support" aria-label="지원사업 매칭">
     <div class="container feature-support-inner">
-      <div class="feature-support-visual" aria-hidden="true">
+      <div class="feature-support-visual reveal-left" aria-hidden="true">
         <svg viewBox="0 0 220 200" class="support-network">
           <line x1="60" y1="110" x2="150" y2="60" stroke="var(--line)" stroke-width="2"/>
           <line x1="60" y1="110" x2="150" y2="150" stroke="var(--line)" stroke-width="2"/>
@@ -283,7 +283,7 @@
           <circle cx="190" cy="170" r="10" fill="var(--brand-tint)" stroke="var(--brand)" stroke-width="2"/>
         </svg>
       </div>
-      <div class="feature-support-copy">
+      <div class="feature-support-copy reveal-right">
         <span class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span>소상공인들을 위한 지원사업과 매칭 서비스</span>
         <h2 class="section-title">정부와 지자체 지원사업,<br>딱 맞는 것만 골라드려요</h2>
         <p class="section-lead">업종·지역·창업 단계에 맞는 정부·지자체 지원사업을 자동으로 매칭해드려요.</p>
@@ -310,6 +310,28 @@
 </footer>
 
 <script src="/js/indexMap.js?v=20260710"></script>
+
+<script>
+  // 스크롤 등장 모션: 뷰포트에 들어오면 .is-visible 을 붙여 CSS 트랜지션을 발동한다.
+  // IntersectionObserver 미지원 브라우저에서는 즉시 노출해 콘텐츠가 가려지지 않게 한다.
+  (function () {
+    var els = document.querySelectorAll('.reveal, .reveal-left, .reveal-right');
+    if (!els.length) return;
+    if (!('IntersectionObserver' in window)) {
+      els.forEach(function (el) { el.classList.add('is-visible'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('is-visible');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -10% 0px' });
+    els.forEach(function (el) { io.observe(el); });
+  })();
+</script>
 
 <script>
   // 로그인 세션을 한 번만 확인해서 헤더 액션과 히어로 CTA에 함께 반영한다(요청 중복 제거)
