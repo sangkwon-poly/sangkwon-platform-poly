@@ -124,6 +124,11 @@ public class FranchiseBrandStatLoadService {
             rows.addAll(candidates.subList(0, Math.min(TOP_PER_INDUTY, candidates.size())));
         }
 
+        // 건수는 있다는데 파싱/매핑 결과가 통째로 비면(원천 구조나 분류명 변경) 기존 적재분을 지우지 않는다
+        if (rows.isEmpty()) {
+            return 0;
+        }
+
         jt.update("DELETE FROM FRANCHISE_BRAND_STAT");
         jt.batchUpdate("INSERT INTO FRANCHISE_BRAND_STAT (INDUTY_CD,BASE_YEAR,BRAND_NM,CORP_NM,FTC_INDUTY_NM,"
                 + "FRCS_CNT,AVG_SALES_AMT,NEW_FRCS_RGS_CNT,CTRT_END_CNT,CTRT_CNCLTN_CNT,NM_CHG_CNT) "

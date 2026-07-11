@@ -130,6 +130,24 @@ class FranchiseBrandStatLoadServiceTest {
     }
 
     @Test
+    void 건수는_있는데_매핑되는_브랜드가_없으면_기존_적재분을_지우지_않는다() {
+        server.expect(requestTo(probeUrl(thisYear)))
+                .andRespond(withSuccess("{\"resultCode\":\"00\",\"totalCount\":1,\"items\":[]}",
+                        MediaType.APPLICATION_JSON));
+        server.expect(requestTo(pageUrl(thisYear, 1)))
+                .andRespond(withSuccess("{\"resultCode\":\"00\",\"totalCount\":1,\"items\":["
+                                + item("피자", "피자브랜드", "피자법인", "900", "700000") + "]}",
+                        MediaType.APPLICATION_JSON));
+
+        long loaded = service.load();
+
+        assertThat(loaded).isZero();
+        verify(jt, never()).update(anyString());
+        verify(jt, never()).batchUpdate(anyString(), anyList());
+        server.verify();
+    }
+
+    @Test
     void 사용량_집계가_실패해도_적재는_계속된다() {
         stubOnePageOfBrands(thisYear);
         doThrow(new RuntimeException("집계 DB 오류")).when(apiUsageService).record(ExternalApi.FTC_FRANCHISE);

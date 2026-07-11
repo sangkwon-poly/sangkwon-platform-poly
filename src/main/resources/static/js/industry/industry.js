@@ -94,6 +94,11 @@ function initTrends() {
             const json = await res.json();
             const data = json.data ?? json;
 
+            // 응답 대기 중 업종이 바뀌었으면 늦게 온 이전 업종 응답은 버린다
+            if (industrySelect.value !== indutyCd) {
+                return;
+            }
+
             const parsed = parseInsightText(data.insightText);
 
             insightChip.textContent = `${data.indutyNm ?? indutyNm} · ${data.yearMonth ?? "최신"}`;
@@ -107,6 +112,9 @@ function initTrends() {
         } catch (e) {
             console.error("인사이트 조회 실패:", e);
 
+            if (industrySelect.value !== indutyCd) {
+                return;
+            }
             insightChip.textContent = `${indutyNm} · 조회 실패`;
             summaryText.textContent = "인사이트를 불러오지 못했습니다.";
             opportunityText.textContent = "-";
@@ -140,6 +148,11 @@ function initTrends() {
             const json = await res.json();
             const rows = json.data ?? [];
 
+            // 응답 대기 중 업종이 바뀌었으면 늦게 온 이전 업종 응답은 버린다
+            if (industrySelect.value !== indutyCd) {
+                return;
+            }
+
             if (!rows.length) {
                 franchiseChip.textContent = `${indutyNm} · 데이터 없음`;
                 franchiseList.innerHTML = '<li class="franchise-empty">이 업종은 집계된 프랜차이즈가 없습니다.</li>';
@@ -155,6 +168,9 @@ function initTrends() {
         } catch (e) {
             console.error("주요 프랜차이즈 조회 실패:", e);
 
+            if (industrySelect.value !== indutyCd) {
+                return;
+            }
             franchiseChip.textContent = `${indutyNm} · 조회 실패`;
             franchiseList.innerHTML = '<li class="franchise-empty">가맹점 현황을 불러오지 못했습니다.</li>';
         }
