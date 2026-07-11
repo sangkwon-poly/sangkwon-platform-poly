@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.admin.member.service;
 
 import com.sangkwon.sangkwonplatform.admin.member.dto.response.AdminMemberResponse;
 import com.sangkwon.sangkwonplatform.admin.member.dto.response.MemberCountsResponse;
+import com.sangkwon.sangkwonplatform.global.security.MemberSessionRegistry;
 import com.sangkwon.sangkwonplatform.member.entity.Member;
 import com.sangkwon.sangkwonplatform.member.entity.MemberStatus;
 import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
@@ -27,6 +28,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 // AdminMemberService 단위 테스트. mock으로 상태 전이·검색어 정규화·카운트 집계를 검증.
@@ -34,6 +37,7 @@ import static org.mockito.Mockito.when;
 class AdminMemberServiceTest {
 
     @Mock MemberRepository memberRepository;
+    @Mock MemberSessionRegistry memberSessionRegistry;
     @InjectMocks AdminMemberService adminMemberService;
 
     private Member member() {
@@ -62,6 +66,8 @@ class AdminMemberServiceTest {
         assertThat(m.getStatus()).isEqualTo(MemberStatus.BANNED);
         assertThat(res.from()).isEqualTo(MemberStatus.ACTIVE);
         assertThat(res.member().status()).isEqualTo(MemberStatus.BANNED);
+        // 정지되면 기존 세션을 강제 만료시킨다
+        verify(memberSessionRegistry).revokeAll(1L);
     }
 
     @Test
@@ -75,6 +81,8 @@ class AdminMemberServiceTest {
         assertThat(m.getStatus()).isEqualTo(MemberStatus.WITHDRAWN);
         assertThat(m.getWithdrawnAt()).isNotNull();
         assertThat(res.from()).isEqualTo(MemberStatus.ACTIVE);
+        // 강제 탈퇴도 세션을 강제 만료시킨다
+        verify(memberSessionRegistry).revokeAll(1L);
     }
 
     @Test
@@ -90,6 +98,8 @@ class AdminMemberServiceTest {
         assertThat(m.getStatus()).isEqualTo(MemberStatus.ACTIVE);
         // 재활성화해도 탈퇴 이력(withdrawnAt)은 스키마 의도대로 남긴다.
         assertThat(m.getWithdrawnAt()).isNotNull();
+        // ACTIVE로 되살릴 때는 세션을 만료시키지 않는다
+        verify(memberSessionRegistry, never()).revokeAll(any());
     }
 
     @Test
