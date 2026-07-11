@@ -3,6 +3,7 @@ package com.sangkwon.sangkwonplatform.map.service;
 import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
 import com.sangkwon.sangkwonplatform.admin.ops.service.ApiUsageService;
 import com.sangkwon.sangkwonplatform.global.config.LoaderHttp;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.util.Set;
 
 // 공정위 프랜차이즈 3종(브랜드/가맹점수/정보공개서) 적재를 앱에서 실행한다. 파이썬 04_load_franchise.py 포팅.
 // 각 테이블 DELETE 후 재적재하는 전체 스냅샷 방식이라, 트랜잭션으로 묶으면 반복 실행해도 최종 상태가 같다(멱등).
+@Slf4j
 @Service
 public class FranchiseLoadService {
 
@@ -149,7 +151,7 @@ public class FranchiseLoadService {
             try {
                 apiUsageService.record(ExternalApi.FTC_FRANCHISE);
             } catch (RuntimeException e) {
-                System.out.println("공정위 가맹사업 API 사용량 집계 실패(적재는 계속 진행): " + e.getMessage());
+                log.warn("공정위 가맹사업 API 사용량 집계 실패(적재는 계속 진행): {}", e.getMessage());
             }
             try {
                 return rest.getForObject(URI.create(url), String.class);

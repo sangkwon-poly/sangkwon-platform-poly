@@ -61,3 +61,6 @@ scripts/*/*.env
 
 # 로컬 실행 편의 설정 (application.properties 오버라이드, 커밋 금지)
 /config/
+
+# 애플리케이션 로그(파일 appender)
+logs/

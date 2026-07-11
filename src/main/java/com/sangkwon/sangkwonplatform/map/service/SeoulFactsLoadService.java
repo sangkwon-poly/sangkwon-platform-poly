@@ -3,6 +3,7 @@ package com.sangkwon.sangkwonplatform.map.service;
 import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
 import com.sangkwon.sangkwonplatform.admin.ops.service.ApiUsageService;
 import com.sangkwon.sangkwonplatform.global.config.LoaderHttp;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -25,6 +26,7 @@ import java.util.TreeSet;
 // 재적재를 단일 트랜잭션으로 묶어 원자적으로 교체한다: 커밋 전까지 독자는 Oracle MVCC로 기존 데이터를 보고,
 // 중간 실패 시 롤백되어 이전 스냅샷이 그대로 남는다(빈/부분 데이터 노출·부분 적재 방지). 대용량(점포 160만)이라 undo가 크다.
 // 제약(FK/CHECK) 위반 행은 배치 실패 시 행 단위로 재시도하며 건너뛴다(Oracle은 문 단위 롤백이라 트랜잭션은 유지된다).
+@Slf4j
 @Service
 @Transactional
 public class SeoulFactsLoadService {
@@ -211,7 +213,7 @@ public class SeoulFactsLoadService {
             try {
                 apiUsageService.record(ExternalApi.SEOUL);
             } catch (RuntimeException e) {
-                System.out.println("서울 오픈API 사용량 집계 실패(적재는 계속 진행): " + e.getMessage());
+                log.warn("서울 오픈API 사용량 집계 실패(적재는 계속 진행): {}", e.getMessage());
             }
             try {
                 return mapper.readTree(rest.getForObject(URI.create(url), String.class));

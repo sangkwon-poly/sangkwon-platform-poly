@@ -5,6 +5,7 @@ import com.sangkwon.sangkwonplatform.admin.ops.service.ApiUsageService;
 import com.sangkwon.sangkwonplatform.industrynewsInsight.entity.IndustryNewsInsight;
 import com.sangkwon.sangkwonplatform.industrynewsInsight.repository.IndustryNewsInsightRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class IndustryNewsInsightBatchService {
@@ -276,7 +278,7 @@ public class IndustryNewsInsightBatchService {
             String indutyCd = entry.getKey();
             String indutyNm = entry.getValue();
 
-            System.out.printf("[%s] %s 인사이트 생성 시작%n", indutyCd, indutyNm);
+            log.info("[{}] {} 인사이트 생성 시작", indutyCd, indutyNm);
 
             List<String> titles = fetchAndFilterTitles(indutyCd, indutyNm);
 
@@ -300,10 +302,10 @@ public class IndustryNewsInsightBatchService {
 
             saveInsight(indutyCd, indutyNm, yearMonth, insightText, titles.size());
 
-            System.out.printf("[%s] 완료 - 기사 %d건%n", indutyCd, titles.size());
+            log.info("[{}] 완료 - 기사 {}건", indutyCd, titles.size());
         }
 
-        System.out.printf("전체 완료: 인사이트 생성 %d건 / 근거부족 처리 %d건%n", generated, skipped);
+        log.info("전체 완료: 인사이트 생성 {}건 / 근거부족 처리 {}건", generated, skipped);
 
         return (long) generated + skipped;
     }
@@ -324,7 +326,7 @@ public class IndustryNewsInsightBatchService {
             sleep(NAVER_CALL_INTERVAL_MS);
         }
 
-        System.out.println(indutyNm + " : " + titleSet.size());
+        log.info("{} : {}", indutyNm, titleSet.size());
 
         titleSet.forEach(System.out::println);
 
@@ -357,20 +359,20 @@ public class IndustryNewsInsightBatchService {
                     );
                     break;
                 } catch (HttpClientErrorException.TooManyRequests e) {
-                    System.out.printf("네이버 429 발생: %s / %d초 대기 후 재시도 (%d/%d)%n",
+                    log.warn("네이버 429 발생: {} / {}초 대기 후 재시도 ({}/{})",
                             query, NAVER_RETRY_WAIT_MS / 1000, attempt, NAVER_MAX_RETRY);
                     sleep(NAVER_RETRY_WAIT_MS);
                 } catch (HttpClientErrorException.Unauthorized | HttpClientErrorException.Forbidden e) {
                     // 인증 실패는 '뉴스 없음'이 아니라 키 설정 오류다. 폴백을 전 업종에 저장하지 않도록 배치를 중단시킨다
                     throw new IllegalStateException("네이버 뉴스 API 인증 실패(키 확인 필요): " + e.getStatusCode(), e);
                 } catch (Exception e) {
-                    System.out.println("네이버 뉴스 호출 실패: " + query + " / " + e.getMessage());
+                    log.warn("네이버 뉴스 호출 실패: {} / {}", query, e.getMessage());
                     return;
                 }
             }
 
             if (response == null) {
-                System.out.println("네이버 재시도 한도 초과, 이번 검색어는 건너뜀: " + query);
+                log.warn("네이버 재시도 한도 초과, 이번 검색어는 건너뜀: {}", query);
                 return;
             }
 
@@ -413,7 +415,7 @@ public class IndustryNewsInsightBatchService {
                 items.forEach(result::add);
             }
         } catch (Exception e) {
-            System.out.println("뉴스 응답 파싱 실패: " + e.getMessage());
+            log.warn("뉴스 응답 파싱 실패: {}", e.getMessage());
         }
 
         return result;
@@ -477,7 +479,7 @@ public class IndustryNewsInsightBatchService {
             try {
                 apiUsageService.record(ExternalApi.GEMINI_NEWS);
             } catch (RuntimeException e) {
-                System.out.println("Gemini 사용량 집계 실패(요약은 계속 진행): " + e.getMessage());
+                log.warn("Gemini 사용량 집계 실패(요약은 계속 진행): {}", e.getMessage());
             }
             try {
                 ResponseEntity<String> response = restTemplate.postForEntity(
@@ -494,17 +496,17 @@ public class IndustryNewsInsightBatchService {
                 return text.isBlank() ? null : text;
 
             } catch (HttpClientErrorException.TooManyRequests e) {
-                System.out.printf("Gemini 429(Too Many Requests) 발생, %d초 대기 후 재시도 (%d/%d)%n",
+                log.warn("Gemini 429(Too Many Requests) 발생, {}초 대기 후 재시도 ({}/{})",
                         GEMINI_RETRY_WAIT_MS / 1000, attempt, GEMINI_MAX_RETRY);
                 sleep(GEMINI_RETRY_WAIT_MS);
 
             } catch (Exception e) {
-                System.out.println("Gemini 요약 실패: " + e.getMessage());
+                log.warn("Gemini 요약 실패: {}", e.getMessage());
                 return null;
             }
         }
 
-        System.out.println("Gemini 재시도 한도 초과, 이번 업종은 건너뜀");
+        log.warn("Gemini 재시도 한도 초과, 이번 업종은 건너뜀");
         return null;
     }
 
