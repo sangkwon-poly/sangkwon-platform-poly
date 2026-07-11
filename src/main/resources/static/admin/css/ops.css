@@ -60,11 +60,13 @@
 
 /* API 사용량 카드 */
 .usage-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 16px;
 }
 .usage-card {
+  flex: 0 1 264px;
   background: var(--bg);
   border: 1px solid var(--card-line);
   border-radius: var(--radius);
