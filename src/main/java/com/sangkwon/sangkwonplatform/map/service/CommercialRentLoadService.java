@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.map.service;
 
 import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
 import com.sangkwon.sangkwonplatform.admin.ops.service.ApiUsageService;
+import com.sangkwon.sangkwonplatform.global.config.LoaderHttp;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -36,7 +37,7 @@ public class CommercialRentLoadService {
     private static final Map<String, String> TYPES = Map.of(
             "오피스", "오피스", "중대형 상가", "중대형상가", "소규모 상가", "소규모상가", "집합 상가", "집합상가");
 
-    private final RestTemplate rest = new RestTemplate();
+    private final RestTemplate rest = LoaderHttp.timed();
     private final ObjectMapper mapper = new ObjectMapper();
     private final JdbcTemplate jt;
     private final ApiUsageService apiUsageService;
