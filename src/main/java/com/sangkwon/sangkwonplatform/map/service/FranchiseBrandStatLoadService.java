@@ -3,6 +3,7 @@ package com.sangkwon.sangkwonplatform.map.service;
 import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
 import com.sangkwon.sangkwonplatform.admin.ops.service.ApiUsageService;
 import com.sangkwon.sangkwonplatform.global.config.LoaderHttp;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.util.Set;
 // 전체 브랜드를 받아 공정위 업종 중분류를 서울 업종코드로 매핑하고, 업종별 가맹점수 상위 5개만 남긴다.
 // DELETE 후 재적재하는 전체 스냅샷이라 트랜잭션으로 묶으면 반복 실행해도 최종 상태가 같다(멱등).
 // 주의: 이 API는 data.go.kr에서 서비스키에 별도 활용신청이 필요하다(미신청 키는 게이트웨이가 403).
+@Slf4j
 @Service
 public class FranchiseBrandStatLoadService {
 
@@ -151,7 +153,7 @@ public class FranchiseBrandStatLoadService {
             try {
                 apiUsageService.record(ExternalApi.FTC_FRANCHISE);
             } catch (RuntimeException e) {
-                System.out.println("공정위 가맹사업 API 사용량 집계 실패(적재는 계속 진행): " + e.getMessage());
+                log.warn("공정위 가맹사업 API 사용량 집계 실패(적재는 계속 진행): {}", e.getMessage());
             }
             try {
                 return mapper.readTree(rest.getForObject(URI.create(url), String.class));

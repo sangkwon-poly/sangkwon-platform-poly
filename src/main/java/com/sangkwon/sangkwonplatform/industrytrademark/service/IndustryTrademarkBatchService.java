@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.industrytrademark.service;
 
 import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
 import com.sangkwon.sangkwonplatform.admin.ops.service.ApiUsageService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -30,6 +31,7 @@ import java.util.Set;
 // INDUTY 마스터의 업종명을 지정상품 검색어로 정제해 업종별 최신 출원 상표 5건씩 모은다.
 // DELETE 후 재적재하는 전체 스냅샷이라 트랜잭션으로 묶으면 반복 실행해도 최종 상태가 같다(멱등).
 // 주의: KIPRIS Plus 키는 사용기간이 있어 만료되면 resultCode 31(DEADLINE_HAS_EXPIRED)이 온다.
+@Slf4j
 @Service
 public class IndustryTrademarkBatchService {
 
@@ -200,7 +202,7 @@ public class IndustryTrademarkBatchService {
             try {
                 apiUsageService.record(ExternalApi.KIPRIS);
             } catch (RuntimeException e) {
-                System.out.println("KIPRIS 사용량 집계 실패(적재는 계속 진행): " + e.getMessage());
+                log.warn("KIPRIS 사용량 집계 실패(적재는 계속 진행): {}", e.getMessage());
             }
             try {
                 return rest.getForObject(URI.create(url), byte[].class);

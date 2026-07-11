@@ -3,6 +3,7 @@ package com.sangkwon.sangkwonplatform.map.service;
 import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
 import com.sangkwon.sangkwonplatform.admin.ops.service.ApiUsageService;
 import com.sangkwon.sangkwonplatform.global.config.LoaderHttp;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +28,7 @@ import java.util.Set;
 // 한국부동산원(R-ONE) 상업용부동산 임대동향 -> COMMERCIAL_RENT 적재를 앱에서 실행한다. 파이썬 05 포팅.
 // 통계표 목록을 이름으로 선별(임대료/공실률/수익률/가격지수 x 오피스/중대형/소규모/집합)해 분기 데이터를 모은다.
 // DELETE 후 전체 재적재라 트랜잭션으로 묶으면 멱등하다. DIM_QUARTER에 있는 분기만 남긴다.
+@Slf4j
 @Service
 public class CommercialRentLoadService {
 
@@ -159,7 +161,7 @@ public class CommercialRentLoadService {
             try {
                 apiUsageService.record(ExternalApi.REB_RONE);
             } catch (RuntimeException e) {
-                System.out.println("R-ONE 사용량 집계 실패(적재는 계속 진행): " + e.getMessage());
+                log.warn("R-ONE 사용량 집계 실패(적재는 계속 진행): {}", e.getMessage());
             }
             try {
                 HttpHeaders headers = new HttpHeaders();

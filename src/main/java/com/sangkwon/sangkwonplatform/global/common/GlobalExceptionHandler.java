@@ -1,5 +1,6 @@
 package com.sangkwon.sangkwonplatform.global.common;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -15,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 // 예외를 성공 응답과 같은 ApiResponse 봉투로 내려 에러 계약을 일관되게 유지한다.
 // 표준 MVC 예외(404/405 등)는 Spring 기본 처리에 맡기고, 앱이 던지는 예외만 감싼다.
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -62,5 +64,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleDataIntegrity(DataIntegrityViolationException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(ApiResponse.error("CONFLICT", "이미 존재하거나 제약에 맞지 않는 값입니다."));
+    }
+
+    // 위에서 잡지 못한 런타임 예외(진짜 서버 오류)는 스택트레이스를 로그로 남기고 일반 500을 봉투로 내린다.
+    // 내부 메시지를 응답에 노출하지 않아 정보 유출을 막고, 추적은 로그로 한다.
+    // 단, Spring MVC 표준 예외(415/406 등)는 다시 던져 프레임워크의 올바른 상태코드 처리에 맡긴다.
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUnexpected(RuntimeException e) {
+        if (e.getClass().getName().startsWith("org.springframework.web.")) {
+            throw e;
+        }
+        log.error("처리되지 않은 서버 오류", e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("INTERNAL_ERROR", "서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."));
     }
 }
