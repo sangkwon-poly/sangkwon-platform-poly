@@ -11,11 +11,14 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -35,19 +38,30 @@ public class IndustryTrademarkBatchService {
     private static final int FETCH_ROWS = 10;
     private static final long CALL_INTERVAL_MS = 300;
     private static final String BASE =
-            "http://plus.kipris.or.kr/kipo-api/kipi/trademarkInfoSearchService/getAdvancedSearch";
+            "https://plus.kipris.or.kr/kipo-api/kipi/trademarkInfoSearchService/getAdvancedSearch";
 
     // 업종명 정제만으로는 지정상품 검색어가 어색한 업종의 예외 (뉴스 배치의 키워드 정제와 같은 취지)
+    // 일반의원/한의원은 접미사 정제가 '일반'/'한' 같은 범용어를 만들어 따로 잡는다.
     private static final Map<String, String> KEYWORD_OVERRIDE = Map.of(
             "CS100007", "치킨",
             "CS100008", "분식",
             "CS100009", "주점",
             "CS100010", "커피",
+            "CS200006", "병원",
+            "CS200008", "한의원",
             "CS300043", "전자상거래");
 
-    private final RestTemplate rest = new RestTemplate();
+    private final RestTemplate rest = timeoutRestTemplate();
     private final JdbcTemplate jt;
     private final ApiUsageService apiUsageService;
+
+    // 외부 호출이 무한 대기하지 않도록 연결/읽기 타임아웃을 건다(소켓 hang 시 배치 스레드가 묶이는 것 방지)
+    private static RestTemplate timeoutRestTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Duration.ofSeconds(5));
+        factory.setReadTimeout(Duration.ofSeconds(15));
+        return new RestTemplate(factory);
+    }
 
     @Value("${kipris.service-key:}")
     private String kiprisKey;
@@ -78,12 +92,13 @@ public class IndustryTrademarkBatchService {
             for (Element item : fetchItems(keyword)) {
                 String title = childText(item, "title");
                 String applNo = childText(item, "applicationNumber");
-                if (title == null || applNo == null || !seen.add(indutyCd + "|" + applNo)) {
+                LocalDate applDate = toDate(childText(item, "applicationDate"));
+                // 출원일이 없으면 최신순 정렬이 성립하지 않으므로 건너뛴다(가맹점수 없는 브랜드를 거르는 것과 같은 취지)
+                if (title == null || applNo == null || applDate == null || !seen.add(indutyCd + "|" + applNo)) {
                     continue;
                 }
                 rows.add(new Object[]{indutyCd, clip(applNo, 30), clip(title, 300),
-                        clip(childText(item, "applicantName"), 300),
-                        toDate(childText(item, "applicationDate")),
+                        clip(childText(item, "applicantName"), 300), applDate,
                         clip(childText(item, "applicationStatus"), 30)});
                 if (++taken >= TOP_PER_INDUTY) {
                     break;
@@ -132,12 +147,17 @@ public class IndustryTrademarkBatchService {
                 + "&sortSpec=applicationDate&descSort=true"
                 + "&pageNo=1&numOfRows=" + FETCH_ROWS;
         Document doc = parseXml(getBytes(url));
+        // 파싱 불가(점검 페이지 등)나 헤더 없는 응답은 원천 장애라 업종마다 반복된다.
+        // 계속 돌면 앞쪽 업종만 남은 부분 스냅샷으로 기존 데이터를 지울 수 있어 즉시 중단시킨다.
         if (doc == null) {
-            return List.of();
+            throw new IllegalStateException("KIPRIS 응답을 XML로 해석할 수 없습니다");
         }
-        // 키 만료/미등록 같은 응답 오류는 업종마다 반복되므로 배치를 즉시 중단시킨다
         String success = firstTagText(doc, "successYN");
-        if (success != null && !"Y".equals(success)) {
+        if (success == null) {
+            throw new IllegalStateException("KIPRIS 응답에 상태 헤더가 없습니다");
+        }
+        // 키 만료/미등록 같은 응답 오류도 업종마다 반복되므로 배치를 즉시 중단시킨다
+        if (!"Y".equals(success)) {
             throw new IllegalStateException("KIPRIS 응답 오류(키 확인 필요): " + firstTagText(doc, "resultMsg"));
         }
         List<Element> out = new ArrayList<>();
@@ -178,10 +198,11 @@ public class IndustryTrademarkBatchService {
         }
         try {
             var factory = DocumentBuilderFactory.newInstance();
+            // 외부 응답에 DOCTYPE이 올 일이 없으므로 아예 금지해 XXE(외부 엔티티 주입)를 차단한다
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
             factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             return factory.newDocumentBuilder().parse(new ByteArrayInputStream(xml));
         } catch (Exception e) {
-            // 특정 업종 XML 파싱 실패는 건너뛴다 (기존 정보공개서 적재와 같은 방침)
             return null;
         }
     }

@@ -37,7 +37,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 class IndustryTrademarkBatchServiceTest {
 
     private static final String BASE =
-            "http://plus.kipris.or.kr/kipo-api/kipi/trademarkInfoSearchService/getAdvancedSearch";
+            "https://plus.kipris.or.kr/kipo-api/kipi/trademarkInfoSearchService/getAdvancedSearch";
 
     @Mock JdbcTemplate jt;
     @Mock ApiUsageService apiUsageService;
@@ -84,9 +84,10 @@ class IndustryTrademarkBatchServiceTest {
 
     @Test
     void 업종별_최신_상표를_상위_5건까지_적재하고_한_글자_키워드는_건너뛴다() {
-        // 한의원은 정제 결과가 "한"(1글자)이라 검색하지 않는다
-        stubInduties(Map.of("CS100007", "치킨전문점", "CS200008", "한의원"));
+        // 정제 결과가 한 글자인 업종은 검색하지 않는다 (실업종은 오버라이드로 잡혀 있어 방어용 가드)
+        stubInduties(Map.of("CS100007", "치킨전문점", "CS999999", "면"));
         String items = String.join("",
+                item("40-0", "날짜없음상표", "영법인", "", "출원"),
                 item("40-1", "가상표", "가법인", "20260619", "출원"),
                 item("40-2", "나상표", "나법인", "20260528", "등록"),
                 item(null, "번호없음", "다법인", "20260501", "출원"),
@@ -107,13 +108,13 @@ class IndustryTrademarkBatchServiceTest {
         verify(jt).batchUpdate(anyString(), captor.capture());
         List<Object[]> rows = captor.getValue();
 
-        // 번호 없는 행/중복 출원번호는 빠지고 응답 순서대로 5건까지만 남는다
+        // 출원일 없는 행/번호 없는 행/중복 출원번호는 빠지고 응답 순서대로 5건까지만 남는다
         assertThat(rows).extracting(r -> (String) r[1])
                 .containsExactly("40-1", "40-2", "40-3", "40-4", "40-5");
         assertThat(rows.get(0)[0]).isEqualTo("CS100007");
         assertThat(rows.get(0)[4]).isEqualTo(LocalDate.of(2026, 6, 19));
         assertThat(rows.get(2)[5]).isEqualTo("거절");
-        // HTTP는 치킨 1회뿐(한의원은 스킵), 호출마다 집계된다
+        // HTTP는 치킨 1회뿐(한 글자 업종은 스킵), 호출마다 집계된다
         verify(apiUsageService, times(1)).record(ExternalApi.KIPRIS);
         server.verify();
     }
