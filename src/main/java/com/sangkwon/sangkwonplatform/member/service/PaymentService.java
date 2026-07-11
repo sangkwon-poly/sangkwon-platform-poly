@@ -45,17 +45,20 @@ public class PaymentService {
 
     private final PaymentOrderRepository paymentOrderRepository;
     private final MemberRepository memberRepository;
+    private final PaymentActivationService paymentActivationService;
     private final RestClient restClient;
     private final String clientKey;
     private final String secretKey;
 
     public PaymentService(PaymentOrderRepository paymentOrderRepository,
                           MemberRepository memberRepository,
+                          PaymentActivationService paymentActivationService,
                           RestClient restClient,
                           @Value("${toss.client-key}") String clientKey,
                           @Value("${toss.secret-key}") String secretKey) {
         this.paymentOrderRepository = paymentOrderRepository;
         this.memberRepository = memberRepository;
+        this.paymentActivationService = paymentActivationService;
         this.restClient = restClient;
         this.clientKey = clientKey;
         this.secretKey = secretKey;
@@ -132,32 +135,25 @@ public class PaymentService {
             throw new BusinessException(ErrorCode.PAYMENT_CONFIRM_PENDING);
         }
 
-        order.paid(req.paymentKey(), parseApprovedAt(res.path("approvedAt").asText(null)));
+        // 주문 PAID 확정과 회원 Pro 전환을 한 트랜잭션으로 원자화한다(둘 사이 장애로 생기던 PAID-미구독 방지)
+        LocalDateTime approvedAt = parseApprovedAt(res.path("approvedAt").asText(null));
         try {
-            paymentOrderRepository.save(order);
+            return paymentActivationService.finalizePaid(order, req.paymentKey(), approvedAt);
         } catch (OptimisticLockingFailureException e) {
             // 동시 승인에서 다른 스레드가 먼저 확정했다. 최신 상태로 멱등 응답한다.
             return reloadConfirmed(order.getOrderId());
         }
-        activateSubscription(memberId, order.getBillingCycle());
-        return PaymentConfirmResponse.from(order);
     }
 
     // 토스가 이미 승인했다고 알린 주문을 우리 쪽 상태와 맞춘다. 아직 PAID가 아니면 확정하고 구독을 켠다.
     private PaymentConfirmResponse reconcileApproved(String orderId, String paymentKey) {
         PaymentOrder order = paymentOrderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.PAYMENT_ORDER_NOT_FOUND));
-        if (order.getStatus() == PaymentStatus.PAID) {
-            return PaymentConfirmResponse.from(order);
-        }
-        order.paid(paymentKey, LocalDateTime.now());
         try {
-            paymentOrderRepository.save(order);
+            return paymentActivationService.finalizePaid(order, paymentKey, LocalDateTime.now());
         } catch (OptimisticLockingFailureException e) {
             return reloadConfirmed(orderId);
         }
-        activateSubscription(order.getMemberId(), order.getBillingCycle());
-        return PaymentConfirmResponse.from(order);
     }
 
     // PENDING일 때만 FAILED로 내린다. 동시 승인의 승자가 이미 PAID로 만든 주문은 건드리지 않는다.
@@ -188,17 +184,6 @@ public class PaymentService {
         } catch (RuntimeException ignore) {
             return false;
         }
-    }
-
-    // 결제 확정과 동시에 구독을 켠다. 만료 전 재구독이면 남은 기간에 이어붙여 손해가 없게 한다.
-    // confirm은 외부 HTTP 때문에 트랜잭션으로 묶지 않으므로, 회원 변경은 save로 명시 반영한다.
-    private void activateSubscription(Long memberId, BillingCycle cycle) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
-        LocalDateTime base = member.isPro() ? member.getPlanUntil() : LocalDateTime.now();
-        LocalDateTime until = cycle == BillingCycle.YEARLY ? base.plusYears(1) : base.plusMonths(1);
-        member.activatePro(until);
-        memberRepository.save(member);
     }
 
     private String basicAuth() {

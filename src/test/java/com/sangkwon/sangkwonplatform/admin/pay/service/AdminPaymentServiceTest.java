@@ -9,6 +9,7 @@ import com.sangkwon.sangkwonplatform.member.entity.PaymentOrder;
 import com.sangkwon.sangkwonplatform.member.entity.PaymentStatus;
 import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
 import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
+import com.sangkwon.sangkwonplatform.member.service.PaymentActivationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -147,7 +148,10 @@ class AdminPaymentServiceTest {
     private AdminPaymentService serviceWithToss() {
         RestClient.Builder builder = RestClient.builder();
         tossServer = MockRestServiceServer.bindTo(builder).build();
-        return new AdminPaymentService(paymentOrderRepository, memberRepository, builder.build(), "test-sk");
+        PaymentActivationService activationService =
+                new PaymentActivationService(paymentOrderRepository, memberRepository);
+        return new AdminPaymentService(paymentOrderRepository, memberRepository, activationService,
+                builder.build(), "test-sk");
     }
 
     private static PaymentOrder paidOrder() {
