@@ -48,5 +48,11 @@ dependencies {
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
+    useJUnitPlatform {
+        // Oracle ADB 지갑이 없는 환경(CI 등)에서는 -PexcludeIntegration 으로 통합 테스트(@Tag("integration"))만 뺀다.
+        // 나머지 단위/웹슬라이스 테스트는 전부 돌아 결제·관리자 인증 회귀를 잡는다.
+        if (project.hasProperty('excludeIntegration')) {
+            excludeTags 'integration'
+        }
+    }
 }

@@ -25,11 +25,7 @@ jobs:
       - name: Compile (main + test)
         run: ./gradlew compileJava compileTestJava --no-daemon
 
-      # DB 없이 도는 단위/웹 계층 테스트만 실행.
-      # 루트 @SpringBootTest(SangkwonPlatformApplicationTests)는 Oracle ADB 지갑이 필요해 CI에서 제외한다.
+      # 전 계층 단위/웹슬라이스 테스트를 실행한다(결제·관리자 인증·OTP·레이트리밋 포함).
+      # Oracle ADB 지갑이 필요한 통합 테스트(@Tag("integration"))만 -PexcludeIntegration 으로 제외한다.
       - name: Unit & web-layer tests
-        run: >
-          ./gradlew test
-          --tests "com.sangkwon.sangkwonplatform.map.*"
-          --tests "com.sangkwon.sangkwonplatform.global.batch.*"
-          --no-daemon
+        run: ./gradlew test -PexcludeIntegration --no-daemon
