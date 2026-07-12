@@ -14,7 +14,10 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -76,5 +79,16 @@ class FranchiseLoadServiceTest {
 
         assertThat(loaded).isZero();
         server.verify();
+    }
+
+    @Test
+    void 원천이_비면_기존_적재분을_지우지_않는다() {
+        stubEmptyResponses(); // 세 원천 모두 HTTP 200 빈 응답(소프트 실패)
+
+        service.load();
+
+        // 빈 스냅샷으로 통삭제되지 않도록 세 테이블 어디에도 DELETE/INSERT가 나가면 안 된다
+        verify(jt, never()).update(anyString());
+        verify(jt, never()).batchUpdate(anyString(), anyList());
     }
 }

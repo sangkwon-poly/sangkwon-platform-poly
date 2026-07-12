@@ -82,6 +82,10 @@ public class FranchiseLoadService {
                         toDate(text(it, "jngBizStrtDate"))});
             }
         }
+        // 원천 장애(HTTP 200 빈/오류 응답 등)로 수집이 비면 기존 적재분을 지우지 않는다(화면이 통째로 비는 것 방지)
+        if (rows.isEmpty()) {
+            return 0;
+        }
         jt.update("DELETE FROM FRANCHISE_BRAND");
         jt.batchUpdate("INSERT INTO FRANCHISE_BRAND (BRAND_MGMT_NO,BRAND_NM,CORP_NM,HQ_MGMT_NO,BIZ_REG_NO,"
                 + "INDUTY_LCLAS_NM,INDUTY_MLSFC_NM,BIZ_START_DE) VALUES (?,?,?,?,?,?,?,?)", rows);
@@ -110,6 +114,10 @@ public class FranchiseLoadService {
                 }
             }
         }
+        // 원천 장애(HTTP 200 빈/오류 응답 등)로 수집이 비면 기존 적재분을 지우지 않는다(화면이 통째로 비는 것 방지)
+        if (rows.isEmpty()) {
+            return 0;
+        }
         jt.update("DELETE FROM FRANCHISE_COUNT");
         jt.batchUpdate("INSERT INTO FRANCHISE_COUNT (BASE_YEAR,AREA_CD,AREA_NM,INDUTY_NM,FRC_CO,FRC_RT) "
                 + "VALUES (?,?,?,?,?,?)", rows);
@@ -132,6 +140,11 @@ public class FranchiseLoadService {
                         clip(childText(item, "brandNm"), 300), clip(childText(item, "brno"), 20),
                         clip(childText(item, "viwerUrl"), 1000)});
             }
+        }
+        // 원천 장애(franchise.ftc.go.kr XML 오류/빈 응답 등)로 수집이 비면 기존 적재분을 지우지 않는다.
+        // 이 경로는 elements()가 예외 대신 빈 리스트를 반환해 특히 취약하므로 반드시 가드한다.
+        if (rows.isEmpty()) {
+            return 0;
         }
         jt.update("DELETE FROM FRANCHISE_DISCLOSURE");
         jt.batchUpdate("INSERT INTO FRANCHISE_DISCLOSURE (DISCLOSURE_SN,CORP_NM,BRAND_NM,BIZ_REG_NO,VIEWER_URL) "

@@ -16,9 +16,11 @@ import org.springframework.web.client.RestTemplate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -81,5 +83,19 @@ class CommercialRentLoadServiceTest {
 
         assertThat(loaded).isZero();
         server.verify();
+    }
+
+    @Test
+    void 대상_통계표가_비면_기존_적재분을_지우지_않는다() {
+        when(jt.queryForList(anyString(), eq(String.class))).thenReturn(List.of());
+        // 통계표 목록이 빈/오류 응답(소프트 실패) -> 대상 0건
+        server.expect(requestTo(BASE + "/SttsApiTbl.do?KEY=test-key&Type=json&pIndex=1&pSize=200"))
+                .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+
+        service.load();
+
+        // COMMERCIAL_RENT를 통삭제하지 않도록 DELETE/INSERT가 나가면 안 된다
+        verify(jt, never()).update(anyString());
+        verify(jt, never()).batchUpdate(anyString(), anyList());
     }
 }

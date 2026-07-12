@@ -81,6 +81,11 @@ public class CommercialRentLoadService {
             }
         }
 
+        // 원천 장애(R-ONE HTTP 200 빈/오류 응답, 통계표명 포맷 변경 등)로 수집이 비면 기존 적재분을
+        // 지우지 않는다. COMMERCIAL_RENT는 업종·상권 동향 화면에 직접 노출되므로 통삭제 시 화면이 빈다.
+        if (rows.isEmpty()) {
+            return 0;
+        }
         jt.update("DELETE FROM COMMERCIAL_RENT");
         jt.batchUpdate("INSERT INTO COMMERCIAL_RENT (REGION_CD,REGION_NM,RLST_TY_CD,METRIC_CD,METRIC_NM,"
                 + "STDR_YYQU_CD,METRIC_VALUE,UOM) VALUES (?,?,?,?,?,?,?,?)", new ArrayList<>(rows.values()));
