@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -65,6 +66,12 @@ public class Member extends BaseEntity {
     // Pro 구독 만료 시각. NULL이거나 지난 시각이면 무료로 본다(등급 컬럼과 별개로 만료가 최종 판정).
     @Column(name = "PLAN_UNTIL")
     private LocalDateTime planUntil;
+
+    // 동시 승인/부여 경합에서 구독 연장 유실을 막는 낙관적 락. 두 결제가 같은 base로 만료를 계산·저장하면
+    // 나중 커밋이 먼저 것을 덮어 이중 결제인데 한 번만 반영되던 문제를 방지한다(뒤진 저장은 재조회로 멱등 처리).
+    @Version
+    @Column(name = "VERSION", nullable = false)
+    private long version;
 
     // 생성은 정적 팩토리로만 → 규칙(기본 role/status, bcrypt 태그)을 한 곳에 모은다
     private Member(String loginId, String passwordHash, String email, String nickname) {
