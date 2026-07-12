@@ -135,6 +135,14 @@ class LlmReportServiceTest {
     }
 
     @Test
+    void previousQuarter_직전_분기_코드를_만든다() {
+        assertThat(LlmReportService.previousQuarter("20244")).isEqualTo("20243");
+        assertThat(LlmReportService.previousQuarter("20242")).isEqualTo("20241");
+        // 1분기면 전년도 4분기
+        assertThat(LlmReportService.previousQuarter("20241")).isEqualTo("20234");
+    }
+
+    @Test
     void 오늘_생성된_리포트가_있으면_재사용하고_Gemini를_호출하지_않는다() {
         when(trdarRepository.findById("3110001")).thenReturn(Optional.of(mock(Trdar.class)));
         when(memberRepository.findById(1L)).thenReturn(Optional.of(freeMember()));

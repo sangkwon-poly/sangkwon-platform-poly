@@ -182,6 +182,13 @@ public class LlmReportService {
         return LlmReportResponse.from(saved);
     }
 
+    // 분기 코드(YYYYQ, 예: 20244)의 직전 분기 코드를 만든다. 1분기면 전년도 4분기. (테스트를 위해 패키지 공개)
+    static String previousQuarter(String q) {
+        int year = Integer.parseInt(q.substring(0, 4));
+        int qtr = Integer.parseInt(q.substring(4));
+        return qtr <= 1 ? (year - 1) + "4" : year + String.valueOf(qtr - 1);
+    }
+
     // 가장 최근 생성한 리포트. 업종 리포트와 상권 전체 리포트는 따로 관리한다
     public LlmReportResponse latest(String trdarCd, String indutyCd) {
         return llmReportRepository.findLatest(trdarCd, indutyCd, PageRequest.of(0, 1)).stream().findFirst()
@@ -199,7 +206,9 @@ public class LlmReportService {
 
         String quarter = byQuarter.isEmpty() ? null : byQuarter.lastKey();
         long cur = quarter == null ? 0 : byQuarter.get(quarter);
-        Long prev = quarter == null ? null : byQuarter.lowerEntry(quarter) == null ? null : byQuarter.lowerEntry(quarter).getValue();
+        // '전분기 대비'는 실제 직전 분기가 데이터에 있을 때만 계산한다. lowerEntry는 비인접 분기(예: 5분기 전)를
+        // 직전으로 오인하므로, 직전 분기 코드를 만들어 그 값이 있을 때만 쓴다. 없으면 비교 불가.
+        Long prev = quarter == null ? null : byQuarter.get(previousQuarter(quarter));
         String delta = (prev == null || prev == 0) ? "비교 불가"
                 : String.format("%+.1f%%", (cur - prev) * 100.0 / prev);
 

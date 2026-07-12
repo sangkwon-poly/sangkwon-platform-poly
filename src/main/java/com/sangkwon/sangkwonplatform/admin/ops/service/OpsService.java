@@ -66,9 +66,11 @@ public class OpsService {
     }
 
     // 기간(일) 내 인기 검색어. 회원이 남긴 검색 기록을 지역·업종 수요 신호로 활용한다.
+    // days/limit는 요청 파라미터라 방어한다. limit<=0이면 PageRequest.of가 예외(500)를 던지므로 1~50으로 클램프.
     public List<PopularSearchResponse> popularSearches(int days, int limit) {
-        LocalDateTime since = LocalDateTime.now().minusDays(days);
-        return searchLogRepository.findPopularKeywordsSince(since, PageRequest.of(0, limit))
+        LocalDateTime since = LocalDateTime.now().minusDays(Math.max(1, days));
+        int size = Math.min(Math.max(limit, 1), 50);
+        return searchLogRepository.findPopularKeywordsSince(since, PageRequest.of(0, size))
                 .stream().map(PopularSearchResponse::from).toList();
     }
 
