@@ -6,6 +6,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -63,5 +66,22 @@ class BatchJobExecutorTest {
         batchJobExecutor.run(spec, () -> 10L);
 
         org.mockito.Mockito.verifyNoInteractions(batchFailureNotifier);
+    }
+
+    @Test
+    void 이미_RUNNING이면_유니크_충돌로_건너뛰고_로더를_실행하지_않는다() {
+        // RUNNING INSERT가 부분 유니크 인덱스 위반으로 실패 = 다른 인스턴스/트리거가 같은 데이터셋을 이미 시작함
+        when(batchJobLogRepository.save(any()))
+                .thenThrow(new DataIntegrityViolationException("UX_BATCH_JOB_RUNNING"));
+        AtomicBoolean loaderRan = new AtomicBoolean(false);
+
+        BatchJobLog result = batchJobExecutor.run(spec, () -> {
+            loaderRan.set(true);
+            return 1L;
+        });
+
+        assertThat(result).isNull();            // 이번 실행은 건너뜀
+        assertThat(loaderRan.get()).isFalse();  // 로더(DELETE+INSERT) 미실행 = 중복 적재 방지
+        org.mockito.Mockito.verifyNoInteractions(batchFailureNotifier); // 정상 중복 회피라 실패 알림 아님
     }
 }
