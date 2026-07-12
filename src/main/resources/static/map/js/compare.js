@@ -27,7 +27,7 @@ function barCard(title, unit, valueOf, fmt) {
         const best = v != null && v === max && max > 0 && cmp.picked.length > 1;
         return '<div style="margin-bottom:10px">' +
             '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">' +
-            "<span>" + chip(i) + d.trdarNm + "</span>" +
+            "<span>" + chip(i) + esc(d.trdarNm) + "</span>" +
             '<b style="color:' + (best ? "#a8412c" : "#3f342e") + '">' + (v != null ? fmt(v) : "-") + (best ? " ★" : "") + "</b></div>" +
             '<div style="height:7px;border-radius:4px;background:#f4ece6"><div style="height:7px;border-radius:4px;width:' + w + "%;background:" + COL_COLORS[i] + '"></div></div></div>';
     }).join("");
@@ -39,7 +39,7 @@ function ageCard() {
     const rows = cmp.picked.map((d, i) => {
         const s = cmp.sales.get(d.trdarCd);
         if (!s) {
-            return '<div style="margin-bottom:12px;font-size:13px">' + chip(i) + d.trdarNm + ' <span style="color:#9a8c84">데이터 없음</span></div>';
+            return '<div style="margin-bottom:12px;font-size:13px">' + chip(i) + esc(d.trdarNm) + ' <span style="color:#9a8c84">데이터 없음</span></div>';
         }
         const total = AGE_FIELDS.reduce((a, [, f]) => a + (s[f] || 0), 0);
         const segs = total ? AGE_FIELDS.map(([, f], k) =>
@@ -49,7 +49,7 @@ function ageCard() {
         const mlPct = ml + fml ? Math.round(ml / (ml + fml) * 100) : null;
         return '<div style="margin-bottom:12px">' +
             '<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">' +
-            "<span>" + chip(i) + d.trdarNm + "</span>" +
+            "<span>" + chip(i) + esc(d.trdarNm) + "</span>" +
             "<span style='color:#5c5049'>" + (mlPct != null ? "남 " + mlPct + "% · 여 " + (100 - mlPct) + "%" : "-") + "</span></div>" +
             '<div style="display:flex;height:9px;border-radius:5px;overflow:hidden;background:#f4ece6">' + segs + "</div></div>";
     }).join("");
@@ -71,14 +71,14 @@ function mixCard() {
             }).join(" · ");
         }
         return '<div style="margin-bottom:11px;font-size:13px;line-height:1.5">' +
-            "<div>" + chip(i) + "<b>" + d.trdarNm + "</b></div>" +
+            "<div>" + chip(i) + "<b>" + esc(d.trdarNm) + "</b></div>" +
             '<div style="color:#5c5049;margin-left:16px">' + text + "</div></div>";
     }).join("");
     return card("업종 구성 TOP3", "최근 분기 매출 비중", rows);
 }
 
-// 문자열을 속성값에 안전하게 넣기 위한 이스케이프
-function escAttr(s) {
+// 서버 문자열(상권명·자치구명 등)을 innerHTML 텍스트·속성값에 안전하게 넣기 위한 HTML 이스케이프
+function esc(s) {
     return String(s == null ? "" : s)
         .replace(/&/g, "&amp;").replace(/"/g, "&quot;")
         .replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -89,7 +89,7 @@ function searchBox() {
     const full = cmp.picked.length >= 4;
     return '<div style="position:relative;max-width:340px;margin-bottom:14px">' +
         '<input type="search" id="cmp-search" placeholder="' + (full ? "최대 4개까지 비교할 수 있습니다" : "상권 이름으로 추가") + '" ' +
-        (full ? "disabled " : "") + 'value="' + escAttr(cmp.query) + '" ' +
+        (full ? "disabled " : "") + 'value="' + esc(cmp.query) + '" ' +
         'style="width:100%;padding:9px 13px;border:1px solid #e2d6cf;border-radius:10px;font:inherit;background:#fff">' +
         '<div id="cmp-suggest" style="position:absolute;top:100%;left:0;right:0;z-index:10;background:#fff;' +
         'border:1px solid #e2d6cf;border-radius:10px;margin-top:4px;box-shadow:0 6px 18px rgba(94,30,17,.12);display:none"></div></div>';
@@ -124,8 +124,8 @@ function bindSearch() {
                 .slice(0, 8);
             box.innerHTML = hits.length
                 ? hits.map((d) =>
-                    '<div class="cmp-hit" data-cd="' + d.trdarCd + '" style="padding:9px 13px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between">' +
-                    "<span>" + d.trdarNm + '</span><span style="color:#9a8c84">' + (d.signguNm || "") + "</span></div>").join("")
+                    '<div class="cmp-hit" data-cd="' + esc(d.trdarCd) + '" style="padding:9px 13px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between">' +
+                    "<span>" + esc(d.trdarNm) + '</span><span style="color:#9a8c84">' + esc(d.signguNm || "") + "</span></div>").join("")
                 : '<div style="padding:9px 13px;font-size:13px;color:#9a8c84">일치하는 상권이 없습니다</div>';
             box.style.display = "";
             box.querySelectorAll(".cmp-hit").forEach((row) => {
@@ -170,8 +170,8 @@ function render() {
 
     const chips = cmp.picked.map((d, i) =>
         '<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 8px 6px 12px;border:1px solid #eee2da;border-radius:18px;background:#fff;font-size:13px">' +
-        chip(i) + d.trdarNm + ' <span style="color:#9a8c84">' + (d.signguNm || "") + "</span>" +
-        '<button type="button" class="chip-remove" data-cd="' + d.trdarCd + '" aria-label="' + d.trdarNm + ' 제거" ' +
+        chip(i) + esc(d.trdarNm) + ' <span style="color:#9a8c84">' + esc(d.signguNm || "") + "</span>" +
+        '<button type="button" class="chip-remove" data-cd="' + esc(d.trdarCd) + '" aria-label="' + esc(d.trdarNm) + ' 제거" ' +
         'style="border:0;background:none;color:#b0857a;cursor:pointer;font-size:13px">✕</button></span>'
     ).join(" ");
 

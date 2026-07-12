@@ -13,9 +13,11 @@ import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
 import com.sangkwon.sangkwonplatform.member.repository.SearchLogRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -24,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 // OpsService 단위 테스트. API 사용량 0건 합성과 개요 지표 조합을 검증.
@@ -103,5 +106,17 @@ class OpsServiceTest {
         assertThat(res.memberCount()).isEqualTo(10L);
         assertThat(res.monthRevenue()).isEqualTo(240_000L);
         assertThat(res.activeProCount()).isEqualTo(3L);
+    }
+
+    @Test
+    void 인기검색어_limit이_0이하여도_클램프해_예외없이_조회한다() {
+        when(searchLogRepository.findPopularKeywordsSince(any(), any())).thenReturn(List.of());
+
+        // limit=0이면 PageRequest.of(0,0)이 IllegalArgumentException(500)을 던진다. 클램프로 예외 없이 진행돼야 한다.
+        opsService.popularSearches(7, 0);
+
+        ArgumentCaptor<Pageable> cap = ArgumentCaptor.forClass(Pageable.class);
+        verify(searchLogRepository).findPopularKeywordsSince(any(), cap.capture());
+        assertThat(cap.getValue().getPageSize()).isEqualTo(1);
     }
 }
