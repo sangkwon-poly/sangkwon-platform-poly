@@ -6,6 +6,7 @@ import com.sangkwon.sangkwonplatform.member.entity.PaymentStatus;
 import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -40,6 +41,7 @@ public class OperationalCleanupScheduler {
     //  - 토스에 기록 없음/중단/만료 → FAILED(정상적인 방치 정리)
     //  - 토스 조회 실패(네트워크 등) → 건드리지 않고 다음 주기 재시도(확인 안 된 결제를 실패로 단정하지 않는다)
     @Scheduled(cron = "0 0 * * * *")
+    @SchedulerLock(name = "reconcileStalePendingPayments", lockAtMostFor = "PT20M", lockAtLeastFor = "PT30S")
     public void reconcileStalePendingPayments() {
         List<String> orderIds;
         try {
@@ -79,6 +81,7 @@ public class OperationalCleanupScheduler {
 
     // 매일 새벽 4시 40분(KST). 오래된 사용량 이력 정리.
     @Scheduled(cron = "0 40 4 * * *")
+    @SchedulerLock(name = "purgeOldApiUsageLogs", lockAtMostFor = "PT10M", lockAtLeastFor = "PT30S")
     public void purgeOldApiUsageLogs() {
         try {
             LocalDate cutoff = LocalDate.now().minusDays(USAGE_RETENTION_DAYS);
