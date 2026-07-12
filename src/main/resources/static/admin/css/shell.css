@@ -120,6 +120,9 @@
 /* 본문 콘텐츠 영역 */
 .admin-content {
   flex: 1 1 0;
+  align-self: center;
+  width: 100%;
+  max-width: 1488px;
   overflow: auto;
   padding: 20px 24px;
 }
