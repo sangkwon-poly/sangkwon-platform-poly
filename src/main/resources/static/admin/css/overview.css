@@ -7,6 +7,23 @@
   letter-spacing: -.02em;
   margin-top: 5px;
 }
+
+/* 지표 카드가 관리 화면으로 이동하는 링크일 때: 살짝 떠오르는 어포던스 */
+a.stat-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+a.stat-card:hover {
+  border-color: #d8c5ba;
+  box-shadow: 0 5px 16px rgba(94, 30, 17, .09);
+  transform: translateY(-1px);
+}
+a.stat-card:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
 .stat-delta { font-size: 11.5px; font-weight: 700; margin-top: 3px; }
 .ov-up { color: var(--ok); }
 .ov-flat { color: #a99c94; }
@@ -16,7 +33,7 @@
 /* 권한 없거나 비어있을 때 안내 */
 .ov-note { padding: 10px 0; font-size: 12px; color: var(--faint); }
 
-/* 하단 2단: 적재 현황(넓게) + 최근 활동 */
+/* 하단 2단: 적재 현황(넓게) + 인기 검색어 */
 .ov-cols {
   display: grid;
   grid-template-columns: 1.35fr 1fr;
@@ -37,24 +54,6 @@
   font-size: 10.5px; font-weight: 700;
   padding: 3px 9px; border-radius: 20px;
 }
-
-/* 최근 활동 피드 */
-.ov-recent-title { margin-bottom: 14px; }
-.feed { display: flex; flex-direction: column; }
-.feed-item {
-  display: flex; gap: 11px;
-  padding: 9px 0;
-  border-top: 1px solid var(--line-soft);
-}
-.feed-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  margin-top: 5px; flex: 0 0 auto;
-}
-.feed-brand { background: var(--brand); }
-.feed-warn { background: var(--warn); }
-.feed-ok { background: var(--ok); }
-.feed-text { font-size: 12.5px; color: #3a322e; }
-.feed-time { font-size: 10.5px; color: #a99c94; margin-top: 2px; }
 
 /* 개요 지표 카드: 6개 한 줄 (좁아지면 단계적으로 접힘) */
 .stat-grid { grid-template-columns: repeat(6, 1fr); }

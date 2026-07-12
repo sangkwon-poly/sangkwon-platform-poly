@@ -1,11 +1,14 @@
 package com.sangkwon.sangkwonplatform.admin.ops.service;
 
 import com.sangkwon.sangkwonplatform.admin.account.repository.AdminUserRepository;
+import com.sangkwon.sangkwonplatform.admin.notice.entity.enums.NoticeStatus;
+import com.sangkwon.sangkwonplatform.admin.notice.repository.NoticeRepository;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.ApiUsageResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.entity.ApiUsageLog;
 import com.sangkwon.sangkwonplatform.admin.ops.repository.AdminAuditLogRepository;
 import com.sangkwon.sangkwonplatform.admin.ops.repository.ApiUsageLogRepository;
 import com.sangkwon.sangkwonplatform.global.batch.BatchJobLogRepository;
+import com.sangkwon.sangkwonplatform.support.repository.SupportProgramRepository;
 import com.sangkwon.sangkwonplatform.map.repository.LlmReportRepository;
 import com.sangkwon.sangkwonplatform.member.entity.PaymentStatus;
 import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
@@ -41,6 +44,8 @@ class OpsServiceTest {
     @Mock LlmReportRepository llmReportRepository;
     @Mock PaymentOrderRepository paymentOrderRepository;
     @Mock SearchLogRepository searchLogRepository;
+    @Mock NoticeRepository noticeRepository;
+    @Mock SupportProgramRepository supportProgramRepository;
     @InjectMocks OpsService opsService;
 
     @Test
@@ -100,12 +105,19 @@ class OpsServiceTest {
         when(llmReportRepository.countByCreatedAtGreaterThanEqual(any())).thenReturn(1L);
         when(paymentOrderRepository.sumAmountByStatusSince(eq(PaymentStatus.PAID), any())).thenReturn(240_000L);
         when(memberRepository.countByPlanUntilAfter(any())).thenReturn(3L);
+        when(searchLogRepository.countBySearchedAtGreaterThanEqual(any())).thenReturn(7L);
+        when(noticeRepository.countByStatus(NoticeStatus.PUBLISHED)).thenReturn(4L);
+        when(supportProgramRepository.count()).thenReturn(105L);
 
         var res = opsService.overview();
 
         assertThat(res.memberCount()).isEqualTo(10L);
         assertThat(res.monthRevenue()).isEqualTo(240_000L);
         assertThat(res.activeProCount()).isEqualTo(3L);
+        // 개요 확장 지표: 오늘 검색·게시 공지·지원사업 수
+        assertThat(res.todaySearchCount()).isEqualTo(7L);
+        assertThat(res.publishedNoticeCount()).isEqualTo(4L);
+        assertThat(res.supportProgramCount()).isEqualTo(105L);
     }
 
     @Test

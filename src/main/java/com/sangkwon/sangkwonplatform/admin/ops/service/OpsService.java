@@ -9,10 +9,13 @@ import com.sangkwon.sangkwonplatform.admin.ops.dto.AuditPageResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.BatchLogResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.OverviewResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.PopularSearchResponse;
+import com.sangkwon.sangkwonplatform.admin.notice.entity.enums.NoticeStatus;
+import com.sangkwon.sangkwonplatform.admin.notice.repository.NoticeRepository;
 import com.sangkwon.sangkwonplatform.admin.ops.entity.AdminAuditLog;
 import com.sangkwon.sangkwonplatform.admin.ops.repository.AdminAuditLogRepository;
 import com.sangkwon.sangkwonplatform.admin.ops.repository.ApiUsageLogRepository;
 import com.sangkwon.sangkwonplatform.global.batch.BatchJobLogRepository;
+import com.sangkwon.sangkwonplatform.support.repository.SupportProgramRepository;
 import com.sangkwon.sangkwonplatform.map.repository.LlmReportRepository;
 import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
 import com.sangkwon.sangkwonplatform.member.entity.PaymentStatus;
@@ -46,8 +49,11 @@ public class OpsService {
     private final LlmReportRepository llmReportRepository;
     private final PaymentOrderRepository paymentOrderRepository;
     private final SearchLogRepository searchLogRepository;
+    private final NoticeRepository noticeRepository;
+    private final SupportProgramRepository supportProgramRepository;
 
-    // 회원·리포트 누적 수와 오늘 증가분, 이번 달 매출과 유효 구독자. 개요 상단 지표 카드용
+    // 회원·리포트 누적 수와 오늘 증가분, 이번 달 매출과 유효 구독자,
+    // 오늘 검색량·게시 공지·지원사업 수까지. 개요 상단 지표 카드용
     public OverviewResponse overview() {
         LocalDateTime todayStart = LocalDate.now().atStartOfDay();
         LocalDateTime monthStart = LocalDate.now().withDayOfMonth(1).atStartOfDay();
@@ -57,7 +63,10 @@ public class OpsService {
                 llmReportRepository.count(),
                 llmReportRepository.countByCreatedAtGreaterThanEqual(todayStart),
                 paymentOrderRepository.sumAmountByStatusSince(PaymentStatus.PAID, monthStart),
-                memberRepository.countByPlanUntilAfter(LocalDateTime.now()));
+                memberRepository.countByPlanUntilAfter(LocalDateTime.now()),
+                searchLogRepository.countBySearchedAtGreaterThanEqual(todayStart),
+                noticeRepository.countByStatus(NoticeStatus.PUBLISHED),
+                supportProgramRepository.count());
     }
 
     public List<BatchLogResponse> recentBatches(int limit) {

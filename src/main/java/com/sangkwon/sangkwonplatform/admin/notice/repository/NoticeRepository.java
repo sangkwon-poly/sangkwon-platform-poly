@@ -14,6 +14,9 @@ public interface NoticeRepository extends JpaRepository<Notice, Long> {
     // 관리자 목록: 상단고정(Y) 먼저, 그다음 최신순. is_pinned는 STRING 저장이라 DESC가 Y를 앞세운다.
     Page<Notice> findAllByOrderByIsPinnedDescCreatedAtDesc(Pageable pageable);
 
+    // 관리자 개요: 게시 중 공지 수
+    long countByStatus(NoticeStatus status);
+
     // 공개 목록: 상태 필터(PUBLISHED) + 고정 우선·최신순. 작성자 표기용 admin을 fetch join으로 함께 조회해 N+1을 막는다.
     @Query(value = """
             select n from Notice n

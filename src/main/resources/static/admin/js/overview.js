@@ -7,14 +7,6 @@
         RUNNING: { ko: "진행", card: "ov-warn", badge: "badge-warn", dot: "dot-warn" },
         FAILED: { ko: "오류", card: "ov-danger", badge: "badge-danger", dot: "dot-danger" }
     };
-    var ACTIONS = {
-        LOGIN: { label: "로그인", dot: "feed-brand" },
-        ADMIN_CREATE: { label: "관리자 생성", dot: "feed-ok" },
-        ADMIN_ROLE_UPDATE: { label: "역할 변경", dot: "feed-ok" },
-        ADMIN_STATUS_UPDATE: { label: "상태 변경", dot: "feed-ok" },
-        OTP_ENABLE: { label: "2단계 인증 켬", dot: "feed-warn" },
-        OTP_DISABLE: { label: "2단계 인증 끔", dot: "feed-warn" }
-    };
     var API_LABELS = {
         SBIZ: "소상공인시장진흥공단", NTS: "국세청", FTC_FRANCHISE: "공정위 가맹사업",
         KIPRIS: "특허정보넷 KIPRIS",
@@ -34,7 +26,6 @@
     function num(n) { return Number(n || 0).toLocaleString(); }
     function pad(n) { return String(n).padStart(2, "0"); }
     function hhmm(iso) { if (!iso) { return "-"; } var d = new Date(iso); return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
-    function stamp(iso) { if (!iso) { return "-"; } var d = new Date(iso); return (d.getMonth() + 1) + "/" + d.getDate() + " " + pad(d.getHours()) + ":" + pad(d.getMinutes()); }
     function set(id, text) { var el = document.getElementById(id); if (el) { el.textContent = text; } }
     function setSub(id, text, cls) {
         var el = document.getElementById(id);
@@ -72,11 +63,12 @@
         set("ov-meta", d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " · 여기콕 관리자 콘솔");
     })();
 
-    // 1) 회원·리포트 누적 (SUPER_ADMIN 전용)
+    // 1) 회원·리포트·매출·구독 + 오늘 검색·게시 공지·지원사업 (SUPER_ADMIN 전용)
     api("/api/admin/ops/overview").then(function (r) {
         if (r.status === 403) {
-            setSub("ov-sub-member", "권한 필요"); setSub("ov-sub-report", "권한 필요");
-            setSub("ov-sub-revenue", "권한 필요"); setSub("ov-sub-pro", "권한 필요");
+            ["member", "report", "revenue", "pro", "search", "notice", "support"].forEach(function (k) {
+                setSub("ov-sub-" + k, "권한 필요");
+            });
             return;
         }
         var d = data(r);
@@ -91,6 +83,13 @@
         setSub("ov-sub-revenue", d.monthRevenue > 0 ? "승인 완료 기준" : "이번 달 결제 없음");
         set("ov-stat-pro", num(d.activeProCount));
         setSub("ov-sub-pro", d.activeProCount > 0 ? "유효 구독 회원" : "구독자 없음");
+        set("ov-stat-search", num(d.todaySearchCount));
+        setSub("ov-sub-search", d.todaySearchCount > 0 ? "상권·업종 검색" : "오늘 검색 없음",
+            d.todaySearchCount > 0 ? "ov-up" : "ov-flat");
+        set("ov-stat-notice", num(d.publishedNoticeCount));
+        setSub("ov-sub-notice", d.publishedNoticeCount > 0 ? "게시 중" : "게시 공지 없음");
+        set("ov-stat-support", num(d.supportProgramCount));
+        setSub("ov-sub-support", d.supportProgramCount > 0 ? "수집 공고" : "수집 이력 없음");
     });
 
     // 2) 분석 상권 수 (공개 API)
@@ -196,24 +195,9 @@
             + "</ul>";
     });
 
-    // 6) 최근 활동 (감사 로그, SUPER_ADMIN 전용)
-    api("/api/admin/ops/audit").then(function (r) {
-        var feed = document.getElementById("ov-feed");
-        if (r.status === 403) { feed.innerHTML = '<li class="ov-note">SUPER_ADMIN만 볼 수 있습니다.</li>'; return; }
-        var rows = data(r) || [];
-        if (!rows.length) { feed.innerHTML = '<li class="ov-note">최근 활동이 없습니다.</li>'; return; }
-        feed.innerHTML = rows.slice(0, 6).map(function (a) {
-            var act = ACTIONS[a.action] || { label: a.action, dot: "feed-brand" };
-            var target = a.targetType ? (" · " + esc(a.targetType) + (a.targetId ? " #" + esc(a.targetId) : "")) : "";
-            return '<li class="feed-item">'
-                + '<span class="feed-dot ' + act.dot + '" aria-hidden="true"></span>'
-                + "<div><div class=\"feed-text\"><b>" + esc(a.adminLoginId || "-") + "</b> · " + esc(act.label) + target + "</div>"
-                + '<div class="feed-time">' + stamp(a.createdAt) + "</div></div>"
-                + "</li>";
-        }).join("");
-    });
-
-    // 7) 인기 검색어 (SUPER_ADMIN 전용): 회원 검색 기록을 지역·업종 수요 신호로 보여준다
+    // 6) 인기 검색어 (SUPER_ADMIN 전용): 회원 검색 기록을 지역·업종 수요 신호로 보여준다.
+    // 키워드를 지도 검색 링크로 걸지 않는다: 검색 페이지가 진입 시 검색 로그를 적재해
+    // 관리자가 확인차 누를수록 이 지표 자체가 부풀어 오르는 되먹임이 생긴다.
     api("/api/admin/ops/popular-searches?days=7&limit=8").then(function (r) {
         var el = document.getElementById("ov-popular-search");
         if (!el) { return; }
