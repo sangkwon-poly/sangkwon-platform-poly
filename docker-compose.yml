@@ -1,0 +1,57 @@
+# 여기콕 운영 스택: nginx(로드밸런서 + TLS 종단) 뒤에 앱 2 인스턴스(HA/FT).
+# DB는 클라우드 Oracle ADB(관리형)라 여기서 띄우지 않고 지갑으로 접속한다.
+# 시크릿은 deploy/.env(git 제외), 지갑은 ./wallet 볼륨 마운트로 주입한다.
+services:
+  app1:
+    build: .
+    image: sangkwon-platform:latest
+    restart: unless-stopped
+    env_file: ./deploy/.env
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      TNS_ADMIN: /app/wallet
+      DB_WALLET_DIR: /app/wallet
+    volumes:
+      - ./wallet:/app/wallet:ro
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 70s
+
+  app2:
+    image: sangkwon-platform:latest   # app1이 빌드한 동일 이미지를 재사용
+    restart: unless-stopped
+    env_file: ./deploy/.env
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      TNS_ADMIN: /app/wallet
+      DB_WALLET_DIR: /app/wallet
+    volumes:
+      - ./wallet:/app/wallet:ro
+    expose:
+      - "8080"
+    depends_on:
+      - app1
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 70s
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro   # 호스트 certbot이 발급한 인증서
+    depends_on:
+      - app1
+      - app2
