@@ -43,8 +43,7 @@ class FranchiseLoadServiceTest {
                 (RestTemplate) ReflectionTestUtils.getField(service, "rest")).build();
     }
 
-    // 브랜드 건수 확인 1회 + 가맹점수 5개년 5회(JSON) + 정보공개서 5개년 5회(XML) = HTTP 11회
-    private void stubEmptyResponses() {
+    private void stubEmptyBrandAndCountResponses() {
         server.expect(requestTo("https://apis.data.go.kr/1130000/FftcBrandRlsInfo2_Service/getBrandinfo"
                         + "?serviceKey=test-key&pageNo=1&numOfRows=1&resultType=json&jngBizCrtraYr=2023"))
                 .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
@@ -53,6 +52,11 @@ class FranchiseLoadServiceTest {
                             + "?serviceKey=test-key&pageNo=1&numOfRows=1&resultType=json&jngBizCrtraYr=" + yr))
                     .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
         }
+    }
+
+    // 브랜드 건수 확인 1회 + 가맹점수 5개년 5회(JSON) + 정보공개서 5개년 5회(XML) = HTTP 11회
+    private void stubEmptyResponses() {
+        stubEmptyBrandAndCountResponses();
         for (int yr = 2019; yr <= 2023; yr++) {
             server.expect(requestTo("https://franchise.ftc.go.kr/api/search.do?type=list&yr=" + yr
                             + "&serviceKey=test-key"))
@@ -114,6 +118,26 @@ class FranchiseLoadServiceTest {
                 .hasMessageContaining("FRANCHISE_BRAND 적재 미완");
         // 완결성 검사가 DELETE 앞에서 막으므로 기존 적재분은 보존된다
         verify(jt, never()).update("DELETE FROM FRANCHISE_BRAND");
+        server.verify();
+    }
+
+    @Test
+    void 정보공개서_한_연도라도_XML_파싱에_실패하면_기존_스냅샷을_보존한다() {
+        stubEmptyBrandAndCountResponses();
+        server.expect(requestTo("https://franchise.ftc.go.kr/api/search.do?type=list&yr=2019&serviceKey=test-key"))
+                .andRespond(withSuccess("""
+                        <response><item><jngIfrmpSn>2019-1</jngIfrmpSn></item></response>
+                        """, MediaType.TEXT_XML));
+        server.expect(requestTo("https://franchise.ftc.go.kr/api/search.do?type=list&yr=2020&serviceKey=test-key"))
+                .andRespond(withSuccess("<response><item>", MediaType.TEXT_XML));
+
+        assertThatThrownBy(() -> service.load())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("FRANCHISE_DISCLOSURE 적재 미완(2020년)")
+                .hasMessageContaining("XML 파싱 실패");
+        verify(jt, never()).update("DELETE FROM FRANCHISE_DISCLOSURE");
+        verify(jt, never()).batchUpdate(
+                org.mockito.ArgumentMatchers.contains("INSERT INTO FRANCHISE_DISCLOSURE"), anyList());
         server.verify();
     }
 }

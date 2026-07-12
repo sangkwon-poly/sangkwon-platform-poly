@@ -33,6 +33,8 @@ public class FranchiseLoadService {
 
     private static final int PER = 500;
     private static final int MAX_PAGE = 200;
+    private static final int DISCLOSURE_START_YEAR = 2019;
+    private static final int DISCLOSURE_END_YEAR = 2023;
 
     private final RestTemplate rest = LoaderHttp.timed();
     private final ObjectMapper mapper = new ObjectMapper();
@@ -139,14 +141,14 @@ public class FranchiseLoadService {
         return rows.size();
     }
 
-    // 3) 정보공개서 (franchise.ftc.go.kr, XML, 2019~2023)
+    // 3) 정보공개서 (franchise.ftc.go.kr, XML)
     private long loadDisclosure() {
         List<Object[]> rows = new ArrayList<>();
         Set<String> seen = new HashSet<>();
-        for (int yr = 2019; yr <= 2023; yr++) {
+        for (int yr = DISCLOSURE_START_YEAR; yr <= DISCLOSURE_END_YEAR; yr++) {
             String xml = getText("https://franchise.ftc.go.kr/api/search.do?type=list&yr=" + yr
                     + "&serviceKey=" + enc(ftcKey));
-            for (Element item : elements(xml, "item")) {
+            for (Element item : elements(xml, "item", yr)) {
                 String sn = childText(item, "jngIfrmpSn");
                 if (sn == null || !seen.add(sn)) {
                     continue;
@@ -156,8 +158,7 @@ public class FranchiseLoadService {
                         clip(childText(item, "viwerUrl"), 1000)});
             }
         }
-        // 원천 장애(franchise.ftc.go.kr XML 오류/빈 응답 등)로 수집이 비면 기존 적재분을 지우지 않는다.
-        // 이 경로는 elements()가 예외 대신 빈 리스트를 반환해 특히 취약하므로 반드시 가드한다.
+        // 대상 연도를 모두 정상 파싱한 뒤에도 원천 데이터가 비면 기존 적재분을 지우지 않는다.
         if (rows.isEmpty()) {
             return 0;
         }
@@ -235,10 +236,11 @@ public class FranchiseLoadService {
     }
 
     // ── XML ───────────────────────────────────────────────
-    private List<Element> elements(String xml, String tag) {
+    private List<Element> elements(String xml, String tag, int year) {
         List<Element> out = new ArrayList<>();
         if (xml == null || xml.isBlank()) {
-            return out;
+            throw new IllegalStateException(
+                    "FRANCHISE_DISCLOSURE 적재 미완(" + year + "년): XML 응답이 비어 있음(부분 스냅샷 방지, 롤백)");
         }
         try {
             var factory = DocumentBuilderFactory.newInstance();
@@ -252,8 +254,8 @@ public class FranchiseLoadService {
                 }
             }
         } catch (Exception e) {
-            // 특정 연도 XML 파싱 실패는 건너뛴다(파이썬도 try/except로 skip)
-            return out;
+            throw new IllegalStateException(
+                    "FRANCHISE_DISCLOSURE 적재 미완(" + year + "년): XML 파싱 실패(부분 스냅샷 방지, 롤백)", e);
         }
         return out;
     }
