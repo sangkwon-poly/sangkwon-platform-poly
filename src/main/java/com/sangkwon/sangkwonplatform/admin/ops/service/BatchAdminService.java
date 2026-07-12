@@ -31,7 +31,9 @@ public class BatchAdminService {
     private final AdminAuditService adminAuditService;
     private final DatasetStatsReader datasetStatsReader;
 
-    // 실행 중인 데이터셋 코드. DB의 RUNNING 기록이 비동기로 늦게 남는 사이의 중복 트리거를 인프로세스에서 원자적으로 막는다.
+    // 실행 중인 데이터셋 코드. 같은 노드에서 RUNNING 기록이 비동기로 늦게 남는 사이의 중복 트리거를 빠르게 막는 인프로세스 가드.
+    // 크로스 인스턴스 중복(다른 노드로 온 두 트리거)은 BATCH_JOB_LOG의 부분 유니크 인덱스(UX_BATCH_JOB_RUNNING)가
+    // 원자적으로 막고, BatchJobExecutor가 그 충돌을 감지해 로더를 건너뛴다.
     private final Set<String> inFlight = ConcurrentHashMap.newKeySet();
 
     // 데이터셋 카탈로그: 레지스트리 전체 + 실테이블 현황(건수/적재시각/데이터 최신) + 앱 적재 실행 상태

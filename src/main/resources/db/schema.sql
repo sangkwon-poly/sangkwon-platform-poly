@@ -771,6 +771,11 @@ CREATE TABLE BATCH_JOB_LOG (
         OR (STATUS <> 'RUNNING' AND ENDED_AT IS NOT NULL)
     )
 );
+
+-- 크로스 인스턴스 중복 적재 방지: 데이터셋당 RUNNING 이력은 최대 1건(함수 기반 부분 유니크 인덱스).
+-- 두 인스턴스/트리거가 같은 데이터셋을 동시에 시작하면 둘째 RUNNING INSERT가 여기서 막힌다
+-- (비RUNNING 행은 표현식이 NULL이라 인덱스 대상이 아니므로 SUCCESS/FAILED 이력은 얼마든 쌓일 수 있다).
+CREATE UNIQUE INDEX UX_BATCH_JOB_RUNNING ON BATCH_JOB_LOG (CASE WHEN STATUS = 'RUNNING' THEN DATASET_CD END);
 COMMENT ON TABLE  BATCH_JOB_LOG IS '배치 적재 이력, 관리자 "데이터 적재 현황" 대시보드 소스';
 COMMENT ON COLUMN BATCH_JOB_LOG.JOB_LOG_ID    IS '적재 이력 PK (IDENTITY 대체키)';
 COMMENT ON COLUMN BATCH_JOB_LOG.JOB_NAME      IS '배치 잡 이름';
