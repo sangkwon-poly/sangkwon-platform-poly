@@ -1,6 +1,8 @@
 package com.sangkwon.sangkwonplatform.admin.account.security;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Mac;
@@ -29,13 +31,20 @@ public class TrustedDeviceService {
 
     public TrustedDeviceService(
             @Value("${admin.security.trust-device-secret:}") String secretProp,
-            @Value("${admin.security.trust-device-days:30}") int days) {
+            @Value("${admin.security.trust-device-days:30}") int days,
+            Environment env) {
         this.days = days;
         if (secretProp != null && !secretProp.isBlank()) {
             this.secret = secretProp.getBytes(StandardCharsets.UTF_8);
         } else {
             // 미설정 시 부팅마다 임의 키를 쓴다(재시작하면 기존 신뢰 쿠키는 무효).
-            // 운영에서는 ADMIN_TRUST_DEVICE_SECRET 로 고정 키를 주입한다.
+            // 다중 인스턴스에서는 인스턴스마다 키가 달라 신뢰 쿠키가 상호 거부되고 OTP가 들쭉날쭉해진다.
+            // prod는 반드시 공유 시크릿(ADMIN_TRUST_DEVICE_SECRET)을 주입하도록 기동 시 강제한다.
+            if (env.acceptsProfiles(Profiles.of("prod"))) {
+                throw new IllegalStateException(
+                        "prod에는 admin.security.trust-device-secret(ADMIN_TRUST_DEVICE_SECRET)이 필요합니다. "
+                                + "인스턴스마다 랜덤 키가 생기면 다중 인스턴스 신뢰기기가 상호 거부됩니다.");
+            }
             byte[] rnd = new byte[32];
             new SecureRandom().nextBytes(rnd);
             this.secret = rnd;
