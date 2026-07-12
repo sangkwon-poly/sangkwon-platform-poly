@@ -1,5 +1,7 @@
 package com.sangkwon.sangkwonplatform.member.controller;
 
+import com.sangkwon.sangkwonplatform.admin.account.security.ClientIpResolver;
+import com.sangkwon.sangkwonplatform.global.security.DbRateLimiter;
 import com.sangkwon.sangkwonplatform.member.service.MemberService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,12 @@ class MemberControllerValidationTest {
 
     @MockitoBean
     MemberService memberService;
+
+    @MockitoBean
+    DbRateLimiter rateLimiter;
+
+    @MockitoBean
+    ClientIpResolver clientIpResolver;
 
     @Test
     void 본문_검증_실패는_회원_핸들러가_이겨_M400으로_나간다() throws Exception {
