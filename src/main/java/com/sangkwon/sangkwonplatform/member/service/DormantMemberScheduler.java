@@ -26,8 +26,9 @@ public class DormantMemberScheduler {
     @Scheduled(cron = "0 30 4 * * *")
     public void transitionInactiveToDormant() {
         try {
-            LocalDateTime cutoff = LocalDateTime.now().minusDays(inactiveDays);
-            int count = memberRepository.markInactiveMembersDormant(cutoff);
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime cutoff = now.minusDays(inactiveDays);
+            int count = memberRepository.markInactiveMembersDormant(cutoff, now);
             if (count > 0) {
                 log.info("장기 미접속 회원 {}명을 휴면(DORMANT)으로 전환(임계 {}일)", count, inactiveDays);
             }
