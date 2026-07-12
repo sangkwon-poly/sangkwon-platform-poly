@@ -8,7 +8,7 @@
   margin-top: 5px;
 }
 .stat-delta { font-size: 11.5px; font-weight: 700; margin-top: 3px; }
-.ov-up { color: #4e7a3e; }
+.ov-up { color: var(--ok); }
 .ov-flat { color: #a99c94; }
 .ov-warn { color: #c08a2e; }
 .ov-danger { color: var(--danger); }
@@ -52,7 +52,7 @@
 }
 .feed-brand { background: var(--brand); }
 .feed-warn { background: var(--warn); }
-.feed-ok { background: #4e7a3e; }
+.feed-ok { background: var(--ok); }
 .feed-text { font-size: 12.5px; color: #3a322e; }
 .feed-time { font-size: 10.5px; color: #a99c94; margin-top: 2px; }
 
