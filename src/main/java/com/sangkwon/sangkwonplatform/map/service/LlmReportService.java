@@ -25,6 +25,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -34,6 +35,9 @@ public class LlmReportService {
 
     // 무료 플랜은 회원당 월 3회까지. Pro(유효 구독)면 이 한도를 적용하지 않는다.
     private static final int FREE_MONTHLY_LIMIT = 3;
+
+    // 회원당 시간당 생성 상한(무료·Pro 공통). 한 회원이 전역 Gemini 일일 예산을 선점하는 것을 막는 안전장치.
+    private static final int HOURLY_LIMIT = 20;
 
     private final TrdarRepository trdarRepository;
     private final SalesRepository salesRepository;
@@ -80,8 +84,17 @@ public class LlmReportService {
                 : llmReportRepository.findIndutyName(indutyCd)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "업종을 찾을 수 없습니다"));
 
+        // 회원별 시간당 상한을 먼저 본다(무료·Pro 공통). 단일 회원이 전역 Gemini 예산을 선점하지 못하게 막는다.
+        enforceRateLimit(memberId);
         // 무료 플랜 월 한도. 프롬프트 구성이나 유료 호출 전에 막아 헛일과 슬롯 소모를 피한다.
         enforceMonthlyQuota(memberId);
+
+        // 같은 상권·업종 리포트가 오늘 이미 있으면 재사용한다(분기 지표는 하루 안에 안 바뀐다).
+        // Gemini 재호출·전역 일일 예산 소모 없이 동일 분석을 이 회원 이력으로 남긴다.
+        LlmReportResponse fresh = reuseFreshReport(memberId, trdarCd, indutyCd);
+        if (fresh != null) {
+            return fresh;
+        }
 
         PromptData promptData = buildPrompt(trdar, indutyCd, indutyNm);
 
@@ -136,6 +149,37 @@ public class LlmReportService {
             throw new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED,
                     "이번 달 무료 AI 리포트 " + FREE_MONTHLY_LIMIT + "회를 모두 사용했어요. Pro로 업그레이드하면 무제한으로 생성할 수 있어요.");
         }
+    }
+
+    // 회원당 시간당 생성 상한. 초과하면 429로 잠시 후 재시도를 유도한다(무료·Pro 공통 안전장치).
+    private void enforceRateLimit(Long memberId) {
+        long recent = llmReportRepository.countByMemberIdAndCreatedAtGreaterThanEqual(
+                memberId, LocalDateTime.now().minusHours(1));
+        if (recent >= HOURLY_LIMIT) {
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
+                    "AI 리포트를 너무 자주 생성했어요. 잠시 후 다시 시도해 주세요.");
+        }
+    }
+
+    // 같은 상권·업종 리포트가 오늘(자정 이후) 이미 있으면 그 결과를 재사용해 이 회원 이력으로 남긴다.
+    // 분기 지표는 하루 안에 바뀌지 않으므로 동일 분석을 Gemini 재호출·전역 예산 소모 없이 돌려준다. 없으면 null.
+    private LlmReportResponse reuseFreshReport(Long memberId, String trdarCd, String indutyCd) {
+        LlmReport recent = llmReportRepository.findLatest(trdarCd, indutyCd, PageRequest.of(0, 1))
+                .stream().findFirst().orElse(null);
+        if (recent == null || recent.getCreatedAt().isBefore(LocalDate.now().atStartOfDay())) {
+            return null;
+        }
+        LlmReport saved = llmReportRepository.save(LlmReport.builder()
+                .memberId(memberId)
+                .trdarCd(trdarCd)
+                .stdrYyquCd(recent.getStdrYyquCd())
+                .indutyCd(indutyCd)
+                .prompt(recent.getPrompt())
+                .resultText(recent.getResultText())
+                .modelName(recent.getModelName())
+                .tokenCnt(0L)
+                .build());
+        return LlmReportResponse.from(saved);
     }
 
     // 가장 최근 생성한 리포트. 업종 리포트와 상권 전체 리포트는 따로 관리한다
