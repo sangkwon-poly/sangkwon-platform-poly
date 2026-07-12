@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>API 사용량 · 여기콕</title>
   <link rel="stylesheet" href="/common/css/common.css">
-  <link rel="stylesheet" href="/admin/css/shell.css">
-  <link rel="stylesheet" href="/admin/css/ops.css">
+  <link rel="stylesheet" href="/admin/css/shell.css?v=20260712b">
+  <link rel="stylesheet" href="/admin/css/ops.css?v=20260712c">
   <link rel="icon" href="/favicon/favicon.ico" sizes="any">
 </head>
 <body>
@@ -58,14 +58,56 @@
       </header>
 
       <main class="admin-content" aria-label="외부 API 사용량">
-        <div class="usage-grid" id="usage-grid">
-          <p class="ops-empty">불러오는 중…</p>
-        </div>
+
+        <!-- 오늘 요약 -->
+        <section class="usage-summary" aria-label="오늘 사용량 요약">
+          <article class="stat-card">
+            <div class="stat-card-label">오늘 총 호출</div>
+            <div class="stat-card-value" id="us-total">—</div>
+            <div class="usage-sub">외부 API 합계</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">계측 API</div>
+            <div class="stat-card-value" id="us-count">—</div>
+            <div class="usage-sub">사용량 추적 대상</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">한도 근접</div>
+            <div class="stat-card-value" id="us-near">—</div>
+            <div class="usage-sub" id="us-near-sub">70% 이상</div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-card-label">최다 사용</div>
+            <div class="stat-card-value" id="us-top">—</div>
+            <div class="usage-sub" id="us-top-sub">가장 높은 사용률</div>
+          </article>
+        </section>
+
+        <!-- 일자별 호출 추이 -->
+        <section class="card usage-trend" aria-label="일자별 호출 추이">
+          <div class="card-head">
+            <h2 class="card-title">일자별 호출 추이</h2>
+            <span class="card-link">최근 14일 · 총 호출</span>
+          </div>
+          <div id="us-trend"><p class="ops-empty">불러오는 중…</p></div>
+        </section>
+
+        <!-- API별 오늘 사용량 -->
+        <section aria-label="API별 오늘 사용량">
+          <div class="card-head usage-section-head">
+            <h2 class="card-title">API별 오늘 사용량</h2>
+            <span class="card-link">일일 한도 대비</span>
+          </div>
+          <div class="usage-grid" id="usage-grid">
+            <p class="ops-empty">불러오는 중…</p>
+          </div>
+        </section>
+
       </main>
     </div>
   </div>
 
   <script src="/admin/js/admin-shell.js"></script>
-  <script src="/admin/js/api-usage.js"></script>
+  <script src="/admin/js/api-usage.js?v=20260712c"></script>
 </body>
 </html>

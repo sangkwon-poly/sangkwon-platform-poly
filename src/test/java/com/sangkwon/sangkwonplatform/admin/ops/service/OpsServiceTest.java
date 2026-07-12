@@ -72,6 +72,20 @@ class OpsServiceTest {
     }
 
     @Test
+    void 일자별_추이는_요청일수를_7에서_30으로_클램프하고_빈날을_0으로_채운다() {
+        // days=3 요청이면 최소 7일로 클램프, 집계 없는 날은 0으로 채워 연속 반환
+        when(apiUsageLogRepository.findByUsageDateGreaterThanEqualOrderByUsageDateAsc(any()))
+                .thenReturn(List.of());
+
+        var res = opsService.dailyApiUsage(3);
+
+        assertThat(res).hasSize(7);
+        assertThat(res).allSatisfy(p -> assertThat(p.totalCalls()).isZero());
+        // 오름차순(과거 -> 오늘)
+        assertThat(res.get(0).date()).isBefore(res.get(res.size() - 1).date());
+    }
+
+    @Test
     void 집계가_없는_계측_대상도_0건으로_함께_노출한다() {
         when(apiUsageLogRepository.findByUsageDateOrderByApiName(any())).thenReturn(List.of());
 

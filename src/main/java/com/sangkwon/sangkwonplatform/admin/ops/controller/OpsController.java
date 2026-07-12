@@ -3,6 +3,7 @@ package com.sangkwon.sangkwonplatform.admin.ops.controller;
 import com.sangkwon.sangkwonplatform.admin.account.dto.session.AdminSession;
 import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminRole;
 import com.sangkwon.sangkwonplatform.admin.account.session.LoginAdmin;
+import com.sangkwon.sangkwonplatform.admin.ops.dto.ApiUsageDailyResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.ApiUsageResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.AuditPageResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.BatchCatalogResponse;
@@ -96,6 +97,15 @@ public class OpsController {
     public ApiResponse<List<ApiUsageResponse>> apiUsage(@LoginAdmin AdminSession admin) {
         requireSuperAdmin(admin);
         return ApiResponse.ok(opsService.todayApiUsage());
+    }
+
+    // 일자별 총 호출 추이(기본 최근 14일). API 사용량 화면 상단 추이 차트용.
+    @GetMapping("/api-usage/daily")
+    public ApiResponse<List<ApiUsageDailyResponse>> apiUsageDaily(
+            @LoginAdmin AdminSession admin,
+            @RequestParam(defaultValue = "14") int days) {
+        requireSuperAdmin(admin);
+        return ApiResponse.ok(opsService.dailyApiUsage(days));
     }
 
     @GetMapping("/audit")

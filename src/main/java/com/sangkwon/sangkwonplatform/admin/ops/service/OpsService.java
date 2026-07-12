@@ -3,6 +3,7 @@ package com.sangkwon.sangkwonplatform.admin.ops.service;
 import com.sangkwon.sangkwonplatform.admin.account.entity.AdminUser;
 import com.sangkwon.sangkwonplatform.admin.account.repository.AdminUserRepository;
 import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
+import com.sangkwon.sangkwonplatform.admin.ops.dto.ApiUsageDailyResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.ApiUsageResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.AuditLogResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.AuditPageResponse;
@@ -31,6 +32,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -93,6 +96,22 @@ public class OpsService {
         apiUsageLogRepository.findByUsageDateOrderByApiName(today)
                 .forEach(a -> byName.put(a.getApiName(), ApiUsageResponse.from(a)));
         return List.copyOf(byName.values());
+    }
+
+    // 최근 N일 외부 API 총 호출 추이. 집계가 없는 날도 0으로 채워 연속 막대로 보여준다.
+    // days는 요청 파라미터라 7~30일로 클램프한다.
+    public List<ApiUsageDailyResponse> dailyApiUsage(int days) {
+        int span = Math.min(Math.max(days, 7), 30);
+        LocalDate since = LocalDate.now().minusDays(span - 1L);
+        Map<LocalDate, Long> totals = new HashMap<>();
+        apiUsageLogRepository.findByUsageDateGreaterThanEqualOrderByUsageDateAsc(since)
+                .forEach(a -> totals.merge(a.getUsageDate(), a.getCallCnt(), Long::sum));
+        List<ApiUsageDailyResponse> out = new ArrayList<>(span);
+        for (int i = 0; i < span; i++) {
+            LocalDate d = since.plusDays(i);
+            out.add(new ApiUsageDailyResponse(d, totals.getOrDefault(d, 0L)));
+        }
+        return out;
     }
 
     // 감사 로그: 행위·행위자(adminId)·대상 필터(모두 선택) + 페이징. 관리자 로그인 아이디는 한 번에 모아 매핑한다.
