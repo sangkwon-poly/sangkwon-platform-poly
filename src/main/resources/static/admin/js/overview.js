@@ -164,7 +164,15 @@
         set("ov-stat-batch", first.ko);
         setSub("ov-sub-batch", hhmm(rows[0].startedAt) + " 마지막", first.card);
 
-        load.innerHTML = rows.slice(0, 5).map(function (b) {
+        // 같은 데이터셋을 여러 번 실행했으면 최신 1건만 보여준다(재실행 이력은 감사 로그·상세에서).
+        // rows는 startedAt 내림차순이라 먼저 나온 것이 최신이다.
+        var seen = {};
+        var latest = rows.filter(function (b) {
+            if (seen[b.datasetCd]) { return false; }
+            seen[b.datasetCd] = true;
+            return true;
+        });
+        load.innerHTML = latest.slice(0, 5).map(function (b) {
             var m = BATCH[b.status] || { ko: b.status, badge: "badge-warn", dot: "dot-warn" };
             return '<li class="load-item">'
                 + '<span class="dot ' + m.dot + '" aria-hidden="true"></span>'
