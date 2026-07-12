@@ -104,6 +104,11 @@ public class PaymentService {
         if (order.getStatus() == PaymentStatus.PAID) {
             return PaymentConfirmResponse.from(order);
         }
+        // 환불(CANCELED) 등 종결된 주문은 재승인하지 않는다. 저장된 성공 URL 재접속으로 승인이 다시
+        // 호출되어도 토스를 부르지 않고 현재 상태 그대로 반환한다(환불 무효화·무료 Pro 재부여 방지).
+        if (!order.getStatus().canTransitionToPaid()) {
+            return PaymentConfirmResponse.from(order);
+        }
         // 리다이렉트 쿼리의 금액이 주문과 다르면 조작으로 보고 거절한다
         if (req.amount() != order.getAmount()) {
             throw new BusinessException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);

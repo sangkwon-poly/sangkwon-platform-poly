@@ -171,9 +171,17 @@ public class AdminPaymentService {
         return new ReconcileResult(before, order.getStatus(), toResponse(order));
     }
 
-    // PAID를 임의로 강등하면 손실이 크다. 토스가 실패/만료라 해도 우리가 PAID면 자동으로 내리지 않는다(수동 확인).
+    // 자동 대사가 하면 안 되는 전이를 막는다.
+    // - PAID -> FAILED: PAID를 임의로 강등하면 손실이 크다. 토스가 실패/만료라 해도 자동으로 내리지 않는다(수동 확인).
+    // - CANCELED -> PAID: 환불 완료를 다시 승인으로 되돌리면 환불이 무효화되고 Pro가 무료 재부여된다(finalizePaid와 이중 방어).
     private static boolean isSafeTransition(PaymentStatus before, PaymentStatus target) {
-        return !(before == PaymentStatus.PAID && target == PaymentStatus.FAILED);
+        if (before == PaymentStatus.PAID && target == PaymentStatus.FAILED) {
+            return false;
+        }
+        if (before == PaymentStatus.CANCELED && target == PaymentStatus.PAID) {
+            return false;
+        }
+        return true;
     }
 
     private void applyReconciled(PaymentOrder order, PaymentStatus target, JsonNode toss) {

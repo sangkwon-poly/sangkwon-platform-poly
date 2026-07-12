@@ -137,6 +137,21 @@ class PaymentServiceTest {
     }
 
     @Test
+    void 환불된_주문에_승인이_재요청되면_토스_호출없이_현재상태를_반환한다() {
+        PaymentOrder order = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
+        order.paid("pk-1", LocalDateTime.now());
+        order.canceled(); // 관리자 환불로 CANCELED
+        when(paymentOrderRepository.findByOrderIdAndMemberId("o1", 1L)).thenReturn(Optional.of(order));
+
+        // 저장된 성공 URL 재접속으로 승인이 다시 호출돼도 환불을 되돌리지 않는다
+        PaymentConfirmResponse res = service("ck", "sk").confirm(1L, new PaymentConfirmRequest("pk-1", "o1", 240_000L));
+
+        assertThat(res.status()).isEqualTo(PaymentStatus.CANCELED);
+        assertThat(order.getStatus()).isEqualTo(PaymentStatus.CANCELED);
+        verifyNoInteractions(restClient);
+    }
+
+    @Test
     void 이미_승인된_주문은_토스_재호출_없이_멱등하게_응답한다() {
         PaymentOrder order = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
         order.paid("pk-1", LocalDateTime.now());

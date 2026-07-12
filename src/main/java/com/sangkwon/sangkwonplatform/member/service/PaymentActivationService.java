@@ -38,6 +38,12 @@ public class PaymentActivationService {
         if (order.getStatus() == PaymentStatus.PAID) {
             return PaymentConfirmResponse.from(order);
         }
+        // 종결 상태(환불 완료 CANCELED 등)를 승인으로 되돌리지 않는다. 되돌리면 환불이 무효화되고
+        // 구독이 무료로 재부여된다. 승인/대사 두 경로가 이 가드를 공유하므로 어느 경로로 와도 안전하다.
+        if (!order.getStatus().canTransitionToPaid()) {
+            log.warn("승인 확정을 건너뜀: 주문 {}가 {} 상태라 PAID로 전이할 수 없음", order.getOrderId(), order.getStatus());
+            return PaymentConfirmResponse.from(order);
+        }
         order.paid(paymentKey, approvedAt);
         paymentOrderRepository.save(order);
         activateSubscription(order.getMemberId(), order.getBillingCycle());
