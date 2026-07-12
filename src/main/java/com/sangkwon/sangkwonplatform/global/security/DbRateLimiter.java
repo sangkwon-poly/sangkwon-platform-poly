@@ -2,8 +2,6 @@ package com.sangkwon.sangkwonplatform.global.security;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -11,7 +9,8 @@ import java.time.LocalDateTime;
 
 // 로그인 실패·요청 빈도를 공유 DB(LOGIN_RATE_HIT)에 적재하는 레이트 리미터.
 // 인프로세스 카운터는 인스턴스마다 따로라 다중 인스턴스에서 실효 임계가 N배 느슨해진다. DB로 빼 전역 합산한다.
-// record는 로그인이 자격 실패로 트랜잭션을 롤백해도 남아야 하므로 REQUIRES_NEW로 독립 커밋한다.
+// record는 호출한 로그인 트랜잭션에 같은 커넥션으로 참여한다(별도 커넥션을 잡지 않아 풀을 아낀다).
+// 로그인은 자격 실패 예외에 noRollbackFor를 걸어 이 기록이 롤백되지 않고 커밋되게 한다(로그인 서비스 참고).
 @Component
 public class DbRateLimiter {
 
@@ -21,7 +20,6 @@ public class DbRateLimiter {
         this.jt = jt;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void record(String key) {
         if (key == null) {
             return;
@@ -41,7 +39,6 @@ public class DbRateLimiter {
         return cnt != null && cnt >= maxHits;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void reset(String key) {
         if (key != null) {
             jt.update("DELETE FROM LOGIN_RATE_HIT WHERE RATE_KEY = ?", key);

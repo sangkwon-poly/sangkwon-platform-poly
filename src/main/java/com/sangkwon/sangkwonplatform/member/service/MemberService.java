@@ -45,7 +45,9 @@ public class MemberService {
         return MemberResponse.from(m);
     }
 
-    @Transactional
+    // 자격 실패 예외로는 롤백하지 않아(noRollbackFor) 실패 카운트(rateLimiter.recordFailure)가 이 트랜잭션에서
+    // 같은 커넥션으로 커밋된다. 별도 커넥션을 잡던 REQUIRES_NEW를 없애 커넥션 풀을 아낀다(관리자 로그인과 동일).
+    @Transactional(noRollbackFor = BusinessException.class)
     public MemberResponse login(MemberLoginRequest req, String clientIp) { // loginId,password,remember(기억할지 체크)
         // 요청 IP별로 실패를 센다. 아이디 단위로 세면 남의 아이디로 일부러 잠그는 표적 잠금이 가능하다
         String key = (clientIp == null || clientIp.isBlank()) ? "unknown" : clientIp;
