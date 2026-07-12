@@ -89,11 +89,11 @@
         </select>
         <p style="font-size:11px;color:#9a8c84;margin:-6px 0 10px">매출·점포 수 레이어에 적용</p>
         <p class="panel-label">지도 레이어</p>
-        <ul class="layer-list">
-          <li class="layer-item is-active" data-layer="sales"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">추정 매출</span></li>
-          <li class="layer-item" data-layer="flpop"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">유동인구</span></li>
-          <li class="layer-item" data-layer="store"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">점포 수</span></li>
-          <li class="layer-item" data-layer="change"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">성장·쇠퇴</span></li>
+        <ul class="layer-list" role="group" aria-label="지도 레이어 선택">
+          <li class="layer-item is-active" data-layer="sales" role="button" tabindex="0" aria-pressed="true"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">추정 매출</span></li>
+          <li class="layer-item" data-layer="flpop" role="button" tabindex="0" aria-pressed="false"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">유동인구</span></li>
+          <li class="layer-item" data-layer="store" role="button" tabindex="0" aria-pressed="false"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">점포 수</span></li>
+          <li class="layer-item" data-layer="change" role="button" tabindex="0" aria-pressed="false"><span class="layer-dot" aria-hidden="true"></span><span class="layer-name">성장·쇠퇴</span></li>
         </ul>
         <hr class="map-legend-divider">
         <div class="legend-head"><span class="legend-title">추정 매출</span><span class="legend-unit">억/분기</span></div>
