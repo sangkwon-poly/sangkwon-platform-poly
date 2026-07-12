@@ -42,3 +42,60 @@
         }
     });
 })();
+
+// 모달 접근성: [role=dialog][aria-modal] 패널이 열리면 포커스를 모달 안에 가두고(Tab 순환), 닫히면
+// 열었던 요소로 포커스를 되돌린다. 각 모달의 여닫기 로직은 그대로 두고 hidden 토글만 관찰해 덧붙인다.
+// (Escape·백드롭 닫기는 각 페이지가 이미 처리하므로 여기선 Tab 트랩과 포커스 복원만 담당)
+(function () {
+    "use strict";
+    function setup() {
+        var panels = document.querySelectorAll('[role="dialog"][aria-modal="true"]');
+        Array.prototype.forEach.call(panels, function (panel) {
+            var container = panel.parentElement; // hidden 이 토글되는 모달 컨테이너
+            if (!container) { return; }
+            var trigger = null;
+            var open = false;
+
+            function focusables() {
+                return panel.querySelectorAll(
+                    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), '
+                    + 'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+            }
+            function onKey(e) {
+                if (e.key !== "Tab" || container.hidden) { return; }
+                var f = focusables();
+                if (!f.length) { return; }
+                var first = f[0];
+                var last = f[f.length - 1];
+                if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+            }
+            function onOpen() {
+                if (open) { return; }
+                open = true;
+                trigger = document.activeElement;
+                var f = focusables();
+                if (f.length) { f[0].focus(); }
+                else { panel.setAttribute("tabindex", "-1"); panel.focus(); }
+                document.addEventListener("keydown", onKey, true);
+            }
+            function onClose() {
+                if (!open) { return; }
+                open = false;
+                document.removeEventListener("keydown", onKey, true);
+                if (trigger && typeof trigger.focus === "function") { trigger.focus(); }
+            }
+
+            new MutationObserver(function () {
+                if (container.hidden) { onClose(); } else { onOpen(); }
+            }).observe(container, { attributes: true, attributeFilter: ["hidden"] });
+
+            if (!container.hidden) { onOpen(); } // 이미 열린 채 로드된 경우 대비
+        });
+    }
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setup);
+    } else {
+        setup();
+    }
+})();
