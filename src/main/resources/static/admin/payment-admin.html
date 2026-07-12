@@ -95,6 +95,8 @@
           </div>
         </div>
 
+        <p class="pa-flash" id="pa-flash" role="status" hidden></p>
+
         <section class="data-table-wrap" aria-label="결제 주문 표">
           <div class="table-scroll">
             <table class="data-table pa-table">
@@ -123,6 +125,22 @@
           <button type="button" class="pa-page-btn" id="pa-next" aria-label="다음 페이지">다음</button>
         </div>
       </main>
+    </div>
+  </div>
+
+  <div class="pa-modal" id="pa-refund-modal" hidden>
+    <div class="pa-modal-backdrop" data-close></div>
+    <div class="pa-modal-panel" role="dialog" aria-modal="true" aria-labelledby="pa-refund-title">
+      <h2 class="pa-modal-title" id="pa-refund-title">환불</h2>
+      <p class="pa-modal-desc">이 결제를 환불합니다. 환불한 주문 기간만큼 회원 Pro 구독이 회수됩니다.</p>
+      <label class="pa-field">
+        <span>환불 사유</span>
+        <textarea id="pa-refund-reason" placeholder="환불 사유를 입력하세요"></textarea>
+      </label>
+      <div class="pa-modal-actions">
+        <button type="button" class="pa-act" data-close>취소</button>
+        <button type="button" class="pa-act pa-act-danger" id="pa-refund-confirm">환불 실행</button>
+      </div>
     </div>
   </div>
 
