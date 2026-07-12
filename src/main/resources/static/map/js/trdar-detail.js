@@ -263,7 +263,7 @@ async function load() {
         document.getElementById("detail-title").textContent = "상권 정보를 불러오지 못했습니다";
         return;
     }
-    sales = sales || [];
+    sales = salesRows(sales) || [];
     stores = stores || [];
     pop = pop || [];
     // 인접 상권·임대료·환경 지표는 차트를 막지 않게 병렬로 시작만 해둔다

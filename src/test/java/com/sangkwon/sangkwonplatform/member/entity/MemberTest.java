@@ -17,15 +17,28 @@ class MemberTest {
     @Test
     void 환불은_주문이_실제로_부여한_기간만_차감한다() {
         Member m = member();
-        LocalDateTime grantedFrom = LocalDateTime.of(2026, 1, 31, 12, 0);
-        LocalDateTime grantedUntil = grantedFrom.plusMonths(1);
-        LocalDateTime planUntil = LocalDateTime.now().plusMonths(2);
+        LocalDateTime grantedFrom = LocalDateTime.now().minusDays(10);
+        LocalDateTime grantedUntil = LocalDateTime.now().plusMonths(1);
+        LocalDateTime planUntil = grantedUntil.plusMonths(2);
         m.activatePro(planUntil);
 
         m.reduceSubscription(grantedFrom, grantedUntil);
 
         assertThat(m.isPro()).isTrue();
         assertThat(m.getPlanUntil()).isEqualTo(planUntil.minus(Duration.between(grantedFrom, grantedUntil)));
+    }
+
+    @Test
+    void 이미_끝난_주문_환불은_현재_구독을_줄이지_않는다() {
+        Member m = member();
+        LocalDateTime grantedFrom = LocalDateTime.now().minusMonths(3);
+        LocalDateTime grantedUntil = LocalDateTime.now().minusMonths(2);
+        LocalDateTime planUntil = LocalDateTime.now().plusMonths(6);
+        m.activatePro(planUntil);
+
+        m.reduceSubscription(grantedFrom, grantedUntil);
+
+        assertThat(m.getPlanUntil()).isEqualTo(planUntil);
     }
 
     @Test

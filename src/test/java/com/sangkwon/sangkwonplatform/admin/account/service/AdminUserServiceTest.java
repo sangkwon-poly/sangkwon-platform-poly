@@ -12,6 +12,7 @@ import com.sangkwon.sangkwonplatform.admin.account.entity.enums.AdminStatus;
 import com.sangkwon.sangkwonplatform.admin.account.otp.OtpRequiredException;
 import com.sangkwon.sangkwonplatform.admin.account.repository.AdminUserRepository;
 import com.sangkwon.sangkwonplatform.admin.account.security.TrustedDeviceService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,12 +24,16 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -49,6 +54,11 @@ class AdminUserServiceTest {
 
     @InjectMocks
     AdminUserService adminUserService;
+
+    @BeforeEach
+    void allowLoginRateLimit() {
+        lenient().when(rateLimiter.tryAcquire(anyString())).thenReturn(true);
+    }
 
     private AdminUser activeAdmin() {
         return AdminUser.create("admin", "hash", "관리자", AdminRole.SUPER_ADMIN);
@@ -124,7 +134,7 @@ class AdminUserServiceTest {
 
     @Test
     void IP가_레이트리밋에_걸리면_계정_조회_없이_429로_거절한다() {
-        when(rateLimiter.isBlocked("9.9.9.9")).thenReturn(true);
+        when(rateLimiter.tryAcquire("9.9.9.9")).thenReturn(false);
 
         assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), null, "9.9.9.9"))
                 .isInstanceOf(ResponseStatusException.class)
@@ -186,11 +196,20 @@ class AdminUserServiceTest {
     void 신뢰된_기기면_OTP_코드가_없어도_로그인된다() {
         when(adminUserRepository.findByLoginIdForUpdate("admin")).thenReturn(Optional.of(otpAdmin()));
         when(passwordEncoder.matches("pw", "hash")).thenReturn(true);
-        when(trustedDeviceService.verify(any(), any())).thenReturn(true);
+        when(trustedDeviceService.verify(any(), any(), anyInt(), anyString())).thenReturn(true);
 
         AdminSession session = adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), "trusted-token", "1.1.1.1");
 
         assertThat(session.loginId()).isEqualTo("admin");
+    }
+
+    @Test
+    void OTP가_꺼진_계정에는_신뢰토큰을_발급하지_않는다() {
+        AdminUser admin = activeAdmin();
+        when(adminUserRepository.findById(1L)).thenReturn(Optional.of(admin));
+
+        assertThat(adminUserService.issueTrustToken(1L)).isNull();
+        verify(trustedDeviceService, never()).issue(any(), anyInt(), anyString());
     }
 
     @Test
@@ -233,7 +252,8 @@ class AdminUserServiceTest {
     void 마지막_활성_최고관리자는_강등할_수_없다() {
         AdminUser sa = activeAdmin();
         when(adminUserRepository.findById(1L)).thenReturn(Optional.of(sa));
-        when(adminUserRepository.countByRoleAndStatus(AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE)).thenReturn(1L);
+        when(adminUserRepository.findByRoleAndStatusForUpdate(
+                AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE)).thenReturn(List.of(sa));
 
         assertThatThrownBy(() -> adminUserService.updateRole(1L, new AdminRoleUpdateRequest(AdminRole.OPERATOR)))
                 .isInstanceOf(ResponseStatusException.class)
@@ -245,7 +265,8 @@ class AdminUserServiceTest {
     void 활성_최고관리자가_둘_이상이면_강등된다() {
         AdminUser sa = activeAdmin();
         when(adminUserRepository.findById(1L)).thenReturn(Optional.of(sa));
-        when(adminUserRepository.countByRoleAndStatus(AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE)).thenReturn(2L);
+        when(adminUserRepository.findByRoleAndStatusForUpdate(
+                AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE)).thenReturn(List.of(sa, activeAdmin()));
 
         adminUserService.updateRole(1L, new AdminRoleUpdateRequest(AdminRole.OPERATOR));
 
@@ -256,7 +277,8 @@ class AdminUserServiceTest {
     void 마지막_활성_최고관리자는_비활성할_수_없다() {
         AdminUser sa = activeAdmin();
         when(adminUserRepository.findById(1L)).thenReturn(Optional.of(sa));
-        when(adminUserRepository.countByRoleAndStatus(AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE)).thenReturn(1L);
+        when(adminUserRepository.findByRoleAndStatusForUpdate(
+                AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE)).thenReturn(List.of(sa));
 
         assertThatThrownBy(() -> adminUserService.updateStatus(1L, new AdminStatusUpdateRequest(AdminStatus.DISABLED)))
                 .isInstanceOf(ResponseStatusException.class)

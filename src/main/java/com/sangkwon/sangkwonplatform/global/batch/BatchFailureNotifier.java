@@ -1,5 +1,6 @@
 package com.sangkwon.sangkwonplatform.global.batch;
 
+import com.sangkwon.sangkwonplatform.global.util.ExternalApiMessageSanitizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -35,7 +36,7 @@ public class BatchFailureNotifier {
         }
         try {
             String text = "[여기콕 배치 실패] " + jobName + " (" + datasetCd + ")\n"
-                    + (errorMsg == null ? "(원인 미상)" : errorMsg);
+                    + ExternalApiMessageSanitizer.sanitize(errorMsg == null ? "(원인 미상)" : errorMsg);
             restClient.post()
                     .uri(webhookUrl)
                     .contentType(MediaType.APPLICATION_JSON)

@@ -32,6 +32,8 @@ class OperationalCleanupSchedulerTest {
     @Mock AdminPaymentService adminPaymentService;
     @Mock ApiUsageLogRepository apiUsageLogRepository;
     @Mock com.sangkwon.sangkwonplatform.global.security.DbRateLimiter dbRateLimiter;
+    @Mock com.sangkwon.sangkwonplatform.map.service.AiReportQuota aiReportQuota;
+    @Mock com.sangkwon.sangkwonplatform.member.service.SearchLogService searchLogService;
     @InjectMocks OperationalCleanupScheduler scheduler;
 
     private static AdminPaymentService.ReconcileResult result(PaymentStatus before, PaymentStatus after) {

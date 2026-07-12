@@ -1,9 +1,11 @@
 package com.sangkwon.sangkwonplatform.member.controller;
 
+import com.sangkwon.sangkwonplatform.admin.account.security.ClientIpResolver;
 import com.sangkwon.sangkwonplatform.global.common.ApiResponse;
 import com.sangkwon.sangkwonplatform.member.dto.request.SearchLogCreateRequest;
 import com.sangkwon.sangkwonplatform.member.dto.response.SearchLogResponse;
 import com.sangkwon.sangkwonplatform.member.service.SearchLogService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SearchLogController {
 
     private final SearchLogService searchLogService;
+    private final ClientIpResolver clientIpResolver;
 
     @GetMapping
     public ApiResponse<List<SearchLogResponse>> recent(@AuthenticationPrincipal Long memberId,
@@ -32,8 +35,9 @@ public class SearchLogController {
 
     @PostMapping
     public ApiResponse<Void> log(@AuthenticationPrincipal Long memberId,
-                                 @Valid @RequestBody SearchLogCreateRequest req) {
-        searchLogService.log(memberId, req);
+                                 @Valid @RequestBody SearchLogCreateRequest req,
+                                 HttpServletRequest httpRequest) {
+        searchLogService.log(memberId, req, clientIpResolver.resolve(httpRequest));
         return ApiResponse.<Void>ok(null);
     }
 

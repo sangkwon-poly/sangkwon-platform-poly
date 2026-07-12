@@ -55,6 +55,11 @@ class PaymentServiceTest {
         return ((BusinessException) t).getErrorCode();
     }
 
+    private void stubActiveMember() {
+        when(memberRepository.findById(1L))
+                .thenReturn(Optional.of(Member.create("user", "hash", "user@test.com", "회원")));
+    }
+
     @Test
     void 위젯_설정은_공개_clientKey만_돌려준다() {
         assertThat(service("ck", "sk").config().clientKey()).isEqualTo("ck");
@@ -118,6 +123,20 @@ class PaymentServiceTest {
     }
 
     @Test
+    void 비활성_회원은_주문을_생성할_수_없다() {
+        Member member = Member.create("user", "hash", "user@test.com", "회원");
+        member.changeStatus(com.sangkwon.sangkwonplatform.member.entity.MemberStatus.BANNED);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+
+        assertThatThrownBy(() -> service("ck", "sk")
+                .createOrder(1L, new PaymentOrderCreateRequest("PRO", "YEARLY")))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(t -> assertThat(codeOf(t)).isEqualTo(ErrorCode.PAYMENT_MEMBER_INACTIVE));
+        verify(paymentOrderRepository, never()).save(any());
+        verifyNoInteractions(restClient);
+    }
+
+    @Test
     void 승인_시_주문이_없으면_M013을_던진다() {
         when(paymentOrderRepository.findByOrderIdAndMemberId("no-such", 1L)).thenReturn(Optional.empty());
 
@@ -133,6 +152,24 @@ class PaymentServiceTest {
 
         assertThatThrownBy(() -> service("ck", "sk").confirm(1L, new PaymentConfirmRequest("pk", "o1", 999L)))
                 .satisfies(t -> assertThat(codeOf(t)).isEqualTo(ErrorCode.PAYMENT_AMOUNT_MISMATCH));
+        verifyNoInteractions(restClient);
+    }
+
+    @Test
+    void 주문_후_회원상태가_비활성으로_바뀌면_토스_승인을_호출하지_않는다() {
+        PaymentOrder order = PaymentOrder.create(
+                "o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
+        Member member = Member.create("user", "hash", "user@test.com", "회원");
+        member.changeStatus(com.sangkwon.sangkwonplatform.member.entity.MemberStatus.DORMANT);
+        when(paymentOrderRepository.findByOrderIdAndMemberId("o1", 1L)).thenReturn(Optional.of(order));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+
+        assertThatThrownBy(() -> service("ck", "sk")
+                .confirm(1L, new PaymentConfirmRequest("pk-1", "o1", 240_000L)))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(t -> assertThat(codeOf(t)).isEqualTo(ErrorCode.PAYMENT_MEMBER_INACTIVE));
+
+        assertThat(order.getStatus()).isEqualTo(PaymentStatus.PENDING);
         verifyNoInteractions(restClient);
     }
 
@@ -184,6 +221,7 @@ class PaymentServiceTest {
     void 타임아웃이면_FAILED로_단정하지_않고_PENDING을_유지한다() {
         PaymentOrder order = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
         when(paymentOrderRepository.findByOrderIdAndMemberId("o1", 1L)).thenReturn(Optional.of(order));
+        stubActiveMember();
         stubToss().thenThrow(new ResourceAccessException("read timed out"));
 
         assertThatThrownBy(() -> service("ck", "sk").confirm(1L, new PaymentConfirmRequest("pk-1", "o1", 240_000L)))
@@ -200,6 +238,7 @@ class PaymentServiceTest {
         PaymentOrder order = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
         when(paymentOrderRepository.findByOrderIdAndMemberId("o1", 1L)).thenReturn(Optional.of(order));
         when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(order));
+        stubActiveMember();
         stubToss().thenThrow(tossError(HttpStatus.BAD_REQUEST, "{\"code\":\"REJECT_CARD_COMPANY\"}"));
 
         assertThatThrownBy(() -> service("ck", "sk").confirm(1L, new PaymentConfirmRequest("pk-1", "o1", 240_000L)))
@@ -235,6 +274,8 @@ class PaymentServiceTest {
         when(paymentOrderRepository.findByOrderIdAndMemberId("o1", 1L)).thenReturn(Optional.of(order));
         when(paymentOrderRepository.save(order)).thenThrow(new OptimisticLockingFailureException("conflict"));
         when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(winner));
+        Member active = Member.create("user", "hash", "user@test.com", "회원");
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(active), Optional.empty());
         stubToss().thenReturn(new ObjectMapper().readTree("{\"approvedAt\":\"2026-07-11T00:00:00+09:00\"}"));
 
         PaymentConfirmResponse res = service("ck", "sk").confirm(1L, new PaymentConfirmRequest("pk-1", "o1", 240_000L));

@@ -29,4 +29,15 @@ public interface AdminUserRepository extends JpaRepository<AdminUser, Long> {
 
     // 마지막 활성 최고관리자 보호용: 활성 SUPER_ADMIN 수
     long countByRoleAndStatus(AdminRole role, AdminStatus status);
+
+    // 강등·비활성 동시 요청을 직렬화한다. 같은 활성 최고관리자 집합을 잠근 뒤 남은 수를 판단해야
+    // 두 트랜잭션이 모두 이전 count를 보고 마지막 두 명을 동시에 없애는 상황을 막을 수 있다.
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+            select a from AdminUser a
+            where a.role = :role and a.status = :status
+            order by a.adminId
+            """)
+    List<AdminUser> findByRoleAndStatusForUpdate(@Param("role") AdminRole role,
+                                                 @Param("status") AdminStatus status);
 }

@@ -23,6 +23,8 @@ public enum ErrorCode {
     ALREADY_PRO(HttpStatus.CONFLICT, "M017", "이미 Pro를 이용 중입니다."),
     // 승인 결과가 불확실(타임아웃/일시 오류)할 때. 결제됐을 수 있으므로 실패로 단정하지 않는다.
     PAYMENT_CONFIRM_PENDING(HttpStatus.GATEWAY_TIMEOUT, "M018", "결제 결과를 확인하는 중입니다. 중복 결제를 막기 위해 다시 시도하지 마시고, 잠시 후 마이페이지에서 확인해 주세요."),
+    PAYMENT_MEMBER_INACTIVE(HttpStatus.CONFLICT, "M019", "현재 계정 상태에서는 결제를 진행할 수 없습니다."),
+    SEARCH_LOG_RATE_LIMITED(HttpStatus.TOO_MANY_REQUESTS, "M020", "검색 기록 요청이 너무 많습니다. 잠시 후 다시 시도해 주세요."),
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "M400", "입력값이 올바르지 않습니다."),
     TOO_MANY_LOGIN_ATTEMPTS(HttpStatus.TOO_MANY_REQUESTS, "M429", "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.");
 

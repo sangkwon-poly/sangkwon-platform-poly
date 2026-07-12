@@ -1,5 +1,7 @@
 package com.sangkwon.sangkwonplatform.member.service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -23,9 +25,13 @@ import lombok.RequiredArgsConstructor;
 public class SearchLogService {
 
     private final SearchLogRepository searchLogRepository;
+    private final SearchLogRateLimiter searchLogRateLimiter;
 
     @Transactional
-    public void log(Long memberId, SearchLogCreateRequest req) {
+    public void log(Long memberId, SearchLogCreateRequest req, String clientIp) {
+        if (!searchLogRateLimiter.tryAcquire(memberId, clientIp)) {
+            throw new BusinessException(ErrorCode.SEARCH_LOG_RATE_LIMITED);
+        }
         searchLogRepository.save(SearchLog.create(memberId, req.keyword(), req.trdarCd()));
     }
 
@@ -57,6 +63,12 @@ public class SearchLogService {
     public void deleteAll(Long memberId) {
         requireAuth(memberId);
         searchLogRepository.deleteByMemberId(memberId);
+    }
+
+    @Transactional
+    public int purgeOlderThan(Duration retention) {
+        LocalDateTime cutoff = LocalDateTime.now().minus(retention);
+        return searchLogRepository.deleteBySearchedAtBefore(cutoff);
     }
 
     private void requireAuth(Long memberId) {

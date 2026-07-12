@@ -6,9 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,20 +17,17 @@ class AdminLoginRateLimiterTest {
     private final AdminLoginRateLimiter limiter = new AdminLoginRateLimiter(db);
 
     @Test
-    void 임계_10회_30분_윈도로_스코프_키에_차단을_위임한다() {
-        when(db.isBlocked("admin-login:1.2.3.4", 10, Duration.ofMinutes(30))).thenReturn(true);
-        assertThat(limiter.isBlocked("1.2.3.4")).isTrue();
+    void 임계_10회_30분_윈도로_스코프_키에_슬롯_선점을_위임한다() {
+        when(db.tryAcquire("admin-login:1.2.3.4", 10, Duration.ofMinutes(30))).thenReturn(false);
+
+        assertThat(limiter.tryAcquire("1.2.3.4")).isFalse();
     }
 
     @Test
-    void 실패는_스코프_키로_기록한다() {
-        limiter.recordFailure("1.2.3.4");
-        verify(db).record("admin-login:1.2.3.4");
-    }
+    void 슬롯이_남아_있으면_통과한다() {
+        when(db.tryAcquire("admin-login:1.2.3.4", 10, Duration.ofMinutes(30))).thenReturn(true);
 
-    @Test
-    void null_IP는_기록하지_않는다() {
-        limiter.recordFailure(null);
-        verify(db, never()).record(any());
+        assertThat(limiter.tryAcquire("1.2.3.4")).isTrue();
+        verify(db).tryAcquire("admin-login:1.2.3.4", 10, Duration.ofMinutes(30));
     }
 }

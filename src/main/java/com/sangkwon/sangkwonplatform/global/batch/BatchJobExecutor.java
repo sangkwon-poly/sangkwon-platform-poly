@@ -1,5 +1,6 @@
 package com.sangkwon.sangkwonplatform.global.batch;
 
+import com.sangkwon.sangkwonplatform.global.util.ExternalApiMessageSanitizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,14 +51,14 @@ public class BatchJobExecutor {
         } catch (Throwable e) {
             // RuntimeException뿐 아니라 Error 등 어떤 실패든 RUNNING으로 남지 않도록 이력을 FAILED로 남기고 되던진다.
             // 이력 저장까지 실패해도 원래 원인 예외를 가리지 않도록 감싸서 처리한다.
-            jobLog.fail(e.getMessage());
+            String message = ExternalApiMessageSanitizer.sanitize(e);
+            jobLog.fail(message);
             try {
                 batchJobLogRepository.save(jobLog);
             } catch (Exception saveEx) {
                 e.addSuppressed(saveEx);
             }
-            // 실패를 외부 채널로 알린다(웹훅 미설정이면 no-op, 전송 실패는 내부에서 삼킴)
-            batchFailureNotifier.notifyFailure(spec.jobName(), spec.datasetCd(), e.getMessage());
+            batchFailureNotifier.notifyFailure(spec.jobName(), spec.datasetCd(), message);
             throw e;
         } finally {
             if (heartbeat != null) {

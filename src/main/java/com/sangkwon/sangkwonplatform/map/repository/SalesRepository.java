@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.map.repository;
 
 import com.sangkwon.sangkwonplatform.map.entity.Sales;
 import com.sangkwon.sangkwonplatform.map.entity.SalesId;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,9 +18,19 @@ public interface SalesRepository extends JpaRepository<Sales, SalesId> {
               and (:trdarCd is null or s.trdarCd = :trdarCd)
               and (:indutyCd is null or s.indutyCd = :indutyCd)
             order by s.trdarCd, s.stdrYyquCd
-            fetch first 20000 rows only
             """)
     List<Sales> search(@Param("stdrYyquCd") String stdrYyquCd,
                        @Param("trdarCd") String trdarCd,
-                       @Param("indutyCd") String indutyCd);
+                       @Param("indutyCd") String indutyCd,
+                       Pageable pageable);
+
+    @Query("""
+            select count(s) from Sales s
+            where (:stdrYyquCd is null or s.stdrYyquCd = :stdrYyquCd)
+              and (:trdarCd is null or s.trdarCd = :trdarCd)
+              and (:indutyCd is null or s.indutyCd = :indutyCd)
+            """)
+    long countSearch(@Param("stdrYyquCd") String stdrYyquCd,
+                     @Param("trdarCd") String trdarCd,
+                     @Param("indutyCd") String indutyCd);
 }

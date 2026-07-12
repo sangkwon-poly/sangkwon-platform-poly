@@ -164,10 +164,10 @@ public class SeoulFactsLoadService {
             throw new IllegalStateException(
                     table + " 적재 미완: 기대 " + total + "행 중 " + fetched + "행만 수신(부분 스냅샷 방지, 롤백)");
         }
-        // 제약 위반 등으로 insertBatch가 조용히 건너뛴 행은 SUCCESS로 묻히지 않게 경고로 남긴다.
         long skipped = fetched - loaded;
         if (skipped > 0) {
-            log.warn("{} 부분 적재: 수신 {}행 중 {}행 스킵(제약 위반 등), 적재 {}행", table, fetched, skipped, loaded);
+            throw new IllegalStateException(
+                    table + " 적재 미완: 수신 " + fetched + "행 중 " + skipped + "행 스킵(제약 위반 등, 롤백)");
         }
 
         if (hasInduty && !induty.isEmpty()) {

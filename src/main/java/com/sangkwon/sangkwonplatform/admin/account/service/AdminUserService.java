@@ -73,8 +73,8 @@ public class AdminUserService {
     // 행 락을 쥔 채 별도 트랜잭션(REQUIRES_NEW)으로 같은 행을 갱신하다 생기던 자기 교착을 피한다.
     @Transactional(noRollbackFor = {ResponseStatusException.class, OtpRequiredException.class})
     public AdminSession login(AdminLoginRequest request, String trustToken, String clientIp) {
-        // 접속 IP 기준 레이트리밋: 계정 단위 잠금이 못 막는 password-spraying을 완화한다(임계 초과 시 429)
-        if (rateLimiter.isBlocked(clientIp)) {
+        // 자격 검증 전에 접속 IP 슬롯을 원자적으로 선점한다. 동시 요청도 임계를 넘겨 검증되지 않는다.
+        if (!rateLimiter.tryAcquire(clientIp)) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
                     "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.");
         }
@@ -85,7 +85,6 @@ public class AdminUserService {
         if (adminUser == null) {
             // 계정이 없어도 실제 계정과 비슷한 시간(더미 해시 비교)을 쓰게 해 아이디 열거를 막는다
             passwordEncoder.matches(request.password(), dummyHash());
-            rateLimiter.recordFailure(clientIp); // 없는 계정 시도(스프레잉)도 IP 카운트에 넣는다
             throw invalidCredentials();
         }
 
@@ -94,7 +93,6 @@ public class AdminUserService {
         if (!passwordEncoder.matches(request.password(), adminUser.getPasswordHash())) {
             // 실패 카운트는 이 트랜잭션에서 올리고 커밋한다(noRollbackFor로 자격 실패에도 유지)
             loginAttemptService.recordFailure(adminUser.getAdminId());
-            rateLimiter.recordFailure(clientIp);
             throw invalidCredentials();
         }
 
@@ -115,7 +113,8 @@ public class AdminUserService {
         }
 
         // 신뢰된 기기(유효한 신뢰 쿠키)면 OTP 단계를 건너뛴다
-        if (adminUser.isOtpEnabled() && !trustedDeviceService.verify(trustToken, adminUser.getAdminId())) {
+        if (adminUser.isOtpEnabled() && !trustedDeviceService.verify(
+                trustToken, adminUser.getAdminId(), adminUser.getPwVersion(), adminUser.getOtpSecret())) {
             String otp = request.otp();
             if (otp == null || otp.isBlank()) {
                 throw new OtpRequiredException();
@@ -124,7 +123,6 @@ public class AdminUserService {
             long step = Totp.matchedStep(adminUser.getOtpSecret(), otp);
             if (step == Long.MIN_VALUE || !adminUser.consumeOtpStep(step)) {
                 loginAttemptService.recordFailure(adminUser.getAdminId());
-                rateLimiter.recordFailure(clientIp);
                 throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "OTP 인증코드가 올바르지 않습니다.");
             }
         }
@@ -133,6 +131,16 @@ public class AdminUserService {
         // 성공해도 IP 실패 카운터를 리셋하지 않는다: 유효한 저권한 자격으로 로그인을 끼워넣어
         // 카운터를 지우고 스프레잉을 이어가는 우회를 막는다. 정상 실패는 슬라이딩 윈도로 자연히 만료된다.
         return AdminSession.from(adminUser);
+    }
+
+    @Transactional(readOnly = true)
+    public String issueTrustToken(Long adminId) {
+        AdminUser admin = findAdminUser(adminId);
+        if (!admin.isOtpEnabled()) {
+            return null;
+        }
+        return trustedDeviceService.issue(
+                admin.getAdminId(), admin.getPwVersion(), admin.getOtpSecret());
     }
 
     public OtpSetupResponse setupOtp(Long adminId) {
@@ -214,7 +222,8 @@ public class AdminUserService {
     // 활성 최고관리자(SUPER_ADMIN)가 항상 최소 1명 남도록 보장한다. 락아웃 방지.
     private void requireNotLastActiveSuperAdmin(AdminUser target) {
         if (target.getRole() == AdminRole.SUPER_ADMIN && target.getStatus() == AdminStatus.ACTIVE
-                && adminUserRepository.countByRoleAndStatus(AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE) <= 1) {
+                && adminUserRepository.findByRoleAndStatusForUpdate(
+                        AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE).size() <= 1) {
             throw new ResponseStatusException(HttpStatus.CONFLICT,
                     "마지막 활성 최고관리자는 강등·잠금·비활성할 수 없습니다.");
         }

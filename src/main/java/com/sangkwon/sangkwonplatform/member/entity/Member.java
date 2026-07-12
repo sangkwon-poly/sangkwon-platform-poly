@@ -124,6 +124,11 @@ public class Member extends BaseEntity {
         if (planUntil == null) {
             return;
         }
+        // 이미 끝난 주문의 환불은 현재 별도로 부여된 구독을 줄이지 않는다.
+        // 주문 부여기간이 유효한 동안에만 뒤에 이어진 기간에서 해당 주문 길이를 회수한다.
+        if (grantedUntil == null || !grantedUntil.isAfter(LocalDateTime.now())) {
+            return;
+        }
         LocalDateTime reduced = planUntil.minus(Duration.between(grantedFrom, grantedUntil));
         if (reduced.isAfter(LocalDateTime.now())) {
             this.planUntil = reduced;

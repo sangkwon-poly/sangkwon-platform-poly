@@ -228,7 +228,10 @@ public class AdminPaymentService {
         }
         return switch (tossStatus) {
             case "DONE" -> PaymentStatus.PAID;
-            case "CANCELED", "PARTIAL_CANCELED" -> PaymentStatus.CANCELED;
+            case "CANCELED" -> PaymentStatus.CANCELED;
+            // 부분 취소 금액만으로는 어느 구독 기간을 회수할지 결정할 수 없다.
+            // 전액 취소와 같게 처리해 전체 Pro 기간을 없애지 않고 관리자 확인 대상으로 남긴다.
+            case "PARTIAL_CANCELED" -> null;
             case "ABORTED", "EXPIRED" -> PaymentStatus.FAILED;
             default -> null; // READY / IN_PROGRESS / WAITING_FOR_DEPOSIT: 아직 진행 중, 변경하지 않는다
         };

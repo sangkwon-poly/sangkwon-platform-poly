@@ -61,10 +61,9 @@ public class MemberController {
     // 미인증 가용성 조회를 IP별로 제한한다(공유 DB 집계라 다중 인스턴스에서도 유효). 초과하면 429.
     private void throttleAvailability(HttpServletRequest request) {
         String key = "member-avail:" + clientIpResolver.resolve(request);
-        if (rateLimiter.isBlocked(key, AVAIL_MAX, AVAIL_WINDOW)) {
+        if (!rateLimiter.tryAcquire(key, AVAIL_MAX, AVAIL_WINDOW)) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.");
         }
-        rateLimiter.record(key);
     }
 
     @GetMapping("/me")

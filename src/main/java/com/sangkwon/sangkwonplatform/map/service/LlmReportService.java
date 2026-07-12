@@ -179,7 +179,7 @@ public class LlmReportService {
     // 이력에 남길 기준 분기도 같은 조회에서 뽑아 함께 돌려준다(같은 sales 조회를 두 번 하지 않도록).
     private PromptData buildPrompt(Trdar trdar, String indutyCd, String indutyNm) {
         String trdarCd = trdar.getTrdarCd();
-        List<Sales> sales = salesRepository.search(null, trdarCd, indutyCd);
+        List<Sales> sales = salesRepository.search(null, trdarCd, indutyCd, PageRequest.of(0, SalesService.MAX_ROWS));
         TreeMap<String, Long> byQuarter = new TreeMap<>();
         sales.forEach(s -> byQuarter.merge(s.getStdrYyquCd(), nvl(s.getThsmonSelngAmt()), Long::sum));
 

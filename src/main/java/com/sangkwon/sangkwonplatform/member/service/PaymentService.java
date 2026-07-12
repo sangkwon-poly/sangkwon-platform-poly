@@ -81,6 +81,7 @@ public class PaymentService {
         // 이미 Pro인 회원은 신규 결제를 막는다. 연장은 어드민 부여로만 처리한다.
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        requireActiveForPayment(member);
         if (member.isPro()) {
             throw new BusinessException(ErrorCode.ALREADY_PRO);
         }
@@ -113,6 +114,11 @@ public class PaymentService {
         if (req.amount() != order.getAmount()) {
             throw new BusinessException(ErrorCode.PAYMENT_AMOUNT_MISMATCH);
         }
+        // 주문 생성 뒤 정지·휴면·탈퇴로 바뀐 계정은 토스 승인 전에 다시 차단한다.
+        // 외부 결제를 먼저 승인한 뒤 구독만 건너뛰면 PAID 주문과 미구독 회원이 남는다.
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.MEMBER_NOT_FOUND));
+        requireActiveForPayment(member);
 
         JsonNode res;
         try {
@@ -213,6 +219,12 @@ public class PaymentService {
     private void requireAuth(Long memberId) {
         if (memberId == null) {
             throw new BusinessException(ErrorCode.UNAUTHENTICATED);
+        }
+    }
+
+    private void requireActiveForPayment(Member member) {
+        if (!member.isActive()) {
+            throw new BusinessException(ErrorCode.PAYMENT_MEMBER_INACTIVE);
         }
     }
 

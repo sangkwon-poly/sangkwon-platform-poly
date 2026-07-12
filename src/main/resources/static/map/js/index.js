@@ -405,7 +405,7 @@ async function selectTrdar(d) {
     const my = ++deltaSeq;
     try {
         const induty = state.appliedInduty;
-        const rows = await apiData("/api/sales?trdarCd=" + d.trdarCd + (induty ? "&indutyCd=" + induty : ""));
+        const rows = salesRows(await apiData("/api/sales?trdarCd=" + d.trdarCd + (induty ? "&indutyCd=" + induty : "")));
         if (my !== deltaSeq || state.selected !== d) {
             return;
         }
