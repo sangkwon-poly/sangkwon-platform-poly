@@ -21,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -156,6 +157,20 @@ class AdminUserServiceTest {
         assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), null, "1.1.1.1"))
                 .isInstanceOf(ResponseStatusException.class)
                 .satisfies(e -> assertThat(status(e)).isEqualTo(403));
+    }
+
+    @Test
+    void 이미_자동잠금이면_추가_실패가_잠금시각을_재스탬프하지_않는다() {
+        AdminUser admin = activeAdmin();
+        admin.lockForFailedLogin(); // 최초 자동 잠금
+        // 쿨다운(15분)이 지난 시점으로 되돌려 자동 해제 대상으로 만든다
+        ReflectionTestUtils.setField(admin, "lockedAt", LocalDateTime.now().minusMinutes(20));
+
+        admin.lockForFailedLogin(); // 잠긴 상태에서 추가 실패가 다시 호출
+
+        // 재스탬프했다면 lockedAt이 now로 갱신돼 자동 해제 대상에서 빠진다. 갱신하지 않으므로 여전히 해제 대상.
+        assertThat(admin.isAutoUnlockable(Duration.ofMinutes(15))).isTrue();
+        assertThat(admin.getStatus()).isEqualTo(AdminStatus.LOCKED);
     }
 
     @Test

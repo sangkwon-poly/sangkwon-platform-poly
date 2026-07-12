@@ -65,7 +65,8 @@ public class MemberService {
             rateLimiter.recordFailure(key);
             throw new BusinessException(ErrorCode.INVALID_CREDENTIALS);
         }
-        rateLimiter.reset(key); // 비밀번호가 맞았으므로 실패 카운터 초기화
+        // 성공해도 IP 실패 카운터를 비우지 않는다: 공격자가 자기 계정 로그인을 성공시켜 카운터를 지우고
+        // 무제한 스프레잉하는 우회를 막는다(관리자 로그인과 동일). 실패는 슬라이딩 윈도로 자연 만료된다.
 
         requireActive(m);
         m.recordLogin(); // 마지막 로그인 시간 기록.

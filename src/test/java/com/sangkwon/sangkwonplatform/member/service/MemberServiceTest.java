@@ -100,6 +100,19 @@ class MemberServiceTest {
     }
 
     @Test
+    @DisplayName("로그인: 성공해도 IP 실패 카운터를 비우지 않는다(성공으로 스프레잉 우회 차단)")
+    void login_successDoesNotResetRateLimit() {
+        Member m = activeMember();
+        var req = new MemberLoginRequest("minhyuk", "password1", false);
+        when(memberRepository.findByLoginId("minhyuk")).thenReturn(Optional.of(m));
+        when(passwordEncoder.matches("password1", "hashed-pw")).thenReturn(true);
+
+        memberService.login(req, "1.1.1.1");
+
+        verify(rateLimiter, never()).reset(anyString());
+    }
+
+    @Test
     @DisplayName("로그인: 없는 아이디 → M004 (아이디/비번 구분 없이)")
     void login_noSuchId() {
         var req = new MemberLoginRequest("nope", "password1", false);
