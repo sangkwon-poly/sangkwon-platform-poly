@@ -121,7 +121,7 @@
 .insight-row p {
     margin: 0;
     font-size: 15px;
-    color: #9a8c84;
+    color: var(--faint);
     line-height: 1.55;
 }
 
@@ -160,7 +160,7 @@
 .patent-list p {
     margin: 0;
     font-size: 12px;
-    color: #9a8c84;
+    color: var(--faint);
     line-height: 1.45;
 }
 
@@ -218,7 +218,7 @@
 .franchise-list p {
     margin: 0;
     font-size: 12px;
-    color: #9a8c84;
+    color: var(--faint);
     line-height: 1.45;
 }
 
@@ -243,13 +243,13 @@
 
 .franchise-list .franchise-empty {
     justify-content: center;
-    color: #9a8c84;
+    color: var(--faint);
     font-size: 13px;
 }
 
 .patent-list .patent-empty {
     justify-content: center;
-    color: #9a8c84;
+    color: var(--faint);
     font-size: 13px;
 }
 

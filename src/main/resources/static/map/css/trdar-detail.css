@@ -57,7 +57,7 @@
 .kpi-num { font-size: 24px; font-weight: 800; color: var(--ink); letter-spacing: -.02em; }
 .kpi-unit { font-size: 11px; color: #a99c94; }
 .kpi-delta { margin-left: auto; font-size: 12px; font-weight: 700; }
-.kpi-delta.up { color: #4e7a3e; }
+.kpi-delta.up { color: var(--ok); }
 .kpi-delta.down { color: #b0503a; }
 
 /* 차트 그리드 */

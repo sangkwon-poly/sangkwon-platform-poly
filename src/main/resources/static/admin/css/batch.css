@@ -3,7 +3,7 @@
 
 /* 요약 지표 */
 .batch-stats { margin-bottom: 16px; }
-.bt-ok { color: #4e7a3e; }
+.bt-ok { color: var(--ok); }
 .bt-warn { color: var(--warn); }
 .bt-danger { color: var(--brand); }
 
