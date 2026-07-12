@@ -15,6 +15,9 @@ public interface ApiUsageLogRepository extends JpaRepository<ApiUsageLog, Long> 
 
     List<ApiUsageLog> findByUsageDateOrderByApiName(LocalDate usageDate);
 
+    // 일자별 추이용: 기준일 이후 집계 행(정렬해 서비스에서 날짜별 합산)
+    List<ApiUsageLog> findByUsageDateGreaterThanEqualOrderByUsageDateAsc(LocalDate since);
+
     // 사용량 이력 보존 정리: 오래된 일자별 집계 행 삭제(무한 증식 방지)
     @Transactional
     @Modifying

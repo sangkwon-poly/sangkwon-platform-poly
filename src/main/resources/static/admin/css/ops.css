@@ -58,15 +58,47 @@
 .audit-act.act-sec    { color: var(--brand); background: var(--brand-tint); }
 .audit-act.act-danger { color: var(--danger); background: var(--danger-bg); }
 
-/* API 사용량 카드 */
+/* API 사용량 화면: 오늘 요약 타일 */
+.usage-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.usage-sub { margin-top: 4px; font-size: 11.5px; font-weight: 700; color: var(--faint); }
+.usage-sub.usage-ok     { color: var(--ok); }
+.usage-sub.usage-warn   { color: var(--warn); }
+.usage-sub.usage-danger { color: var(--danger); }
+.stat-card-value.usage-ok     { color: var(--ok); }
+.stat-card-value.usage-warn   { color: var(--warn); }
+.stat-card-value.usage-danger { color: var(--danger); }
+
+/* 일자별 호출 추이 막대 차트 */
+.usage-trend { margin-bottom: 18px; }
+.ut-wrap { position: relative; }
+.ut-max { position: absolute; top: -4px; right: 0; font-size: 11.5px; color: var(--faint); }
+.ut-max b { color: var(--ink); font-weight: 800; }
+/* viewBox 비율대로 폭을 꽉 채우고 높이는 자동(고정 높이면 넓은 카드에서 letterbox로 가운데 몰림) */
+.ut-svg { width: 100%; height: auto; display: block; margin-top: 8px; }
+.ut-base { stroke: var(--line-soft); stroke-width: 1; }
+.utb { fill: var(--brand); }
+.utb:hover { fill: #8a4331; }
+.utb-zero { fill: var(--line-soft); }
+.ut-val { fill: var(--ink); font-size: 11px; font-weight: 800; }
+.ut-x { fill: var(--faint); font-size: 10px; }
+.ut-hint { margin-top: 8px; font-size: 12px; color: var(--faint); text-align: center; }
+
+.usage-section-head { margin-top: 4px; margin-bottom: 12px; }
+
+/* API별 카드: 3열 균형 그리드(6장 = 2행). flex로 흘리면 5+1로 붕 떠서 그리드로 채운다 */
 .usage-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
 .usage-card {
-  flex: 0 1 264px;
+  display: flex;
+  flex-direction: column;
   background: var(--bg);
   border: 1px solid var(--card-line);
   border-radius: var(--radius);
@@ -100,7 +132,19 @@
 .usage-pct.usage-ok     { color: var(--ok); }
 .usage-pct.usage-warn   { color: var(--warn); }
 .usage-pct.usage-danger { color: var(--danger); }
-.usage-note { margin-top: 8px; font-size: 11.5px; color: var(--faint); }
+/* 안내줄은 카드 하단에 붙여(margin-top:auto) 그리드 카드 높이를 고르게 한다 */
+.usage-note { margin-top: auto; padding-top: 10px; font-size: 11.5px; color: var(--faint); }
+
+/* 좁은 폭: 카드 그리드·요약 타일 단계적으로 접힘 */
+@media (max-width: 1100px) {
+  .usage-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  .usage-summary { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .usage-grid { grid-template-columns: 1fr; }
+}
 
 /* 계정 화면에서 넘어온 드릴다운 필터 컨텍스트 배너 */
 .ag-context {
