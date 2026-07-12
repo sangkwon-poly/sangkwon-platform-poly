@@ -438,7 +438,7 @@ function drawRanking() {
         li.innerHTML =
             '<span class="rank-num' + (i === 0 ? " is-top" : "") + '">' + (i + 1) + "</span>" +
             '<div class="rank-main"><span class="rank-name' + (i === 0 ? " is-lead" : "") + '">' + g.gu + "</span>" +
-            '<span class="minibar"><span style="width:' + width + '%;background:#a8412c"></span></span></div>' +
+            '<span class="minibar"><span style="width:' + width + '%;background:var(--brand)"></span></span></div>' +
             '<div class="rank-val">' + (g.salesAmt != null
                 ? "<b>" + fmtEok(g.salesAmt) + "</b><span>억/분기</span>" : "<b>-</b>") + "</div>";
         // 마우스뿐 아니라 키보드(Tab+Enter/Space)로도 선택할 수 있게 버튼 역할을 준다

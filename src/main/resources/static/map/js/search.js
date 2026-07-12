@@ -9,6 +9,9 @@ const MAX_ROWS = 300;
 
 const view = { all: [], keyword: "", sort: 0 };
 
+// innerHTML에 서버 문자열을 넣기 전 이스케이프(관리자 화면과 동일 규율). 방어적 심층 방어.
+function esc(s) { const d = document.createElement("div"); d.textContent = (s == null) ? "" : String(s); return d.innerHTML; }
+
 function currentRows() {
     const checkedGus = [...document.querySelectorAll("#filter-gu .check.is-on")]
         .map((li) => li.dataset.gu);
@@ -36,7 +39,7 @@ function buildRow(d, rank, maxAmt) {
     tr.style.cursor = "pointer";
     tr.innerHTML =
         '<td class="rt-rank"><span class="rank-num' + (rank === 1 ? " is-top" : "") + '">' + rank + "</span></td>" +
-        '<td class="rt-name"><span class="rt-place">' + d.trdarNm + '</span><span class="rt-desc">' + (d.signguNm || "") + "</span></td>" +
+        '<td class="rt-name"><span class="rt-place">' + esc(d.trdarNm) + '</span><span class="rt-desc">' + esc(d.signguNm || "") + "</span></td>" +
         '<td class="rt-num">' + amtHtml + '<span class="minibar"><span style="width:' + width + '%;background:#c0664e"></span></span></td>' +
         '<td class="rt-num rt-plain">' + (d.flpop != null ? fmtMan(d.flpop) + " 만" : "-") + "</td>" +
         '<td class="rt-num rt-plain">' + (d.storeCnt || 0).toLocaleString() + "</td>" +
