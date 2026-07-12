@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.map.service;
 
 import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
 import com.sangkwon.sangkwonplatform.admin.ops.service.ApiUsageService;
+import com.sangkwon.sangkwonplatform.map.entity.LlmReport;
 import com.sangkwon.sangkwonplatform.map.entity.Trdar;
 import com.sangkwon.sangkwonplatform.map.repository.LlmReportRepository;
 import com.sangkwon.sangkwonplatform.map.repository.SalesRepository;
@@ -16,12 +17,14 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -104,17 +107,48 @@ class LlmReportServiceTest {
     }
 
     @Test
-    void Pro_회원은_한도를_넘겨도_막지_않고_유료_경로로_넘어간다() {
+    void Pro_회원은_월_한도를_넘겨도_막지_않고_유료_경로로_넘어간다() {
         when(trdarRepository.findById("3110001")).thenReturn(Optional.of(mock(Trdar.class)));
         when(memberRepository.findById(1L)).thenReturn(Optional.of(proMember()));
-        // Pro면 무료 한도 카운트를 세지 않고 통과해 reserve까지 도달한다(여기선 reserve를 막아 429로 확인)
+        // 이번 달 5건(무료 한도 3 초과)이지만 시간당 상한 20 미만. Pro라 월 한도는 적용되지 않아 reserve까지 도달한다.
+        when(llmReportRepository.countByMemberIdAndCreatedAtGreaterThanEqual(eq(1L), any())).thenReturn(5L);
         doThrow(new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "한도 초과"))
                 .when(apiUsageService).reserve(ExternalApi.GEMINI);
+
+        // 402(월 한도)가 아니라 429(reserve까지 도달)여야 월 한도 우회가 확인된다
+        assertThatThrownBy(() -> service("test-key").generate(1L, "3110001", null))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(status(e)).isEqualTo(429));
+    }
+
+    @Test
+    void 회원별_시간당_상한을_넘기면_429를_던지고_슬롯을_쓰지_않는다() {
+        when(trdarRepository.findById("3110001")).thenReturn(Optional.of(mock(Trdar.class)));
+        // 최근 1시간 20건(상한)이면 무료·Pro 구분 없이 막는다. 회원 조회·월 한도 이전에 차단.
+        when(llmReportRepository.countByMemberIdAndCreatedAtGreaterThanEqual(eq(1L), any())).thenReturn(20L);
 
         assertThatThrownBy(() -> service("test-key").generate(1L, "3110001", null))
                 .isInstanceOf(ResponseStatusException.class)
                 .satisfies(e -> assertThat(status(e)).isEqualTo(429));
-        verify(llmReportRepository, never()).countByMemberIdAndCreatedAtGreaterThanEqual(any(), any());
+        verify(apiUsageService, never()).reserve(any());
+        verifyNoInteractions(restClient);
+    }
+
+    @Test
+    void 오늘_생성된_리포트가_있으면_재사용하고_Gemini를_호출하지_않는다() {
+        when(trdarRepository.findById("3110001")).thenReturn(Optional.of(mock(Trdar.class)));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(freeMember()));
+        LlmReport recent = mock(LlmReport.class);
+        when(recent.getCreatedAt()).thenReturn(LocalDateTime.now()); // 오늘 생성 = 신선
+        when(llmReportRepository.findLatest(eq("3110001"), isNull(), any())).thenReturn(List.of(recent));
+        when(llmReportRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        service("test-key").generate(1L, "3110001", null);
+
+        // 캐시 재사용이면 전역 예산 예약도 Gemini 호출도 없이 이 회원 이력만 저장된다
+        verify(apiUsageService, never()).reserve(any());
+        verifyNoInteractions(restClient);
+        verify(llmReportRepository).save(any());
     }
 
     @Test
