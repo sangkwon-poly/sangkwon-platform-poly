@@ -65,6 +65,7 @@ public class FranchiseLoadService {
         String base = "https://apis.data.go.kr/1130000/FftcBrandRlsInfo2_Service/getBrandinfo";
         int total = findTotalCount(getJson(base + "?serviceKey=" + enc(datagokrKey)
                 + "&pageNo=1&numOfRows=1&resultType=json&jngBizCrtraYr=2023"));
+        long fetched = 0;
         for (int page = 1; (long) (page - 1) * PER < total && page <= MAX_PAGE; page++) {
             JsonNode items = findItemsArray(getJson(base + "?serviceKey=" + enc(datagokrKey)
                     + "&pageNo=" + page + "&numOfRows=" + PER + "&resultType=json&jngBizCrtraYr=2023"));
@@ -72,6 +73,7 @@ public class FranchiseLoadService {
                 break;
             }
             for (JsonNode it : items) {
+                fetched++;
                 String mno = text(it, "brandMnno");
                 if (mno == null || !seen.add(mno)) {
                     continue;
@@ -81,6 +83,12 @@ public class FranchiseLoadService {
                         clip(text(it, "indutyLclasNm"), 200), clip(text(it, "indutyMlsfcNm"), 200),
                         toDate(text(it, "jngBizStrtDate"))});
             }
+        }
+        // 완결성 검사: 예고된 total보다 적게 받았으면 페이지 중간 빈/오류 응답(HTTP 200)으로 끊긴 부분 스냅샷이다.
+        // 예외로 load()의 @Transactional을 롤백시켜 DELETE까지 취소, 기존 적재분을 보존한다(화면 통삭제 방지).
+        if (fetched < total) {
+            throw new IllegalStateException(
+                    "FRANCHISE_BRAND 적재 미완: 기대 " + total + "행 중 " + fetched + "행만 수신(부분 스냅샷 방지, 롤백)");
         }
         // 원천 장애(HTTP 200 빈/오류 응답 등)로 수집이 비면 기존 적재분을 지우지 않는다(화면이 통째로 비는 것 방지)
         if (rows.isEmpty()) {
@@ -99,6 +107,7 @@ public class FranchiseLoadService {
         for (int yr = 2019; yr <= 2023; yr++) {
             int total = findTotalCount(getJson(base + "?serviceKey=" + enc(datagokrKey)
                     + "&pageNo=1&numOfRows=1&resultType=json&jngBizCrtraYr=" + yr));
+            long fetched = 0;
             for (int page = 1; (long) (page - 1) * PER < total && page <= MAX_PAGE; page++) {
                 JsonNode items = findItemsArray(getJson(base + "?serviceKey=" + enc(datagokrKey)
                         + "&pageNo=" + page + "&numOfRows=" + PER + "&resultType=json&jngBizCrtraYr=" + yr));
@@ -106,12 +115,18 @@ public class FranchiseLoadService {
                     break;
                 }
                 for (JsonNode it : items) {
+                    fetched++;
                     String area = orDefault(text(it, "areaNm"), "전국");
                     String induty = firstNonNull(text(it, "indutyMlsfcNm"), text(it, "indutyLclasNm"), "기타");
                     int baseYear = parseInt(text(it, "jngBizCrtraYr"), yr);
                     rows.add(new Object[]{baseYear, clip(area, 20), clip(area, 200), clip(induty, 200),
                             numOr0(text(it, "frcsCnt")), numOrNull(text(it, "frcsRate"))});
                 }
+            }
+            // 연도별 완결성 검사: 그 해 예고 total보다 적게 받았으면 부분 스냅샷 → load()의 @Transactional 롤백
+            if (fetched < total) {
+                throw new IllegalStateException(
+                        "FRANCHISE_COUNT 적재 미완(" + yr + "년): 기대 " + total + "행 중 " + fetched + "행만 수신(부분 스냅샷 방지, 롤백)");
             }
         }
         // 원천 장애(HTTP 200 빈/오류 응답 등)로 수집이 비면 기존 적재분을 지우지 않는다(화면이 통째로 비는 것 방지)

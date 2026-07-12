@@ -94,12 +94,14 @@ public class FranchiseBrandStatLoadService {
         // (서울 업종코드 -> 후보 브랜드 행). 같은 브랜드가 중복 응답돼도 첫 행만 쓴다.
         Map<String, List<Object[]>> byInduty = new LinkedHashMap<>();
         Set<String> seen = new HashSet<>();
+        long fetched = 0;
         for (int page = 1; (long) (page - 1) * PER < total && page <= MAX_PAGE; page++) {
             JsonNode items = findItemsArray(getJson(pageUrl(year, page, PER)));
             if (items == null || items.isEmpty()) {
                 break;
             }
             for (JsonNode it : items) {
+                fetched++;
                 String ftcInduty = trimToNull(text(it, "indutyMlsfcNm"));
                 String indutyCd = ftcInduty == null ? null : FTC_TO_SEOUL.get(ftcInduty);
                 String brandNm = text(it, "brandNm");
@@ -118,6 +120,13 @@ public class FranchiseBrandStatLoadService {
                         longOrNull(text(it, "ctrtEndCnt")), longOrNull(text(it, "ctrtCncltnCnt")),
                         longOrNull(text(it, "nmChgCnt"))});
             }
+        }
+
+        // 완결성 검사: 예고 total보다 적게 받았으면 페이지 중간 오류로 끊긴 부분 스냅샷 → load()의 @Transactional 롤백.
+        // 미매핑·상위5 필터로 rows가 작아지는 것과 구분해, 원천 수신량(fetched)으로 판단한다.
+        if (fetched < total) {
+            throw new IllegalStateException(
+                    "FRANCHISE_BRAND_STAT 적재 미완: 기대 " + total + "행 중 " + fetched + "행만 수신(부분 스냅샷 방지, 롤백)");
         }
 
         // 업종별 가맹점수 내림차순 상위 5개만 남긴다

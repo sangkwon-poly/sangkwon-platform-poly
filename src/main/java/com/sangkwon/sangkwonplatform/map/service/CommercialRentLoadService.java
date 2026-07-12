@@ -112,9 +112,14 @@ public class CommercialRentLoadService {
 
     private List<JsonNode> fetchData(String statblId) {
         List<JsonNode> all = new ArrayList<>();
+        int total = -1;
         for (int page = 1; page <= MAX_PAGE; page++) {
-            List<JsonNode> chunk = extractRows(api("SttsApiTblData.do",
-                    "STATBL_ID=" + enc(statblId) + "&DTACYCLE_CD=QY&pIndex=" + page + "&pSize=1000"));
+            JsonNode root = api("SttsApiTblData.do",
+                    "STATBL_ID=" + enc(statblId) + "&DTACYCLE_CD=QY&pIndex=" + page + "&pSize=1000");
+            if (total < 0) {
+                total = roneTotalCount(root);
+            }
+            List<JsonNode> chunk = extractRows(root);
             if (chunk.isEmpty()) {
                 break;
             }
@@ -123,7 +128,39 @@ public class CommercialRentLoadService {
                 break;
             }
         }
+        // 완결성 검사: R-ONE가 알려준 총건수(list_total_count)보다 적게 받았으면 페이지 중간 빈/오류 응답으로
+        // 끊긴 부분 시계열이다. 커밋하면 최신 분기가 화면에서 사라지므로 예외로 load()의 @Transactional을 롤백한다.
+        // (list_total_count가 없으면 검사를 생략해 오탐을 만들지 않는다.)
+        if (total > 0 && all.size() < total) {
+            throw new IllegalStateException("COMMERCIAL_RENT 적재 미완(" + statblId + "): 기대 "
+                    + total + "행 중 " + all.size() + "행만 수신(부분 스냅샷 방지, 롤백)");
+        }
         return all;
+    }
+
+    // R-ONE 응답 어딘가의 list_total_count(전체 건수)를 찾는다. 없으면 -1(완결성 검사 생략).
+    private int roneTotalCount(JsonNode node) {
+        if (node == null) {
+            return -1;
+        }
+        if (node.isObject()) {
+            JsonNode tc = node.get("list_total_count");
+            if (tc != null) {
+                String digits = tc.asText().replaceAll("\\D", "");
+                if (!digits.isEmpty()) {
+                    return Integer.parseInt(digits);
+                }
+            }
+        }
+        if (node.isArray() || node.isObject()) {
+            for (JsonNode child : node) {
+                int r = roneTotalCount(child);
+                if (r >= 0) {
+                    return r;
+                }
+            }
+        }
+        return -1;
     }
 
     // STATBL_NM으로 지표/유형 판별
