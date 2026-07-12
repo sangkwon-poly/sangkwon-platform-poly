@@ -41,10 +41,16 @@ class AdminAuthInterceptorTest {
 
     private MockHttpServletRequest requestWith(AdminSession session) {
         MockHttpServletRequest req = new MockHttpServletRequest();
+        // 인증·세션 동기화를 보는 테스트의 기본 경로는 모든 관리자 허용(VIEWER) 경로로 둔다. 인가 테스트는 URI를 따로 지정한다.
+        req.setRequestURI("/api/admin/auth/me");
         if (session != null) {
             req.getSession(true).setAttribute(SessionConst.LOGIN_ADMIN, session);
         }
         return req;
+    }
+
+    private static int status(Throwable e) {
+        return ((ResponseStatusException) e).getStatusCode().value();
     }
 
     @Test
@@ -78,6 +84,43 @@ class AdminAuthInterceptorTest {
 
         AdminSession after = (AdminSession) req.getSession(false).getAttribute(SessionConst.LOGIN_ADMIN);
         assertThat(after.role()).isEqualTo(AdminRole.VIEWER);
+    }
+
+    @Test
+    void 권한이_부족한_경로면_403() {
+        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(() -> adminUserRepository);
+        when(adminUserRepository.findById(1L))
+                .thenReturn(Optional.of(admin(1L, AdminRole.VIEWER, AdminStatus.ACTIVE)));
+        MockHttpServletRequest req = requestWith(new AdminSession(1L, "admin", "관리자", AdminRole.VIEWER, 0));
+        req.setRequestURI("/api/admin/payments/o1/cancel"); // SUPER_ADMIN 전용
+
+        assertThatThrownBy(() -> interceptor.preHandle(req, response, new Object()))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(status(e)).isEqualTo(403));
+    }
+
+    @Test
+    void 운영자는_운영자_경로에_통과한다() {
+        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(() -> adminUserRepository);
+        when(adminUserRepository.findById(1L))
+                .thenReturn(Optional.of(admin(1L, AdminRole.OPERATOR, AdminStatus.ACTIVE)));
+        MockHttpServletRequest req = requestWith(new AdminSession(1L, "admin", "관리자", AdminRole.OPERATOR, 0));
+        req.setRequestURI("/api/admin/inquiries");
+
+        assertThat(interceptor.preHandle(req, response, new Object())).isTrue();
+    }
+
+    @Test
+    void 매핑되지_않은_admin_경로는_기본_SUPER_ADMIN이라_운영자도_403() {
+        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(() -> adminUserRepository);
+        when(adminUserRepository.findById(1L))
+                .thenReturn(Optional.of(admin(1L, AdminRole.OPERATOR, AdminStatus.ACTIVE)));
+        MockHttpServletRequest req = requestWith(new AdminSession(1L, "admin", "관리자", AdminRole.OPERATOR, 0));
+        req.setRequestURI("/api/admin/something-new"); // 매핑 밖 -> fail closed
+
+        assertThatThrownBy(() -> interceptor.preHandle(req, response, new Object()))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(status(e)).isEqualTo(403));
     }
 
     @Test
