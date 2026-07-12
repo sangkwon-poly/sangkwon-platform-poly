@@ -3,6 +3,7 @@ package com.sangkwon.sangkwonplatform.member.service;
 import com.sangkwon.sangkwonplatform.member.dto.response.PaymentConfirmResponse;
 import com.sangkwon.sangkwonplatform.member.entity.BillingCycle;
 import com.sangkwon.sangkwonplatform.member.entity.Member;
+import com.sangkwon.sangkwonplatform.member.entity.MemberStatus;
 import com.sangkwon.sangkwonplatform.member.entity.PaymentOrder;
 import com.sangkwon.sangkwonplatform.member.entity.PaymentStatus;
 import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
@@ -62,9 +63,32 @@ public class PaymentActivationService {
             log.warn("결제가 확정됐으나 회원({})을 찾을 수 없어 구독 활성화를 건너뜀", memberId);
             return;
         }
+        // 탈퇴·정지·휴면 회원은 구독을 부활시키지 않는다(탈퇴 계정을 대사하면 익명화된 계정에 Pro가 되살아나
+        // '구독중' 지표를 부풀린다). 결제 자체는 이뤄졌으니 주문 PAID는 유지하고 활성화만 건너뛴다.
+        if (member.getStatus() != MemberStatus.ACTIVE) {
+            log.warn("결제가 확정됐으나 회원({})이 비활성({}) 상태라 구독 활성화를 건너뜀", memberId, member.getStatus());
+            return;
+        }
         LocalDateTime base = member.isPro() ? member.getPlanUntil() : LocalDateTime.now();
         LocalDateTime until = cycle == BillingCycle.YEARLY ? base.plusYears(1) : base.plusMonths(1);
         member.activatePro(until);
         memberRepository.save(member);
+    }
+
+    // 환불/취소 확정: 주문 CANCELED 저장과 (활성화된 적 있으면) 구독 회수를 한 트랜잭션으로 묶는다.
+    // 둘이 따로 커밋되면 회수가 실패한 뒤 재시도가 CANCELED 멱등 분기에 걸려 Pro가 잔존하는 구멍이 생긴다.
+    // wasActivated: 이 주문이 PAID였는지(=구독 기간을 부여한 적 있는지). 호출부가 판단해 넘긴다.
+    @Transactional
+    public void finalizeCanceled(PaymentOrder order, boolean wasActivated) {
+        if (order.getStatus() != PaymentStatus.CANCELED) {
+            order.canceled();
+            paymentOrderRepository.save(order);
+        }
+        if (wasActivated && order.getMemberId() != null) {
+            memberRepository.findById(order.getMemberId()).ifPresent(member -> {
+                member.reduceSubscription(order.getBillingCycle());
+                memberRepository.save(member);
+            });
+        }
     }
 }
