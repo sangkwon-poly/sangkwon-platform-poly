@@ -8,6 +8,7 @@ import com.sangkwon.sangkwonplatform.admin.ops.dto.AuditLogResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.AuditPageResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.BatchLogResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.OverviewResponse;
+import com.sangkwon.sangkwonplatform.admin.ops.dto.PopularSearchResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.entity.AdminAuditLog;
 import com.sangkwon.sangkwonplatform.admin.ops.repository.AdminAuditLogRepository;
 import com.sangkwon.sangkwonplatform.admin.ops.repository.ApiUsageLogRepository;
@@ -16,9 +17,11 @@ import com.sangkwon.sangkwonplatform.map.repository.LlmReportRepository;
 import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
 import com.sangkwon.sangkwonplatform.member.entity.PaymentStatus;
 import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
+import com.sangkwon.sangkwonplatform.member.repository.SearchLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +45,7 @@ public class OpsService {
     private final MemberRepository memberRepository;
     private final LlmReportRepository llmReportRepository;
     private final PaymentOrderRepository paymentOrderRepository;
+    private final SearchLogRepository searchLogRepository;
 
     // 회원·리포트 누적 수와 오늘 증가분, 이번 달 매출과 유효 구독자. 개요 상단 지표 카드용
     public OverviewResponse overview() {
@@ -59,6 +63,13 @@ public class OpsService {
     public List<BatchLogResponse> recentBatches(int limit) {
         return batchJobLogRepository.findByOrderByStartedAtDesc(Limit.of(limit))
                 .stream().map(BatchLogResponse::from).toList();
+    }
+
+    // 기간(일) 내 인기 검색어. 회원이 남긴 검색 기록을 지역·업종 수요 신호로 활용한다.
+    public List<PopularSearchResponse> popularSearches(int days, int limit) {
+        LocalDateTime since = LocalDateTime.now().minusDays(days);
+        return searchLogRepository.findPopularKeywordsSince(since, PageRequest.of(0, limit))
+                .stream().map(PopularSearchResponse::from).toList();
     }
 
     // 집계 행이 아직 없어도 계측 중인 API는 0건으로 함께 보여준다. 오늘 안 썼다는 사실도 운영 정보다.

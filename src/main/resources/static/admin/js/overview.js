@@ -212,4 +212,22 @@
                 + "</li>";
         }).join("");
     });
+
+    // 7) 인기 검색어 (SUPER_ADMIN 전용): 회원 검색 기록을 지역·업종 수요 신호로 보여준다
+    api("/api/admin/ops/popular-searches?days=7&limit=8").then(function (r) {
+        var el = document.getElementById("ov-popular-search");
+        if (!el) { return; }
+        if (r.status === 403) { el.innerHTML = '<li class="ov-note">SUPER_ADMIN만 볼 수 있습니다.</li>'; return; }
+        var rows = data(r) || [];
+        if (!rows.length) { el.innerHTML = '<li class="ov-note">최근 검색 기록이 없습니다.</li>'; return; }
+        var max = rows[0].count || 1;
+        el.innerHTML = rows.map(function (s, i) {
+            var pct = Math.max(Math.round(s.count / max * 100), 4);
+            return '<li class="bar-row">'
+                + '<span class="bar-label">' + (i + 1) + ". " + esc(s.keyword) + "</span>"
+                + '<span class="bar-track"><span class="bar-fill bar-ok" style="width:' + pct + '%"></span></span>'
+                + '<span class="bar-val mono">' + num(s.count) + "</span>"
+                + "</li>";
+        }).join("");
+    });
 })();
