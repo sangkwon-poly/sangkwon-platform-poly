@@ -348,6 +348,27 @@ class AdminPaymentServiceTest {
     }
 
     @Test
+    @DisplayName("대사: PENDING인데 토스가 CANCELED면 CANCELED로만 정정하고 구독은 회수하지 않는다")
+    void reconcile_pendingCanceledDoesNotRevoke() {
+        PaymentOrder order = pendingOrder(); // 한 번도 활성화(PAID)된 적 없는 주문
+        AdminPaymentService svc = serviceWithToss();
+        when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(order));
+        tossServer.expect(requestTo(QUERY_URL))
+                .andRespond(withSuccess("{\"status\":\"CANCELED\"}", MediaType.APPLICATION_JSON));
+
+        AdminPaymentService.ReconcileResult res = svc.reconcile("o1");
+
+        assertThat(res.before()).isEqualTo(PaymentStatus.PENDING);
+        assertThat(res.after()).isEqualTo(PaymentStatus.CANCELED);
+        assertThat(order.getStatus()).isEqualTo(PaymentStatus.CANCELED);
+        // 부여한 적 없는 주문이므로 구독 회수(member 저장)가 일어나지 않는다.
+        // toResponse가 표시용으로 findById를 호출하므로 findById가 아니라 save로 회수 여부를 검증한다.
+        verify(memberRepository, never()).save(any());
+        verify(paymentOrderRepository).save(order);
+        tossServer.verify();
+    }
+
+    @Test
     @DisplayName("대사: PAID인데 토스가 만료라 해도 강등하지 않는다")
     void reconcile_paidNotDowngraded() {
         PaymentOrder order = paidOrder();
