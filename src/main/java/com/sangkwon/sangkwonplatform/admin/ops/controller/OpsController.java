@@ -8,6 +8,7 @@ import com.sangkwon.sangkwonplatform.admin.ops.dto.AuditPageResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.BatchCatalogResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.BatchLogResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.dto.OverviewResponse;
+import com.sangkwon.sangkwonplatform.admin.ops.dto.PopularSearchResponse;
 import com.sangkwon.sangkwonplatform.admin.ops.service.BatchAdminService;
 import com.sangkwon.sangkwonplatform.admin.ops.service.OpsService;
 import com.sangkwon.sangkwonplatform.global.common.ApiResponse;
@@ -39,6 +40,16 @@ public class OpsController {
     public ApiResponse<OverviewResponse> overview(@LoginAdmin AdminSession admin) {
         requireSuperAdmin(admin);
         return ApiResponse.ok(opsService.overview());
+    }
+
+    // 인기 검색어(기본 최근 7일, 10개). 회원 검색 기록을 수요 신호로 보여준다.
+    @GetMapping("/popular-searches")
+    public ApiResponse<List<PopularSearchResponse>> popularSearches(
+            @LoginAdmin AdminSession admin,
+            @RequestParam(defaultValue = "7") int days,
+            @RequestParam(defaultValue = "10") int limit) {
+        requireSuperAdmin(admin);
+        return ApiResponse.ok(opsService.popularSearches(days, limit));
     }
 
     @GetMapping("/batch")

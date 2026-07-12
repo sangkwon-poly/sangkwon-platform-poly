@@ -10,6 +10,7 @@ import com.sangkwon.sangkwonplatform.map.repository.LlmReportRepository;
 import com.sangkwon.sangkwonplatform.member.entity.PaymentStatus;
 import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
 import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
+import com.sangkwon.sangkwonplatform.member.repository.SearchLogRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,7 +37,22 @@ class OpsServiceTest {
     @Mock MemberRepository memberRepository;
     @Mock LlmReportRepository llmReportRepository;
     @Mock PaymentOrderRepository paymentOrderRepository;
+    @Mock SearchLogRepository searchLogRepository;
     @InjectMocks OpsService opsService;
+
+    @Test
+    void 인기_검색어를_기간_컷오프로_집계한다() {
+        SearchLogRepository.PopularKeyword k = mock(SearchLogRepository.PopularKeyword.class);
+        when(k.getKeyword()).thenReturn("강남역");
+        when(k.getCnt()).thenReturn(12L);
+        when(searchLogRepository.findPopularKeywordsSince(any(), any())).thenReturn(List.of(k));
+
+        var res = opsService.popularSearches(7, 10);
+
+        assertThat(res).hasSize(1);
+        assertThat(res.get(0).keyword()).isEqualTo("강남역");
+        assertThat(res.get(0).count()).isEqualTo(12L);
+    }
 
     private ApiUsageLog usage(String apiName, long callCnt, long dailyLimit) {
         ApiUsageLog log = mock(ApiUsageLog.class);
