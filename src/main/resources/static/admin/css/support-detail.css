@@ -1,5 +1,10 @@
 /* 지원사업 상세/편집 (관리자). 공통 chrome은 shell.css / common.css. */
 
+.sd-wrap {
+  width: min(100%, 900px);
+  margin-inline: auto;
+}
+
 .sd-back { display: inline-block; margin-bottom: 14px; font-size: 13px; font-weight: 600; color: var(--muted); }
 .sd-back::before { content: "\2190"; margin-right: 6px; }
 .sd-back:hover { color: var(--brand); }
@@ -12,7 +17,7 @@
 .sd-flash[hidden] { display: none; }
 
 .sd-card {
-  max-width: 900px; background: #fff;
+  width: 100%; background: #fff;
   border: 1px solid var(--card-line); border-radius: 14px; padding: 28px 30px;
 }
 .sd-loading, .sd-missing { text-align: center; padding: 48px 0; color: var(--muted); }
@@ -47,7 +52,7 @@
 .sd-btn-primary:hover { filter: brightness(1.05); color: #fff; }
 
 /* 정보 그리드 */
-.sd-info { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 22px; }
+.sd-info { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 22px; }
 .sd-info-cell { background: var(--surface); border: 1px solid var(--line-soft); border-radius: 10px; padding: 13px 15px; }
 .sd-info-label { display: block; font-size: 11.5px; color: var(--faint); }
 .sd-info-value { display: block; margin-top: 5px; font-size: 13.5px; font-weight: 600; color: var(--text); }
@@ -57,7 +62,7 @@
 .sd-section-title { font-size: 14px; font-weight: 800; color: var(--ink); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 .sd-note { font-size: 11px; font-weight: 600; color: var(--faint); }
 .sd-text { font-size: 13.5px; line-height: 1.7; color: var(--text); white-space: pre-wrap; background: var(--surface); border: 1px solid var(--line-soft); border-radius: 10px; padding: 14px 16px; }
-.sd-ks-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.sd-ks-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .sd-ks-cell { background: var(--surface); border: 1px solid var(--line-soft); border-radius: 10px; padding: 13px 15px; }
 .sd-ks-label { display: block; font-size: 11.5px; color: var(--faint); }
 .sd-ks-value { display: block; margin-top: 5px; font-size: 13.5px; color: var(--text); line-height: 1.55; }
@@ -78,7 +83,7 @@ textarea.sd-input { resize: vertical; line-height: 1.6; }
 .sd-form-actions { display: flex; gap: 10px; margin-top: 6px; }
 
 @media (max-width: 720px) {
-  .sd-info { grid-template-columns: repeat(2, 1fr); }
+  .sd-info { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sd-ks-grid { grid-template-columns: 1fr; }
   .sd-field-row { grid-template-columns: 1fr; }
   .sd-card { padding: 22px 18px; }
