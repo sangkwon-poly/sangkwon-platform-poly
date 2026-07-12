@@ -186,7 +186,7 @@ async function load() {
         apiData("/api/districts/" + trdarCd),
         apiData("/api/sales?trdarCd=" + trdarCd),
     ]);
-    const mySales = indutyCd ? sales.filter((s) => s.indutyCd === indutyCd) : sales;
+    const mySales = indutyCd ? salesRows(sales).filter((s) => s.indutyCd === indutyCd) : salesRows(sales);
     report.name = d.trdarNm;
     report.totals = quarterlyTotals(mySales);
     const quarter = mySales.length ? latestQuarter(mySales) : "";

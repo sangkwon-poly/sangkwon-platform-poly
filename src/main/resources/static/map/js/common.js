@@ -8,6 +8,14 @@ async function apiData(path, signal) {
     return (await res.json()).data;
 }
 
+// /api/sales는 { items, returned, limit, truncated } 형태다. 기존 배열 호출부 호환용.
+function salesRows(data) {
+    if (Array.isArray(data)) {
+        return data;
+    }
+    return data && Array.isArray(data.items) ? data.items : [];
+}
+
 // 성장 방향 변화지표 코드. LL 다이나믹, LH 상권확장 (라벨은 서버 changeIxNm 사용)
 const CHANGE_UP = new Set(["LL", "LH"]);
 

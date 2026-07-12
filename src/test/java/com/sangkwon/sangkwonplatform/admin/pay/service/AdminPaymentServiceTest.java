@@ -351,6 +351,26 @@ class AdminPaymentServiceTest {
     }
 
     @Test
+    @DisplayName("대사: 토스가 부분 취소면 전액 환불로 오인하지 않고 PAID와 구독을 유지한다")
+    void reconcile_partialCanceledNeedsManualReview() {
+        PaymentOrder order = paidOrder();
+        Member member = proMember();
+        AdminPaymentService svc = serviceWithToss();
+        when(paymentOrderRepository.findById("o1")).thenReturn(Optional.of(order));
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        tossServer.expect(requestTo(QUERY_URL))
+                .andRespond(withSuccess("{\"status\":\"PARTIAL_CANCELED\"}", MediaType.APPLICATION_JSON));
+
+        AdminPaymentService.ReconcileResult res = svc.reconcile("o1");
+
+        assertThat(res.after()).isEqualTo(PaymentStatus.PAID);
+        assertThat(member.isPro()).isTrue();
+        verify(paymentOrderRepository, never()).save(any());
+        verify(memberRepository, never()).save(any());
+        tossServer.verify();
+    }
+
+    @Test
     @DisplayName("대사: 환불 회수 저장 충돌 후 재대사하면 CANCELED로 수렴한다")
     void reconcile_recoversCancelAfterOptimisticLockFailure() {
         PaymentOrder failedOrder = paidOrder();

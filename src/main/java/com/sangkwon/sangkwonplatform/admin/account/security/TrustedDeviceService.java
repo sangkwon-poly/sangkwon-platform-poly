@@ -55,16 +55,19 @@ public class TrustedDeviceService {
         return days;
     }
 
-    /** adminId 전용 신뢰 토큰 발급. */
-    public String issue(Long adminId) {
+    /** 관리자, 비밀번호 버전, 현재 OTP 비밀키에 묶인 신뢰 토큰 발급. */
+    public String issue(Long adminId, int pwVersion, String otpSecret) {
+        if (adminId == null || otpSecret == null || otpSecret.isBlank()) {
+            throw new IllegalArgumentException("OTP가 활성화된 관리자만 신뢰 토큰을 발급할 수 있습니다.");
+        }
         long exp = System.currentTimeMillis() + days * 86_400_000L;
-        String payload = adminId + ":" + exp;
+        String payload = adminId + ":" + pwVersion + ":" + otpBinding(otpSecret) + ":" + exp;
         return B64.encodeToString(payload.getBytes(StandardCharsets.UTF_8)) + "." + sign(payload);
     }
 
-    /** 토큰이 해당 adminId에 대해 유효하고 만료되지 않았는지 검증. */
-    public boolean verify(String token, Long adminId) {
-        if (token == null || adminId == null) {
+    /** 토큰이 현재 관리자 인증 상태에 대해 유효하고 만료되지 않았는지 검증. */
+    public boolean verify(String token, Long adminId, int pwVersion, String otpSecret) {
+        if (token == null || adminId == null || otpSecret == null || otpSecret.isBlank()) {
             return false;
         }
         int dot = token.indexOf('.');
@@ -81,14 +84,21 @@ public class TrustedDeviceService {
             return false;
         }
         String[] parts = payload.split(":");
-        if (parts.length != 2 || !adminId.toString().equals(parts[0])) {
+        if (parts.length != 4
+                || !adminId.toString().equals(parts[0])
+                || !Integer.toString(pwVersion).equals(parts[1])
+                || !constantTimeEquals(parts[2], otpBinding(otpSecret))) {
             return false;
         }
         try {
-            return Long.parseLong(parts[1]) > System.currentTimeMillis();
+            return Long.parseLong(parts[3]) > System.currentTimeMillis();
         } catch (NumberFormatException e) {
             return false;
         }
+    }
+
+    private String otpBinding(String otpSecret) {
+        return sign("otp:" + otpSecret);
     }
 
     private String sign(String payload) {

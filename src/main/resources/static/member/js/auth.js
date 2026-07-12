@@ -24,6 +24,7 @@
     var ID_RE = /^[a-zA-Z0-9]{4,50}$/;
     var EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     var NICK_RE = /^[가-힣a-zA-Z0-9_-]{2,20}$/;
+    function utf8Length(value) { return new TextEncoder().encode(value).length; }
 
     // 각 입력에 대응 에러 span을 aria-describedby로 연결해, 스크린리더가 인라인 오류(로그인 실패 안내 포함)를 읽게 한다.
     ['login-id', 'login-pw', 'signup-id', 'signup-email', 'signup-nick', 'signup-pw', 'signup-pw2'].forEach(function (fid) {
@@ -215,7 +216,7 @@
       var v = sPw.value;
       if (!v) { clearError('signup-pw'); set('pw', false); }
       else if (v.length < 8) { setError('signup-pw', '비밀번호는 8자 이상이어야 합니다.'); set('pw', false); }
-      else if (v.length > 72) { setError('signup-pw', '비밀번호는 72자 이하여야 합니다.'); set('pw', false); }
+      else if (utf8Length(v) > 72) { setError('signup-pw', '비밀번호는 UTF-8 기준 72바이트 이하여야 합니다.'); set('pw', false); }
       else { clearError('signup-pw'); set('pw', true); }
       renderStrength(v);
       checkPw2();
@@ -317,7 +318,7 @@
       if (!EMAIL_RE.test(email)) { setError('signup-email', '올바른 이메일 형식이 아닙니다.'); ok = false; }
       if (!NICK_RE.test(nickname)) { setError('signup-nick', '닉네임은 한글·영문·숫자 2~20자입니다.'); ok = false; }
       if (password.length < 8) { setError('signup-pw', '비밀번호는 8자 이상이어야 합니다.'); ok = false; }
-      else if (password.length > 72) { setError('signup-pw', '비밀번호는 72자 이하여야 합니다.'); ok = false; }
+      else if (utf8Length(password) > 72) { setError('signup-pw', '비밀번호는 UTF-8 기준 72바이트 이하여야 합니다.'); ok = false; }
       if (password2 !== password) { setError('signup-pw2', '비밀번호가 일치하지 않습니다.'); ok = false; }
       if (!ok) return;
 

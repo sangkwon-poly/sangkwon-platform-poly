@@ -47,10 +47,13 @@ public class AdminAuthController {
         httpRequest.changeSessionId();
         httpRequest.getSession().setAttribute(SessionConst.LOGIN_ADMIN, adminSession);
 
-        // "이 기기 신뢰"를 선택하면 다음 로그인부터 OTP를 건너뛸 신뢰 쿠키를 내려준다
-        if (request.trustDevice()) {
-            ResponseCookie cookie = ResponseCookie.from(
-                            TrustedDeviceService.COOKIE_NAME, trustedDeviceService.issue(adminSession.adminId()))
+        // OTP가 활성화된 계정에서 인증을 마친 경우에만 현재 OTP 상태에 묶인 신뢰 쿠키를 발급한다.
+        // OTP가 꺼져 있거나 사용자가 체크를 해제하면 예전에 남은 쿠키도 즉시 지운다.
+        String newTrustToken = request.trustDevice()
+                ? adminUserService.issueTrustToken(adminSession.adminId())
+                : null;
+        if (newTrustToken != null) {
+            ResponseCookie cookie = ResponseCookie.from(TrustedDeviceService.COOKIE_NAME, newTrustToken)
                     .httpOnly(true)
                     .secure(httpRequest.isSecure())
                     .sameSite("Lax")
@@ -58,6 +61,15 @@ public class AdminAuthController {
                     .maxAge(Duration.ofDays(trustedDeviceService.days()))
                     .build();
             httpResponse.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        } else {
+            ResponseCookie clearCookie = ResponseCookie.from(TrustedDeviceService.COOKIE_NAME, "")
+                    .httpOnly(true)
+                    .secure(httpRequest.isSecure())
+                    .sameSite("Lax")
+                    .path("/")
+                    .maxAge(Duration.ZERO)
+                    .build();
+            httpResponse.addHeader(HttpHeaders.SET_COOKIE, clearCookie.toString());
         }
 
         auditService.record(adminSession.adminId(), AuditAction.LOGIN, null, null, null, httpRequest);

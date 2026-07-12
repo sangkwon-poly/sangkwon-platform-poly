@@ -6,6 +6,7 @@ import com.sangkwon.sangkwonplatform.global.security.DbRateLimiter;
 import com.sangkwon.sangkwonplatform.map.service.AiReportQuota;
 import com.sangkwon.sangkwonplatform.member.entity.PaymentStatus;
 import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
+import com.sangkwon.sangkwonplatform.member.service.SearchLogService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
@@ -33,11 +34,15 @@ public class OperationalCleanupScheduler {
     // 사용량 일자별 집계는 작지만 무한 증식하므로 이 일수만 보존한다.
     private static final int USAGE_RETENTION_DAYS = 365;
 
+    // 검색 로그는 운영 인사이트용이지만 무한 증식하면 테이블만 커진다.
+    private static final int SEARCH_LOG_RETENTION_DAYS = 90;
+
     private final PaymentOrderRepository paymentOrderRepository;
     private final AdminPaymentService adminPaymentService;
     private final ApiUsageLogRepository apiUsageLogRepository;
     private final DbRateLimiter dbRateLimiter;
     private final AiReportQuota aiReportQuota;
+    private final SearchLogService searchLogService;
 
     // 매시 정각. 방치된(24시간 초과 PENDING) 결제를 토스와 재확인해 정리한다.
     // 예전에는 조회 없이 일괄 FAILED로 내렸는데, 응답이 유실된 '실제로 결제된' 주문까지 조용히 FAILED가 돼
@@ -105,6 +110,14 @@ public class OperationalCleanupScheduler {
             }
         } catch (Exception e) {
             log.warn("AI 리포트 한도 카운터 정리 실패(다음 주기에 재시도): {}", e.getMessage());
+        }
+        try {
+            int deleted = searchLogService.purgeOlderThan(Duration.ofDays(SEARCH_LOG_RETENTION_DAYS));
+            if (deleted > 0) {
+                log.info("오래된 검색 로그 {}건 정리(보존 {}일)", deleted, SEARCH_LOG_RETENTION_DAYS);
+            }
+        } catch (Exception e) {
+            log.warn("검색 로그 정리 실패(다음 주기에 재시도): {}", e.getMessage());
         }
     }
 

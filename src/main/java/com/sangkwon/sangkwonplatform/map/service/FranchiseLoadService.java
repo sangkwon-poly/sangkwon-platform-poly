@@ -3,6 +3,7 @@ package com.sangkwon.sangkwonplatform.map.service;
 import com.sangkwon.sangkwonplatform.admin.ops.ExternalApi;
 import com.sangkwon.sangkwonplatform.admin.ops.service.ApiUsageService;
 import com.sangkwon.sangkwonplatform.global.config.LoaderHttp;
+import com.sangkwon.sangkwonplatform.global.util.ExternalApiMessageSanitizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -148,7 +149,12 @@ public class FranchiseLoadService {
         for (int yr = DISCLOSURE_START_YEAR; yr <= DISCLOSURE_END_YEAR; yr++) {
             String xml = getText("https://franchise.ftc.go.kr/api/search.do?type=list&yr=" + yr
                     + "&serviceKey=" + enc(ftcKey));
-            for (Element item : elements(xml, "item", yr)) {
+            List<Element> yearItems = elements(xml, "item", yr);
+            if (yearItems.isEmpty()) {
+                throw new IllegalStateException(
+                        "FRANCHISE_DISCLOSURE 적재 미완(" + yr + "년): item 0건(부분 스냅샷 방지, 롤백)");
+            }
+            for (Element item : yearItems) {
                 String sn = childText(item, "jngIfrmpSn");
                 if (sn == null || !seen.add(sn)) {
                     continue;
@@ -189,7 +195,9 @@ public class FranchiseLoadService {
                 sleep(2000);
             }
         }
-        throw (last != null) ? last : new IllegalStateException("응답 없음: " + url);
+        throw (last != null)
+                ? new IllegalStateException(ExternalApiMessageSanitizer.sanitize(last))
+                : new IllegalStateException("응답 없음");
     }
 
     // ── data.go.kr 응답 형태 탐색(중첩 구조에서 items 배열/totalCount 찾기) ──
@@ -244,7 +252,10 @@ public class FranchiseLoadService {
         }
         try {
             var factory = DocumentBuilderFactory.newInstance();
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
             factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
             var doc = factory.newDocumentBuilder()
                     .parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
             NodeList nl = doc.getElementsByTagName(tag);

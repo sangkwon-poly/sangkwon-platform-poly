@@ -121,7 +121,7 @@
         </label>
         <label class="ua-field">
           <span>초기 비밀번호</span>
-          <input type="password" name="password" required placeholder="8자 이상 권장">
+          <input type="password" name="password" minlength="10" required placeholder="10자 이상, 72바이트 이하">
         </label>
         <p class="ua-form-msg" id="ua-form-msg" hidden></p>
         <div class="ua-form-actions">
@@ -141,7 +141,7 @@
       <form id="ua-reset-form" class="ua-form" autocomplete="off">
         <label class="ua-field">
           <span>새 비밀번호</span>
-          <input type="password" name="newPassword" minlength="4" required placeholder="4자 이상">
+          <input type="password" name="newPassword" minlength="10" required placeholder="10자 이상, 72바이트 이하">
         </label>
         <p class="ua-form-msg" id="ua-reset-msg" hidden></p>
         <div class="ua-form-actions">

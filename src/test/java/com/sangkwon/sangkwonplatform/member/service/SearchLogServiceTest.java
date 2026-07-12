@@ -24,6 +24,7 @@ import static org.mockito.Mockito.*;
 class SearchLogServiceTest {
 
     @Mock SearchLogRepository searchLogRepository;
+    @Mock SearchLogRateLimiter searchLogRateLimiter;
     @InjectMocks SearchLogService searchLogService;
 
     private ErrorCode errorCodeOf(Throwable t) {
@@ -79,7 +80,9 @@ class SearchLogServiceTest {
     @Test
     @DisplayName("검색 기록: 로그인 회원 → 저장")
     void log_member() {
-        searchLogService.log(1L, new SearchLogCreateRequest("커피", "TR001"));
+        when(searchLogRateLimiter.tryAcquire(1L, "127.0.0.1")).thenReturn(true);
+
+        searchLogService.log(1L, new SearchLogCreateRequest("커피", "TR001"), "127.0.0.1");
 
         verify(searchLogRepository).save(any(SearchLog.class));
     }
@@ -87,9 +90,20 @@ class SearchLogServiceTest {
     @Test
     @DisplayName("검색 기록: 비로그인(null memberId)도 허용 → 저장 (익명 검색 기록)")
     void log_anonymousAllowed() {
-        searchLogService.log(null, new SearchLogCreateRequest("커피", null));
+        when(searchLogRateLimiter.tryAcquire(null, "127.0.0.1")).thenReturn(true);
+
+        searchLogService.log(null, new SearchLogCreateRequest("커피", null), "127.0.0.1");
 
         verify(searchLogRepository).save(any(SearchLog.class));
+    }
+
+    @Test
+    @DisplayName("검색 기록: 레이트리밋 초과 → M020")
+    void log_rateLimited() {
+        when(searchLogRateLimiter.tryAcquire(null, "127.0.0.1")).thenReturn(false);
+
+        assertThatThrownBy(() -> searchLogService.log(null, new SearchLogCreateRequest("커피", null), "127.0.0.1"))
+                .satisfies(t -> assertThat(errorCodeOf(t)).isEqualTo(ErrorCode.SEARCH_LOG_RATE_LIMITED));
     }
 
     @Test

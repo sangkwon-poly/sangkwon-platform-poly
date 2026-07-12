@@ -38,6 +38,8 @@ public class PageRoutesConfig implements WebMvcConfigurer {
         forward(registry, "/pricing/", "/pricing/pricing.html");
         forward(registry, "/pricing/success", "/pricing/success.html");
         forward(registry, "/pricing/fail", "/pricing/fail.html");
+        forward(registry, "/industry", "/industry/industry.html");
+        forward(registry, "/industry/", "/industry/industry.html");
 
         // 푸터 정적 안내 문서
         forward(registry, "/about", "/about.html");

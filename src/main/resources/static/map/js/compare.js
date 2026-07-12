@@ -146,7 +146,7 @@ async function addDistrict(trdarCd) {
     cmp.query = "";
     render();
     try {
-        const s = digestSales(await apiData("/api/sales?trdarCd=" + trdarCd));
+        const s = digestSales(salesRows(await apiData("/api/sales?trdarCd=" + trdarCd)));
         // 로딩 중 칩이 제거됐으면 버린다
         if (!cmp.ids.includes(trdarCd)) {
             return;
@@ -279,7 +279,7 @@ async function load() {
         launched.map((d) => apiData("/api/sales?trdarCd=" + d.trdarCd)));
     results.forEach((r, i) => {
         if (r.status === "fulfilled" && cmp.ids.includes(launched[i].trdarCd)) {
-            cmp.sales.set(launched[i].trdarCd, digestSales(r.value));
+            cmp.sales.set(launched[i].trdarCd, digestSales(salesRows(r.value)));
         }
     });
     render();

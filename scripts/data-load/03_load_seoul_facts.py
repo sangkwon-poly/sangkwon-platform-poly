@@ -139,5 +139,14 @@ log("=== 최종 건수 ===")
 for _, tbl, _, _ in DATASETS + [(None, "INDUTY", None, None), (None, "DIM_QUARTER", None, None), (None, "TRDAR", None, None)]:
     cur.execute(f"SELECT COUNT(*) FROM {tbl}")
     log(f"  {tbl}: {cur.fetchone()[0]}")
+
+# 적재에 쓴 FK/CHECK를 다시 켠다. 끈 채로 두면 이후 고아 데이터가 DB에서 막히지 않는다.
+for t, c in fks:
+    try:
+        cur.execute(f'ALTER TABLE "{t}" ENABLE CONSTRAINT "{c}"')
+    except oracledb.DatabaseError:
+        pass
+log(f"FK {len(fks)}개 재활성화")
+con.commit()
 con.close()
 log("전체 적재 완료")

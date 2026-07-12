@@ -54,6 +54,16 @@ class FranchiseLoadServiceTest {
         }
     }
 
+    private void stubDisclosureItems() {
+        for (int yr = 2019; yr <= 2023; yr++) {
+            server.expect(requestTo("https://franchise.ftc.go.kr/api/search.do?type=list&yr=" + yr
+                            + "&serviceKey=test-key"))
+                    .andRespond(withSuccess("""
+                            <response><item><jngIfrmpSn>%d-1</jngIfrmpSn></item></response>
+                            """.formatted(yr), MediaType.TEXT_XML));
+        }
+    }
+
     // 브랜드 건수 확인 1회 + 가맹점수 5개년 5회(JSON) + 정보공개서 5개년 5회(XML) = HTTP 11회
     private void stubEmptyResponses() {
         stubEmptyBrandAndCountResponses();
@@ -64,35 +74,41 @@ class FranchiseLoadServiceTest {
         }
     }
 
+    private void stubResponsesWithDisclosureOnly() {
+        stubEmptyBrandAndCountResponses();
+        stubDisclosureItems();
+    }
+
     @Test
     void 공정위_API_호출마다_사용량을_집계한다() {
-        stubEmptyResponses();
+        stubResponsesWithDisclosureOnly();
 
         long loaded = service.load();
 
-        assertThat(loaded).isZero();
+        assertThat(loaded).isEqualTo(5);
         verify(apiUsageService, times(11)).record(ExternalApi.FTC_FRANCHISE);
         server.verify();
     }
 
     @Test
     void 사용량_집계가_실패해도_적재는_계속된다() {
-        stubEmptyResponses();
+        stubResponsesWithDisclosureOnly();
         doThrow(new RuntimeException("집계 DB 오류")).when(apiUsageService).record(ExternalApi.FTC_FRANCHISE);
 
         long loaded = service.load();
 
-        assertThat(loaded).isZero();
+        assertThat(loaded).isEqualTo(5);
         server.verify();
     }
 
     @Test
     void 원천이_비면_기존_적재분을_지우지_않는다() {
-        stubEmptyResponses(); // 세 원천 모두 HTTP 200 빈 응답(소프트 실패)
+        stubEmptyResponses();
 
-        service.load();
+        assertThatThrownBy(() -> service.load())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("FRANCHISE_DISCLOSURE 적재 미완(2019년)");
 
-        // 빈 스냅샷으로 통삭제되지 않도록 세 테이블 어디에도 DELETE/INSERT가 나가면 안 된다
         verify(jt, never()).update(anyString());
         verify(jt, never()).batchUpdate(anyString(), anyList());
     }
@@ -138,6 +154,24 @@ class FranchiseLoadServiceTest {
         verify(jt, never()).update("DELETE FROM FRANCHISE_DISCLOSURE");
         verify(jt, never()).batchUpdate(
                 org.mockito.ArgumentMatchers.contains("INSERT INTO FRANCHISE_DISCLOSURE"), anyList());
+        server.verify();
+    }
+
+    @Test
+    void 정보공개서_한_연도가_정상_XML인데_item이_없으면_기존_스냅샷을_보존한다() {
+        stubEmptyBrandAndCountResponses();
+        server.expect(requestTo("https://franchise.ftc.go.kr/api/search.do?type=list&yr=2019&serviceKey=test-key"))
+                .andRespond(withSuccess("""
+                        <response><item><jngIfrmpSn>2019-1</jngIfrmpSn></item></response>
+                        """, MediaType.TEXT_XML));
+        server.expect(requestTo("https://franchise.ftc.go.kr/api/search.do?type=list&yr=2020&serviceKey=test-key"))
+                .andRespond(withSuccess("<response></response>", MediaType.TEXT_XML));
+
+        assertThatThrownBy(() -> service.load())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("FRANCHISE_DISCLOSURE 적재 미완(2020년)")
+                .hasMessageContaining("item 0건");
+        verify(jt, never()).update("DELETE FROM FRANCHISE_DISCLOSURE");
         server.verify();
     }
 }

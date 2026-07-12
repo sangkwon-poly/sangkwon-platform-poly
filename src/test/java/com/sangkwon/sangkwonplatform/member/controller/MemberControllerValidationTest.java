@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -42,6 +43,18 @@ class MemberControllerValidationTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("M400"));
+    }
+
+    @Test
+    void BCrypt_한도를_넘는_UTF8_비밀번호는_인코딩_전에_거절한다() throws Exception {
+        String body = """
+                {"loginId":"tester01","email":"tester@example.com","nickname":"tester","password":"%s"}
+                """.formatted("가".repeat(25));
+
+        mvc.perform(post("/api/members").contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("M400"));
+        verifyNoInteractions(memberService);
     }
 
     @Test

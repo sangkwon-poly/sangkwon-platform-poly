@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 
-// 관리자 로그인 실패를 접속 IP별로 제한한다. 공유 DB(DbRateLimiter)로 집계해 다중 인스턴스에서도 임계가 유지된다.
+// 관리자 로그인 요청을 접속 IP별로 제한한다. 공유 DB(DbRateLimiter)에서 슬롯을 선점해 동시 요청도 임계를 지킨다.
 // 계정 단위 잠금(5회)이 못 막는 password-spraying(여러 계정을 IP 하나로 돌아가며 시도)을 완화한다.
 @Component
 public class AdminLoginRateLimiter {
@@ -22,20 +22,8 @@ public class AdminLoginRateLimiter {
         this.db = db;
     }
 
-    public boolean isBlocked(String ip) {
-        return db.isBlocked(key(ip), MAX_FAILURES, WINDOW);
-    }
-
-    public void recordFailure(String ip) {
-        if (ip != null) {
-            db.record(key(ip));
-        }
-    }
-
-    public void reset(String ip) {
-        if (ip != null) {
-            db.reset(key(ip));
-        }
+    public boolean tryAcquire(String ip) {
+        return db.tryAcquire(key(ip), MAX_FAILURES, WINDOW);
     }
 
     private static String key(String ip) {

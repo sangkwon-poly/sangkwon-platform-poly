@@ -184,4 +184,24 @@ class PaymentActivationServiceTest {
         assertThat(member.isPro()).isTrue();
         assertThat(orderB.hasSubscriptionGrant()).isTrue();
     }
+
+    @Test
+    void 이미_끝난_주문을_늦게_환불해도_현재_관리자_부여분은_줄지_않는다() {
+        PaymentOrder expiredOrder = PaymentOrder.create(
+                "expired", 1L, "PRO", BillingCycle.MONTHLY, 24_000L, "여기콕 Pro 월간");
+        LocalDateTime grantedFrom = LocalDateTime.now().minusMonths(2);
+        expiredOrder.paid("pk-expired", grantedFrom);
+        expiredOrder.recordSubscriptionGrant(grantedFrom, grantedFrom.plusMonths(1));
+
+        Member member = Member.create("user", "hash", "user@test.com", "회원");
+        LocalDateTime adminUntil = LocalDateTime.now().plusMonths(6);
+        member.activatePro(adminUntil);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+
+        service.finalizeCanceled(expiredOrder);
+
+        assertThat(expiredOrder.getStatus()).isEqualTo(PaymentStatus.CANCELED);
+        assertThat(member.getPlanUntil()).isEqualTo(adminUntil);
+        verify(memberRepository).save(member);
+    }
 }

@@ -9,6 +9,7 @@ import com.sangkwon.sangkwonplatform.member.entity.MemberStatus;
 import com.sangkwon.sangkwonplatform.member.exception.BusinessException;
 import com.sangkwon.sangkwonplatform.member.exception.ErrorCode;
 import com.sangkwon.sangkwonplatform.member.repository.MemberRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +34,11 @@ class MemberServiceTest {
     @Mock MemberLoginRateLimiter rateLimiter;
 
     @InjectMocks MemberService memberService;
+
+    @BeforeEach
+    void allowLoginRateLimit() {
+        lenient().when(rateLimiter.tryAcquire(anyString())).thenReturn(true);
+    }
 
     // 기본 상태(ACTIVE) 회원. 비밀번호 해시는 "hashed-pw"로 고정.
     private Member activeMember() {
@@ -109,7 +115,7 @@ class MemberServiceTest {
 
         memberService.login(req, "1.1.1.1");
 
-        verify(rateLimiter, never()).reset(anyString());
+        verify(rateLimiter).tryAcquire("1.1.1.1");
     }
 
     @Test

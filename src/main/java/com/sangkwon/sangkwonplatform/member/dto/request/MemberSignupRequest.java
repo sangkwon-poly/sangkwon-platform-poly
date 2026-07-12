@@ -1,5 +1,6 @@
 package com.sangkwon.sangkwonplatform.member.dto.request;
 
+import com.sangkwon.sangkwonplatform.global.validation.BcryptPassword;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -20,7 +21,7 @@ public record MemberSignupRequest(
         String nickname,
 
         @NotBlank
-        @Size(min = 8, max = 72) // BCrypt는 72바이트까지만 처리하므로 상한을 맞춘다
+        @BcryptPassword(min = 8, message = "비밀번호는 8자 이상, UTF-8 기준 72바이트 이하여야 합니다.")
         String password
 ) {
 }
