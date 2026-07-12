@@ -543,6 +543,7 @@ CREATE TABLE MEMBER (
                         LAST_LOGIN_AT   TIMESTAMP(6),
                         WITHDRAWN_AT    TIMESTAMP(6),
                         PLAN_UNTIL      TIMESTAMP(6),
+                        VERSION         NUMBER(19,0)  DEFAULT 0 NOT NULL,
                         CREATED_AT      TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
                         UPDATED_AT      TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
                         CONSTRAINT PK_MEMBER PRIMARY KEY (MEMBER_ID),
