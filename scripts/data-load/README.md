@@ -31,7 +31,7 @@ grant connect, resource to SANG;
 grant unlimited tablespace to SANG;             -- 대용량 적재라 필수
 ```
 
-그리고 `src/main/resources/db/schema.sql`을 SANG 계정으로 실행해 25개 테이블을 만든다 (SQL Developer로 열어 실행하거나 `sqlplus SANG/1234@localhost:1521/XEPDB1 @schema.sql`).
+그리고 `src/main/resources/db/schema.sql`을 SANG 계정으로 실행해 32개 테이블(도메인 30 + 세션 2)을 만든다 (SQL Developer로 열어 실행하거나 `sqlplus SANG/1234@localhost:1521/XEPDB1 @schema.sql`).
 
 ### 3. API 키를 환경변수로 (application-local.properties의 값 사용)
 
