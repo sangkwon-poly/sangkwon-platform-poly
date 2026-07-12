@@ -79,6 +79,23 @@
     }
   }
 
+  // Tab을 모달 안에 가둔다. 현재 스텝의 '보이는' 포커스 요소만 순환 대상으로 삼는다
+  // (스텝 전환으로 숨은 요소, 토스 결제 위젯 iframe 내부는 offsetParent 기준으로 제외).
+  function trapTab(e) {
+    if (e.key !== "Tab" || backdrop.hidden) { return; }
+    var modal = backdrop.querySelector(".pm-modal");
+    if (!modal) { return; }
+    var all = modal.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), '
+      + 'textarea:not([disabled]), [tabindex]:not([tabindex="-1"])');
+    var f = Array.prototype.filter.call(all, function (el) { return el.offsetParent !== null; });
+    if (!f.length) { return; }
+    var first = f[0];
+    var last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
   function openModal() {
     lastFocus = document.activeElement;
     errorEl.hidden = true;
@@ -87,6 +104,7 @@
     backdrop.hidden = false;
     document.body.style.overflow = "hidden"; // 뒤 배경 스크롤 잠금
     $("pm-close").focus();
+    document.addEventListener("keydown", trapTab, true);
   }
 
   function closeModal() {
@@ -94,6 +112,7 @@
     document.body.style.overflow = "";
     paying = false;
     renderModalCycle(); // 버튼 라벨 복원
+    document.removeEventListener("keydown", trapTab, true);
     if (lastFocus && lastFocus.focus) { lastFocus.focus(); }
   }
 
