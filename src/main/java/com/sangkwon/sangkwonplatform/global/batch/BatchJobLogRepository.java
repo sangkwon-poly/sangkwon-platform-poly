@@ -24,8 +24,9 @@ public interface BatchJobLogRepository extends JpaRepository<BatchJobLog, Long> 
     // 중복 트리거 방지: 같은 데이터셋이 진행 중인지
     boolean existsByDatasetCdAndStatus(String datasetCd, BatchStatus status);
 
-    // 기동 시 좀비 정리: 남아 있는 RUNNING 전부
-    List<BatchJobLog> findByStatus(BatchStatus status);
+    // 기동 시 좀비 정리(다중 인스턴스 안전): 시작 시각이 임계보다 오래돼 정체된 RUNNING만.
+    // 다른 인스턴스가 방금 시작한 배치(최근 startedAt)는 건드리지 않아 롤링 배포에서 live 배치를 오탐하지 않는다.
+    List<BatchJobLog> findByStatusAndStartedAtBefore(BatchStatus status, LocalDateTime cutoff);
 
     // 관리자 초기화: 특정 데이터셋의 RUNNING만
     List<BatchJobLog> findByDatasetCdAndStatus(String datasetCd, BatchStatus status);
