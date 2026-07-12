@@ -177,30 +177,65 @@
             + "</tr>";
     }
 
-    // 환불 실행: 사유를 받아 토스 취소를 호출하고, 성공하면 목록과 지표를 다시 불러온다.
-    function refund(orderId, btn) {
-        var reason = window.prompt("환불 사유를 입력하세요. (회원 Pro 구독도 회수됩니다)");
-        if (reason == null) { return; }
-        reason = reason.trim();
-        if (!reason) { window.alert("환불 사유를 입력해야 합니다."); return; }
-        btn.disabled = true;
-        api("/api/admin/payments/" + encodeURIComponent(orderId) + "/cancel", {
+    // 결과·오류 토스트 (native alert 대체). 잠시 뒤 자동으로 사라진다.
+    var flashEl = document.getElementById("pa-flash");
+    var flashTimer = null;
+    function flash(msg, isError) {
+        if (!flashEl) { return; }
+        flashEl.textContent = msg;
+        flashEl.className = "pa-flash" + (isError ? " is-error" : "");
+        flashEl.hidden = false;
+        if (flashTimer) { clearTimeout(flashTimer); }
+        flashTimer = setTimeout(function () { flashEl.hidden = true; }, 4000);
+    }
+
+    // 환불: 사유 입력 모달을 연다(native prompt 대체). 실제 취소는 모달의 '환불 실행'(doRefund)이 처리한다.
+    var refundModal = document.getElementById("pa-refund-modal");
+    var refundReason = document.getElementById("pa-refund-reason");
+    var refundConfirm = document.getElementById("pa-refund-confirm");
+    var pendingRefundId = null;
+
+    function refund(orderId) {
+        pendingRefundId = orderId;
+        refundReason.value = "";
+        // 초기 포커스는 admin-shell의 공통 포커스 트랩이 첫 요소(사유 입력)로 옮기고,
+        // 닫을 때 이 환불 버튼으로 복원한다. 여기서 직접 포커스하면 복원 대상이 어긋난다.
+        refundModal.hidden = false;
+    }
+    function closeRefund() { refundModal.hidden = true; pendingRefundId = null; }
+    function doRefund() {
+        if (pendingRefundId == null) { return; }
+        var reason = refundReason.value.trim();
+        if (!reason) { flash("환불 사유를 입력해야 합니다.", true); refundReason.focus(); return; }
+        refundConfirm.disabled = true;
+        api("/api/admin/payments/" + encodeURIComponent(pendingRefundId) + "/cancel", {
             method: "POST",
             credentials: "include",
             headers: { "Content-Type": "application/json", Accept: "application/json" },
             body: JSON.stringify({ reason: reason })
         }).then(function (r) {
+            refundConfirm.disabled = false;
             if (r.status === 401) { return; }
             if (!r.ok || !r.body || !r.body.success) {
-                btn.disabled = false;
-                window.alert((r.body && r.body.message) || "환불에 실패했습니다.");
+                flash((r.body && r.body.message) || "환불에 실패했습니다.", true);
                 return;
             }
+            closeRefund();
+            flash("환불을 처리했습니다.");
             load();
             loadSummary();
         }, function () {
-            btn.disabled = false;
-            window.alert("환불 요청에 실패했습니다.");
+            refundConfirm.disabled = false;
+            flash("환불 요청에 실패했습니다.", true);
+        });
+    }
+    if (refundModal) {
+        refundConfirm.addEventListener("click", doRefund);
+        refundModal.addEventListener("click", function (e) {
+            if (e.target.hasAttribute("data-close")) { closeRefund(); }
+        });
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && !refundModal.hidden) { closeRefund(); }
         });
     }
 
@@ -218,16 +253,16 @@
             if (r.status === 401) { return; }
             if (!r.ok || !r.body || !r.body.success) {
                 btn.disabled = false;
-                window.alert((r.body && r.body.message) || "대사에 실패했습니다.");
+                flash((r.body && r.body.message) || "대사에 실패했습니다.", true);
                 return;
             }
             var st = r.body.data && r.body.data.status;
-            window.alert("정정 결과: " + (STATUS_LABEL[st] || st || "변경 없음"));
+            flash("정정 결과: " + (STATUS_LABEL[st] || st || "변경 없음"));
             load();
             loadSummary();
         }, function () {
             btn.disabled = false;
-            window.alert("대사 요청에 실패했습니다.");
+            flash("대사 요청에 실패했습니다.", true);
         });
     }
 
@@ -294,7 +329,7 @@
     tbody.addEventListener("click", function (e) {
         if (!e.target.closest) { return; }
         var refundBtn = e.target.closest(".pa-act[data-refund]");
-        if (refundBtn) { refund(refundBtn.getAttribute("data-refund"), refundBtn); return; }
+        if (refundBtn) { refund(refundBtn.getAttribute("data-refund")); return; }
         var reconcileBtn = e.target.closest(".pa-act[data-reconcile]");
         if (reconcileBtn) { reconcile(reconcileBtn.getAttribute("data-reconcile"), reconcileBtn); }
     });
