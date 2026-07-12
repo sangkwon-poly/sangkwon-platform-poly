@@ -35,7 +35,7 @@
     // 사용률 구간: 70% 미만 정상, 90% 미만 주의, 그 이상 경고
     function level(pct) { return pct >= 90 ? "danger" : (pct >= 70 ? "warn" : "ok"); }
 
-    // 배치 상태별 SVG 도넛(성공률) 마크업
+    // 데이터셋 적재 상태 SVG 도넛(정상 비율) 마크업
     function donutSvg(pct, seg) {
         var r = 52, circ = 2 * Math.PI * r, off = 0, rings = "";
         var total = seg.reduce(function (s, x) { return s + x.val; }, 0);
@@ -49,11 +49,11 @@
                 return c;
             }).join("");
         }
-        return '<svg class="donut" viewBox="0 0 160 160" role="img" aria-label="배치 성공률 ' + pct + '퍼센트">'
+        return '<svg class="donut" viewBox="0 0 160 160" role="img" aria-label="데이터셋 정상 비율 ' + pct + '퍼센트">'
             + '<circle class="donut-bg" cx="80" cy="80" r="' + r + '"></circle>'
             + '<g transform="rotate(-90 80 80)">' + rings + '</g>'
             + '<text class="donut-pct" x="80" y="78">' + pct + '%</text>'
-            + '<text class="donut-cap" x="80" y="98">성공률</text>'
+            + '<text class="donut-cap" x="80" y="98">정상</text>'
             + '</svg>';
     }
 
@@ -146,21 +146,18 @@
         }).join("");
     });
 
-    // 5) 최근 배치: 상태 카드 + 적재 리스트 + 성공률 도넛 (SUPER_ADMIN 전용)
+    // 5) 최근 배치: 상태 카드 + 최근 실행 리스트 (SUPER_ADMIN 전용)
     api("/api/admin/ops/batch").then(function (r) {
         var load = document.getElementById("ov-load");
-        var donut = document.getElementById("ov-batch-donut");
         if (r.status === 403) {
             set("ov-stat-batch", "—"); setSub("ov-sub-batch", "권한 필요");
             load.innerHTML = '<li class="ov-note">SUPER_ADMIN만 볼 수 있습니다.</li>';
-            donut.innerHTML = '<p class="ov-note">SUPER_ADMIN만 볼 수 있습니다.</p>';
             return;
         }
         var rows = data(r) || [];
         if (!rows.length) {
             set("ov-stat-batch", "없음"); setSub("ov-sub-batch", "이력 없음");
             load.innerHTML = '<li class="ov-note">적재 이력이 없습니다.</li>';
-            donut.innerHTML = '<p class="ov-note">적재 이력이 없습니다.</p>';
             return;
         }
         var first = BATCH[rows[0].status] || { ko: rows[0].status, card: "ov-flat" };
@@ -176,22 +173,39 @@
                 + '<span class="badge ' + m.badge + '">' + esc(m.ko) + "</span>"
                 + "</li>";
         }).join("");
+    });
 
-        var ok = 0, mid = 0, fail = 0;
-        rows.forEach(function (b) {
-            if (b.status === "SUCCESS") { ok++; }
-            else if (b.status === "FAILED") { fail++; }
-            else { mid++; }
+    // 5-1) 데이터셋 적재 상태 도넛: 실행 이력 행이 아니라 데이터셋(14종) 기준.
+    // 최근 실행이 실패면 오류, 진행·부분이면 주의, 그 외 데이터가 적재돼 있으면 정상(오프라인 적재 포함), 없으면 미적재.
+    api("/api/admin/ops/batch/catalog").then(function (r) {
+        var donut = document.getElementById("ov-batch-donut");
+        if (r.status === 403) {
+            donut.innerHTML = '<p class="ov-note">SUPER_ADMIN만 볼 수 있습니다.</p>';
+            return;
+        }
+        var rows = data(r) || [];
+        if (!rows.length) {
+            donut.innerHTML = '<p class="ov-note">데이터셋 정보가 없습니다.</p>';
+            return;
+        }
+        var ok = 0, mid = 0, fail = 0, none = 0;
+        rows.forEach(function (c) {
+            if (c.running || c.runStatus === "PARTIAL") { mid++; }
+            else if (c.runStatus === "FAILED") { fail++; }
+            else if (c.loaded) { ok++; }
+            else { none++; }
         });
         var pct = Math.round(ok / rows.length * 100);
         donut.innerHTML = donutSvg(pct, [
             { cls: "seg-ok", val: ok },
             { cls: "seg-warn", val: mid },
-            { cls: "seg-danger", val: fail }
+            { cls: "seg-danger", val: fail },
+            { cls: "seg-muted", val: none }
         ]) + '<ul class="donut-legend">'
             + '<li><span class="lg lg-ok" aria-hidden="true"></span>정상 <b>' + ok + "</b></li>"
             + '<li><span class="lg lg-warn" aria-hidden="true"></span>부분·진행 <b>' + mid + "</b></li>"
             + '<li><span class="lg lg-danger" aria-hidden="true"></span>오류 <b>' + fail + "</b></li>"
+            + '<li><span class="lg lg-muted" aria-hidden="true"></span>미적재 <b>' + none + "</b></li>"
             + "</ul>";
     });
 
