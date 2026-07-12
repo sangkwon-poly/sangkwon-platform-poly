@@ -14,6 +14,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Entity
@@ -118,13 +119,12 @@ public class Member extends BaseEntity {
         this.planUntil = null;
     }
 
-    // 단건 환불 시, 그 주문이 준 기간만큼만 되돌린다. 다른 결제·부여로 남은 기간이 있으면 유지하고,
-    // 되돌린 결과가 현재 이하면 무료로 내린다(단건 환불이 전체 구독을 통째로 지우지 않게 한다).
-    public void reduceSubscription(BillingCycle cycle) {
+    // 주문에 기록된 실제 부여 기간만 회수해 다른 결제나 관리자 부여분을 남긴다.
+    public void reduceSubscription(LocalDateTime grantedFrom, LocalDateTime grantedUntil) {
         if (planUntil == null) {
             return;
         }
-        LocalDateTime reduced = cycle == BillingCycle.YEARLY ? planUntil.minusYears(1) : planUntil.minusMonths(1);
+        LocalDateTime reduced = planUntil.minus(Duration.between(grantedFrom, grantedUntil));
         if (reduced.isAfter(LocalDateTime.now())) {
             this.planUntil = reduced;
         } else {

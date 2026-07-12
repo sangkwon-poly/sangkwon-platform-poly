@@ -46,14 +46,15 @@ public class PaymentActivationService {
             return PaymentConfirmResponse.from(order);
         }
         order.paid(paymentKey, approvedAt);
+        activateSubscription(order);
         paymentOrderRepository.save(order);
-        activateSubscription(order.getMemberId(), order.getBillingCycle());
         return PaymentConfirmResponse.from(order);
     }
 
     // 결제 확정과 같은 트랜잭션에서 구독을 켠다. 만료 전 재구독이면 남은 기간에 이어붙여 손해가 없게 한다.
     // 회원이 없으면(하드삭제된 주문 대사 등) 결제는 이미 이뤄졌으니 주문 PAID는 유지하고 활성화만 건너뛴다.
-    private void activateSubscription(Long memberId, BillingCycle cycle) {
+    private void activateSubscription(PaymentOrder order) {
+        Long memberId = order.getMemberId();
         if (memberId == null) {
             log.warn("결제가 확정됐으나 회원이 없어(memberId=null) 구독 활성화를 건너뜀");
             return;
@@ -70,23 +71,23 @@ public class PaymentActivationService {
             return;
         }
         LocalDateTime base = member.isPro() ? member.getPlanUntil() : LocalDateTime.now();
-        LocalDateTime until = cycle == BillingCycle.YEARLY ? base.plusYears(1) : base.plusMonths(1);
+        LocalDateTime until = order.getBillingCycle() == BillingCycle.YEARLY ? base.plusYears(1) : base.plusMonths(1);
+        order.recordSubscriptionGrant(base, until);
         member.activatePro(until);
         memberRepository.save(member);
     }
 
     // 환불/취소 확정: 주문 CANCELED 저장과 (활성화된 적 있으면) 구독 회수를 한 트랜잭션으로 묶는다.
     // 둘이 따로 커밋되면 회수가 실패한 뒤 재시도가 CANCELED 멱등 분기에 걸려 Pro가 잔존하는 구멍이 생긴다.
-    // wasActivated: 이 주문이 PAID였는지(=구독 기간을 부여한 적 있는지). 호출부가 판단해 넘긴다.
     @Transactional
-    public void finalizeCanceled(PaymentOrder order, boolean wasActivated) {
+    public void finalizeCanceled(PaymentOrder order) {
         if (order.getStatus() != PaymentStatus.CANCELED) {
             order.canceled();
             paymentOrderRepository.save(order);
         }
-        if (wasActivated && order.getMemberId() != null) {
+        if (order.hasSubscriptionGrant() && order.getMemberId() != null) {
             memberRepository.findById(order.getMemberId()).ifPresent(member -> {
-                member.reduceSubscription(order.getBillingCycle());
+                member.reduceSubscription(order.getSubscriptionStartedAt(), order.getSubscriptionEndedAt());
                 memberRepository.save(member);
             });
         }

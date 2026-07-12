@@ -145,9 +145,8 @@ public class AdminPaymentService {
             throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "결제 취소 요청을 보내지 못했습니다.");
         }
 
-        // 주문 CANCELED 저장과 구독 회수를 한 트랜잭션으로 원자화한다(회수 실패 후 Pro 잔존 방지).
-        // 환불은 PAID 주문만 허용하므로(위 가드) 활성화된 적 있음이 보장된다.
-        paymentActivationService.finalizeCanceled(order, true);
+        // 주문 CANCELED 저장과 실제 부여된 구독 회수를 한 트랜잭션으로 원자화한다.
+        paymentActivationService.finalizeCanceled(order);
         return toResponse(order);
     }
 
@@ -195,9 +194,8 @@ public class AdminPaymentService {
                 paymentActivationService.finalizePaid(order, key, approvedAt);
             }
             case CANCELED -> {
-                // 주문 CANCELED + 구독 회수를 원자화한다. 회수는 이 주문이 활성화된 적 있을 때(PAID였을 때)만 한다.
-                // PENDING/FAILED에서 넘어온 취소는 planUntil에 기여한 적이 없어, 회수하면 정상 유료기간을 깎는다.
-                paymentActivationService.finalizeCanceled(order, before == PaymentStatus.PAID);
+                // 주문에 실제 부여 기간이 기록된 경우에만 구독을 회수한다.
+                paymentActivationService.finalizeCanceled(order);
             }
             case FAILED -> {
                 order.failed();
