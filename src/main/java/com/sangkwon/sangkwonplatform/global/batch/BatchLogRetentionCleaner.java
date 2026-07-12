@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.global.batch;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +21,7 @@ public class BatchLogRetentionCleaner {
 
     // 매일 새벽 4시(KST). 정리는 베스트에포트라 실패해도 다음 주기에 다시 시도한다.
     @Scheduled(cron = "0 0 4 * * *")
+    @SchedulerLock(name = "purgeOldBatchLogs", lockAtMostFor = "PT10M", lockAtLeastFor = "PT30S")
     public void purgeOldBatchLogs() {
         try {
             LocalDateTime cutoff = LocalDateTime.now().minusDays(RETENTION_DAYS);
