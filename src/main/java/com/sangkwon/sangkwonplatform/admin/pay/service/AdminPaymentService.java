@@ -147,7 +147,7 @@ public class AdminPaymentService {
 
         order.canceled();
         paymentOrderRepository.save(order);
-        revokeSubscription(order.getMemberId());
+        revokeSubscription(order);
         return toResponse(order);
     }
 
@@ -197,7 +197,7 @@ public class AdminPaymentService {
             case CANCELED -> {
                 order.canceled();
                 paymentOrderRepository.save(order);
-                revokeSubscription(order.getMemberId());
+                revokeSubscription(order);
             }
             case FAILED -> {
                 order.failed();
@@ -256,13 +256,14 @@ public class AdminPaymentService {
     public record ReconcileResult(PaymentStatus before, PaymentStatus after, AdminPaymentResponse order) {
     }
 
-    // 환불이면 이 주문으로 부여했던 구독을 회수한다. 하드삭제된 회원의 주문은 대상이 없다.
-    private void revokeSubscription(Long memberId) {
-        if (memberId == null) {
+    // 환불이면 이 주문이 준 구독 기간만큼만 회수한다. 다른 결제·부여로 남은 기간은 유지된다.
+    // (단건 환불이 회원의 전체 Pro를 통째로 지우던 문제를 막는다.) 하드삭제된 회원의 주문은 대상이 없다.
+    private void revokeSubscription(PaymentOrder order) {
+        if (order.getMemberId() == null) {
             return;
         }
-        memberRepository.findById(memberId).ifPresent(member -> {
-            member.revokePro();
+        memberRepository.findById(order.getMemberId()).ifPresent(member -> {
+            member.reduceSubscription(order.getBillingCycle());
             memberRepository.save(member);
         });
     }

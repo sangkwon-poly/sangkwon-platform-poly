@@ -18,14 +18,16 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     // 휴면 자동 전환: 임계 시각 이전에 마지막 접속(없으면 가입)한 ACTIVE 회원을 DORMANT로 일괄 전환한다.
     // 로그인 차단 로직(MemberService)과 어드민 카운트는 이미 DORMANT를 다루므로 부여 주체만 채운다.
+    // 단, 유효 Pro 구독자(planUntil이 아직 안 지남)는 돈을 낸 상태이므로 미접속이어도 휴면 처리하지 않는다.
     @Transactional
     @Modifying
     @Query("""
             update Member m set m.status = com.sangkwon.sangkwonplatform.member.entity.MemberStatus.DORMANT
             where m.status = com.sangkwon.sangkwonplatform.member.entity.MemberStatus.ACTIVE
               and coalesce(m.lastLoginAt, m.createdAt) < :cutoff
+              and (m.planUntil is null or m.planUntil < :now)
             """)
-    int markInactiveMembersDormant(@Param("cutoff") LocalDateTime cutoff);
+    int markInactiveMembersDormant(@Param("cutoff") LocalDateTime cutoff, @Param("now") LocalDateTime now);
 
     boolean existsByLoginId(String loginId);
 

@@ -27,22 +27,24 @@ class DormantMemberSchedulerTest {
     @Test
     void 임계일_기준_컷오프로_휴면_전환을_호출한다() {
         ReflectionTestUtils.setField(scheduler, "inactiveDays", 365L);
-        when(memberRepository.markInactiveMembersDormant(any())).thenReturn(3);
+        when(memberRepository.markInactiveMembersDormant(any(), any())).thenReturn(3);
 
         scheduler.transitionInactiveToDormant();
 
-        ArgumentCaptor<LocalDateTime> captor = ArgumentCaptor.forClass(LocalDateTime.class);
-        verify(memberRepository).markInactiveMembersDormant(captor.capture());
-        // 컷오프는 대략 365일 전(364~366일 범위로 넉넉히 확인)
-        assertThat(captor.getValue())
+        ArgumentCaptor<LocalDateTime> cutoff = ArgumentCaptor.forClass(LocalDateTime.class);
+        ArgumentCaptor<LocalDateTime> now = ArgumentCaptor.forClass(LocalDateTime.class);
+        verify(memberRepository).markInactiveMembersDormant(cutoff.capture(), now.capture());
+        // 컷오프는 대략 365일 전(364~366일 범위로 넉넉히 확인), now는 유효 Pro 제외 기준(현재 시각)
+        assertThat(cutoff.getValue())
                 .isBefore(LocalDateTime.now().minusDays(364))
                 .isAfter(LocalDateTime.now().minusDays(366));
+        assertThat(now.getValue()).isBetween(LocalDateTime.now().minusMinutes(1), LocalDateTime.now().plusMinutes(1));
     }
 
     @Test
     void 리포지토리_오류는_삼켜서_다음_주기에_맡긴다() {
         ReflectionTestUtils.setField(scheduler, "inactiveDays", 365L);
-        when(memberRepository.markInactiveMembersDormant(any()))
+        when(memberRepository.markInactiveMembersDormant(any(), any()))
                 .thenThrow(new RuntimeException("DB 접근 실패"));
 
         assertThatCode(() -> scheduler.transitionInactiveToDormant()).doesNotThrowAnyException();

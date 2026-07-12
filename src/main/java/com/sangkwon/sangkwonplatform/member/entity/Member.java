@@ -111,6 +111,20 @@ public class Member extends BaseEntity {
         this.planUntil = null;
     }
 
+    // 단건 환불 시, 그 주문이 준 기간만큼만 되돌린다. 다른 결제·부여로 남은 기간이 있으면 유지하고,
+    // 되돌린 결과가 현재 이하면 무료로 내린다(단건 환불이 전체 구독을 통째로 지우지 않게 한다).
+    public void reduceSubscription(BillingCycle cycle) {
+        if (planUntil == null) {
+            return;
+        }
+        LocalDateTime reduced = cycle == BillingCycle.YEARLY ? planUntil.minusYears(1) : planUntil.minusMonths(1);
+        if (reduced.isAfter(LocalDateTime.now())) {
+            this.planUntil = reduced;
+        } else {
+            revokePro();
+        }
+    }
+
     // 지금 시점 기준 Pro 이용 자격. 만료가 지나면 등급이 PREMIUM이어도 무효로 본다.
     public boolean isPro() {
         return planUntil != null && planUntil.isAfter(LocalDateTime.now());
@@ -119,6 +133,7 @@ public class Member extends BaseEntity {
     public void withdraw() {
         this.status = MemberStatus.WITHDRAWN; // 탈퇴 처리
         this.withdrawnAt = LocalDateTime.now();  // 스키마 CHECK: WITHDRAWN이면 WITHDRAWN_AT 필수 => 탈퇴 시각 필수
+        revokePro(); // 탈퇴하면 구독 자격도 정리한다(구독중 지표·데이터 정합성). 결제 이력 자체는 보존.
         anonymize();
     }
 
