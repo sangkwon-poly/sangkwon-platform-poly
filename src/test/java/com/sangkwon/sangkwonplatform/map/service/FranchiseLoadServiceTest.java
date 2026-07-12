@@ -14,6 +14,7 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -90,5 +91,29 @@ class FranchiseLoadServiceTest {
         // 빈 스냅샷으로 통삭제되지 않도록 세 테이블 어디에도 DELETE/INSERT가 나가면 안 된다
         verify(jt, never()).update(anyString());
         verify(jt, never()).batchUpdate(anyString(), anyList());
+    }
+
+    @Test
+    void 페이지_중간_오류로_잘린_스냅샷이면_예외로_롤백하고_DELETE하지_않는다() {
+        // 브랜드 total=1000인데 1페이지(500건) 뒤 2페이지가 빈/오류 응답(HTTP 200)이면 절반만 받은 부분 스냅샷이다.
+        String base = "https://apis.data.go.kr/1130000/FftcBrandRlsInfo2_Service/getBrandinfo";
+        StringBuilder items = new StringBuilder("{\"items\":[");
+        for (int i = 0; i < 500; i++) {
+            items.append(i == 0 ? "" : ",").append("{\"brandMnno\":\"").append(i).append("\"}");
+        }
+        items.append("]}");
+        server.expect(requestTo(base + "?serviceKey=test-key&pageNo=1&numOfRows=1&resultType=json&jngBizCrtraYr=2023"))
+                .andRespond(withSuccess("{\"totalCount\":1000}", MediaType.APPLICATION_JSON));
+        server.expect(requestTo(base + "?serviceKey=test-key&pageNo=1&numOfRows=500&resultType=json&jngBizCrtraYr=2023"))
+                .andRespond(withSuccess(items.toString(), MediaType.APPLICATION_JSON));
+        server.expect(requestTo(base + "?serviceKey=test-key&pageNo=2&numOfRows=500&resultType=json&jngBizCrtraYr=2023"))
+                .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> service.load())
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("FRANCHISE_BRAND 적재 미완");
+        // 완결성 검사가 DELETE 앞에서 막으므로 기존 적재분은 보존된다
+        verify(jt, never()).update("DELETE FROM FRANCHISE_BRAND");
+        server.verify();
     }
 }
