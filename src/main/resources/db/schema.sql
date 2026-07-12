@@ -929,6 +929,8 @@ CREATE TABLE PAYMENT_ORDER (
                                ORDER_NAME    VARCHAR2(100 CHAR) NOT NULL,
                                PAYMENT_KEY   VARCHAR2(200 CHAR),
                                APPROVED_AT   TIMESTAMP(6),
+                               SUBSCRIPTION_STARTED_AT TIMESTAMP(6),
+                               SUBSCRIPTION_ENDED_AT   TIMESTAMP(6),
                                VERSION       NUMBER(19)   DEFAULT 0 NOT NULL,
                                CREATED_AT    TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
                                UPDATED_AT    TIMESTAMP(6) DEFAULT SYSTIMESTAMP NOT NULL,
@@ -937,7 +939,13 @@ CREATE TABLE PAYMENT_ORDER (
                                    REFERENCES MEMBER (MEMBER_ID) ON DELETE SET NULL,
                                CONSTRAINT CK_PAY_STATUS CHECK (STATUS IN ('PENDING','PAID','FAILED','CANCELED')),
                                CONSTRAINT CK_PAY_CYCLE  CHECK (BILLING_CYCLE IN ('MONTHLY','YEARLY')),
-                               CONSTRAINT CK_PAY_AMOUNT CHECK (AMOUNT > 0)
+                               CONSTRAINT CK_PAY_AMOUNT CHECK (AMOUNT > 0),
+                               CONSTRAINT CK_PAY_SUB_PERIOD CHECK (
+                                   (SUBSCRIPTION_STARTED_AT IS NULL AND SUBSCRIPTION_ENDED_AT IS NULL)
+                                   OR (SUBSCRIPTION_STARTED_AT IS NOT NULL
+                                       AND SUBSCRIPTION_ENDED_AT IS NOT NULL
+                                       AND SUBSCRIPTION_STARTED_AT < SUBSCRIPTION_ENDED_AT)
+                               )
 );
 CREATE INDEX IX_PAYMENT_ORDER_MEMBER ON PAYMENT_ORDER (MEMBER_ID);
 COMMENT ON TABLE  PAYMENT_ORDER IS '요금제 결제 주문. 서버가 금액을 확정해 저장하고 승인 전에 대조한다(위변조 방지)';
@@ -949,6 +957,8 @@ COMMENT ON COLUMN PAYMENT_ORDER.AMOUNT        IS '서버가 확정한 결제 금
 COMMENT ON COLUMN PAYMENT_ORDER.STATUS        IS 'PENDING(결제창 진입) / PAID(승인) / FAILED(승인 실패) / CANCELED(환불)';
 COMMENT ON COLUMN PAYMENT_ORDER.PAYMENT_KEY   IS '토스 paymentKey (승인 후 기록)';
 COMMENT ON COLUMN PAYMENT_ORDER.APPROVED_AT   IS '토스 승인 시각';
+COMMENT ON COLUMN PAYMENT_ORDER.SUBSCRIPTION_STARTED_AT IS '이 주문으로 실제 부여한 구독 시작 시각';
+COMMENT ON COLUMN PAYMENT_ORDER.SUBSCRIPTION_ENDED_AT   IS '이 주문으로 실제 부여한 구독 종료 시각';
 COMMENT ON COLUMN PAYMENT_ORDER.VERSION       IS '낙관적 락 버전 (동시 승인 경합 방지)';
 
 

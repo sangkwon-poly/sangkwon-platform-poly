@@ -11,6 +11,7 @@ import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -18,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,6 +47,7 @@ class PaymentActivationServiceTest {
         assertThat(res.status()).isEqualTo(PaymentStatus.PAID);
         assertThat(order.getStatus()).isEqualTo(PaymentStatus.PAID);
         assertThat(order.getPaymentKey()).isEqualTo("pk-1");
+        assertThat(order.hasSubscriptionGrant()).isTrue();
         assertThat(member.isPro()).isTrue();
         verify(paymentOrderRepository).save(order);
         verify(memberRepository).save(member);
@@ -74,6 +77,7 @@ class PaymentActivationServiceTest {
         // 결제는 이미 이뤄졌으니 주문 PAID는 확정하되, 줄 대상이 없으므로 활성화만 조용히 건너뛴다
         assertThat(res.status()).isEqualTo(PaymentStatus.PAID);
         assertThat(order.getStatus()).isEqualTo(PaymentStatus.PAID);
+        assertThat(order.hasSubscriptionGrant()).isFalse();
         verify(paymentOrderRepository).save(order);
         verify(memberRepository, never()).save(any());
     }
@@ -105,6 +109,7 @@ class PaymentActivationServiceTest {
 
         assertThat(res.status()).isEqualTo(PaymentStatus.PAID);
         assertThat(order.getStatus()).isEqualTo(PaymentStatus.PAID);
+        assertThat(order.hasSubscriptionGrant()).isFalse();
         assertThat(member.isPro()).isFalse(); // 탈퇴 계정에 Pro 부활 없음
         verify(paymentOrderRepository).save(order);
         verify(memberRepository, never()).save(any()); // 활성화(save) 건너뜀
@@ -113,28 +118,70 @@ class PaymentActivationServiceTest {
     @Test
     void finalizeCanceled_활성화된_주문이면_취소하고_그_주문_기간을_회수한다() {
         PaymentOrder order = pendingOrder();
-        order.paid("pk-1", LocalDateTime.now());
         Member member = Member.create("user", "hash", "user@test.com", "회원");
-        member.activatePro(LocalDateTime.now().plusYears(1)); // 이 연간 주문으로 활성
         when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+        service.finalizePaid(order, "pk-1", LocalDateTime.now());
 
-        service.finalizeCanceled(order, true);
+        service.finalizeCanceled(order);
 
         assertThat(order.getStatus()).isEqualTo(PaymentStatus.CANCELED);
         assertThat(member.isPro()).isFalse(); // 연간 1주기 회수 -> 만료 과거 -> 무료
-        verify(paymentOrderRepository).save(order);
-        verify(memberRepository).save(member);
+        verify(paymentOrderRepository, times(2)).save(order);
+        verify(memberRepository, times(2)).save(member);
     }
 
     @Test
     void finalizeCanceled_활성화된_적_없으면_취소만_하고_구독은_건드리지_않는다() {
         PaymentOrder order = pendingOrder(); // PENDING, 활성화된 적 없음
 
-        service.finalizeCanceled(order, false);
+        service.finalizeCanceled(order);
 
         assertThat(order.getStatus()).isEqualTo(PaymentStatus.CANCELED);
         verify(paymentOrderRepository).save(order);
         verify(memberRepository, never()).findById(any());
         verify(memberRepository, never()).save(any());
+    }
+
+    @Test
+    void 비활성_회원의_PAID_주문은_환불해도_관리자_부여분을_회수하지_않는다() {
+        PaymentOrder order = pendingOrder();
+        Member member = Member.create("user", "hash", "user@test.com", "회원");
+        ReflectionTestUtils.setField(member, "status", MemberStatus.BANNED);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+
+        service.finalizePaid(order, "pk-1", LocalDateTime.now());
+        member.changeStatus(MemberStatus.ACTIVE);
+        LocalDateTime adminUntil = LocalDateTime.now().plusMonths(6);
+        member.activatePro(adminUntil);
+
+        service.finalizeCanceled(order);
+
+        assertThat(order.getStatus()).isEqualTo(PaymentStatus.CANCELED);
+        assertThat(order.hasSubscriptionGrant()).isFalse();
+        assertThat(member.getPlanUntil()).isEqualTo(adminUntil);
+        verify(memberRepository, never()).save(any());
+    }
+
+    @Test
+    void 주문_A_환불은_이후_관리자_연장과_주문_B_부여분을_남긴다() {
+        Member member = Member.create("user", "hash", "user@test.com", "회원");
+        PaymentOrder orderA = PaymentOrder.create(
+                "order-a", 1L, "PRO", BillingCycle.MONTHLY, 24_000L, "여기콕 Pro 월간");
+        PaymentOrder orderB = PaymentOrder.create(
+                "order-b", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(member));
+
+        service.finalizePaid(orderA, "pk-a", LocalDateTime.now());
+        member.activatePro(member.getPlanUntil().plusMonths(3));
+        service.finalizePaid(orderB, "pk-b", LocalDateTime.now());
+        LocalDateTime beforeRefund = member.getPlanUntil();
+        Duration orderAGrant = Duration.between(
+                orderA.getSubscriptionStartedAt(), orderA.getSubscriptionEndedAt());
+
+        service.finalizeCanceled(orderA);
+
+        assertThat(member.getPlanUntil()).isEqualTo(beforeRefund.minus(orderAGrant));
+        assertThat(member.isPro()).isTrue();
+        assertThat(orderB.hasSubscriptionGrant()).isTrue();
     }
 }

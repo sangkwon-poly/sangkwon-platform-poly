@@ -157,6 +157,8 @@ class AdminPaymentServiceTest {
     private static PaymentOrder paidOrder() {
         PaymentOrder o = PaymentOrder.create("o1", 1L, "PRO", BillingCycle.YEARLY, 240_000L, "여기콕 Pro 연간");
         o.paid("pk-1", LocalDateTime.now());
+        LocalDateTime startedAt = LocalDateTime.now();
+        o.recordSubscriptionGrant(startedAt, startedAt.plusYears(1));
         return o;
     }
 

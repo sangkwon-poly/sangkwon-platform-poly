@@ -52,6 +52,12 @@ public class PaymentOrder extends BaseEntity {
     @Column(name = "APPROVED_AT")
     private LocalDateTime approvedAt;
 
+    @Column(name = "SUBSCRIPTION_STARTED_AT")
+    private LocalDateTime subscriptionStartedAt;
+
+    @Column(name = "SUBSCRIPTION_ENDED_AT")
+    private LocalDateTime subscriptionEndedAt;
+
     // 동시 승인 경합에서 낡은 상태 저장이 PAID를 덮지 못하게 하는 낙관적 락 버전
     @Version
     @Column(name = "VERSION", nullable = false)
@@ -77,6 +83,15 @@ public class PaymentOrder extends BaseEntity {
 
     public void failed() {
         this.status = PaymentStatus.FAILED;
+    }
+
+    public void recordSubscriptionGrant(LocalDateTime startedAt, LocalDateTime endedAt) {
+        this.subscriptionStartedAt = startedAt;
+        this.subscriptionEndedAt = endedAt;
+    }
+
+    public boolean hasSubscriptionGrant() {
+        return subscriptionStartedAt != null && subscriptionEndedAt != null;
     }
 
     // 환불(토스 결제취소) 확정. 결제 기록과 paymentKey는 대사용으로 보존한다.
