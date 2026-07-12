@@ -6,6 +6,8 @@ import com.sangkwon.sangkwonplatform.global.config.LoaderHttp;
 import com.sangkwon.sangkwonplatform.global.util.ExternalApiMessageSanitizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.RequestEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +38,11 @@ public class FranchiseLoadService {
     private static final int MAX_PAGE = 200;
     private static final int DISCLOSURE_START_YEAR = 2019;
     private static final int DISCLOSURE_END_YEAR = 2023;
+
+    // franchise.ftc.go.kr가 브라우저형 User-Agent 없는 요청을 406(Access denied)으로 거부한다.
+    // 정상 발급 키로도 자바 기본 UA면 차단되는 것을 curl 대조로 확인해, 공공 API 호출에 UA를 명시한다.
+    private static final String BROWSER_UA =
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 
     private final RestTemplate rest = LoaderHttp.timed();
     private final ObjectMapper mapper = new ObjectMapper();
@@ -189,7 +196,9 @@ public class FranchiseLoadService {
                 log.warn("공정위 가맹사업 API 사용량 집계 실패(적재는 계속 진행): {}", e.getMessage());
             }
             try {
-                return rest.getForObject(URI.create(url), String.class);
+                return rest.exchange(
+                        RequestEntity.get(URI.create(url)).header(HttpHeaders.USER_AGENT, BROWSER_UA).build(),
+                        String.class).getBody();
             } catch (RuntimeException e) {
                 last = e;
                 sleep(2000);

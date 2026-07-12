@@ -8,7 +8,7 @@
   min-height: 100vh;
 }
 
-/* 좌측 사이드바 네비 */
+/* 좌측 사이드바 네비: 페이지가 길어져도 화면에 붙어 있는 고정 레일 */
 .admin-side {
   width: 204px;
   flex: 0 0 auto;
@@ -17,6 +17,11 @@
   display: flex;
   flex-direction: column;
   padding: 18px 14px;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+  height: 100vh;
+  overflow-y: auto;
 }
 .admin-brand {
   display: flex; align-items: center; gap: 4px;
@@ -117,13 +122,13 @@
 }
 .btn-topbar:hover { filter: brightness(1.06); }
 
-/* 본문 콘텐츠 영역 */
+/* 본문 콘텐츠 영역: 내부 스크롤 컨테이너를 두지 않고 창(window) 스크롤을 쓴다.
+   내용이 살짝만 넘쳐도 본문 안쪽에 별도 스크롤바가 생기던 것을 정상적인 페이지 스크롤로 통일. */
 .admin-content {
   flex: 1 1 0;
   align-self: center;
   width: 100%;
   max-width: 1488px;
-  overflow: auto;
   padding: 20px 24px;
 }
 

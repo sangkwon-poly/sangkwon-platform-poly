@@ -33,19 +33,19 @@ a.stat-card:focus-visible {
 /* 권한 없거나 비어있을 때 안내 */
 .ov-note { padding: 10px 0; font-size: 12px; color: var(--faint); }
 
-/* 하단 2단: 적재 현황(넓게) + 인기 검색어 */
+/* 하단 2단: 적재 현황(넓게) + 인기 검색어. 여백은 FHD 100% 배율에서 한 화면에 들어오게 잡는다 */
 .ov-cols {
   display: grid;
   grid-template-columns: 1.35fr 1fr;
   gap: 13px;
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 /* 데이터 적재 리스트 */
 .load-list { display: flex; flex-direction: column; }
 .load-item {
   display: flex; align-items: center; gap: 11px;
-  padding: 9px 0;
+  padding: 8px 0;
   border-top: 1px solid var(--line-soft);
 }
 .load-name { flex: 1 1 0; font-size: 12px; color: #3a322e; }
@@ -58,16 +58,16 @@ a.stat-card:focus-visible {
 /* 개요 지표 카드: 6개 한 줄 (좁아지면 단계적으로 접힘) */
 .stat-grid { grid-template-columns: repeat(6, 1fr); }
 
-/* 중단 2단: API 사용량(넓게) + 배치 결과 도넛 */
+/* 중단 2단: API 사용량(넓게) + 데이터셋 적재 도넛 */
 .ov-charts {
   display: grid;
   grid-template-columns: 1.35fr 1fr;
   gap: 13px;
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 /* API 사용률 막대 */
-.bar-list { display: flex; flex-direction: column; gap: 13px; }
+.bar-list { display: flex; flex-direction: column; gap: 10px; }
 .bar-row {
   display: grid;
   grid-template-columns: 104px 1fr 42px;
@@ -87,14 +87,15 @@ a.stat-card:focus-visible {
 .bar-danger { background: var(--danger); }
 .bar-val { font-size: 11.5px; color: var(--faint); text-align: right; }
 
-/* 배치 결과 도넛 */
+/* 데이터셋 적재 도넛 */
 .donut-wrap { display: flex; align-items: center; gap: 22px; padding: 4px 0; }
-.donut { width: 128px; height: 128px; flex: 0 0 auto; }
+.donut { width: 120px; height: 120px; flex: 0 0 auto; }
 .donut-bg { fill: none; stroke: var(--line-soft); stroke-width: 15; }
 .donut-seg { fill: none; stroke-width: 15; }
 .seg-ok { stroke: var(--ok); }
 .seg-warn { stroke: var(--warn); }
 .seg-danger { stroke: var(--danger); }
+.seg-muted { stroke: #ddd1c8; }
 .donut-pct { fill: var(--ink); font-size: 27px; font-weight: 800; text-anchor: middle; }
 .donut-cap { fill: var(--faint); font-size: 11px; text-anchor: middle; }
 .donut-legend { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
@@ -107,6 +108,7 @@ a.stat-card:focus-visible {
 .lg-ok { background: var(--ok); }
 .lg-warn { background: var(--warn); }
 .lg-danger { background: var(--danger); }
+.lg-muted { background: #ddd1c8; }
 
 /* 반응형 */
 @media (max-width: 1200px) {
