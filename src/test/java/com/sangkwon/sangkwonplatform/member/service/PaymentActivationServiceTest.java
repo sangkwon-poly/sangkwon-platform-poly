@@ -75,4 +75,20 @@ class PaymentActivationServiceTest {
         verify(paymentOrderRepository).save(order);
         verify(memberRepository, never()).save(any());
     }
+
+    @Test
+    void 환불된_CANCELED_주문은_다시_PAID로_되돌리지_않고_현재상태를_반환한다() {
+        PaymentOrder order = pendingOrder();
+        order.paid("pk-1", LocalDateTime.now());
+        order.canceled(); // 환불 완료
+
+        PaymentConfirmResponse res = service.finalizePaid(order, "pk-1", LocalDateTime.now());
+
+        // 환불을 무효화하지 않는다: 상태 불변, 저장·구독 재활성화 모두 없음
+        assertThat(res.status()).isEqualTo(PaymentStatus.CANCELED);
+        assertThat(order.getStatus()).isEqualTo(PaymentStatus.CANCELED);
+        verify(paymentOrderRepository, never()).save(any());
+        verify(memberRepository, never()).findById(any());
+        verify(memberRepository, never()).save(any());
+    }
 }
