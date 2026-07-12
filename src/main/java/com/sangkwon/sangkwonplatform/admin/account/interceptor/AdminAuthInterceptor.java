@@ -24,15 +24,19 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
 
     private final Supplier<AdminUserRepository> adminUserRepository;
 
-    // /api/admin/** 경로별 최소 권한. 인가를 컨트롤러마다 복붙하지 않고 여기서 한 번에 강제한다.
-    // 가장 구체적인(긴) 접두사가 먼저 매치되도록 정렬해 첫 매치를 쓴다. 매핑 밖 경로는 기본 SUPER_ADMIN
-    // (fail closed): 새 관리자 컨트롤러가 인가를 빠뜨려도 저권한에게 열리지 않는다.
+    // /api/admin/** 경로별 최소 권한을 인터셉터에서 중앙 강제한다. 매핑 밖 경로는 기본 SUPER_ADMIN(fail closed):
+    // 새 관리자 컨트롤러가 인가를 빠뜨려도 저권한에게 열리지 않는다.
+    // 세부 인가(본인만/조회 허용 등)는 컨트롤러의 requireSelf/requireManager/requireSuperAdmin가 재확인하므로,
+    // 인터셉터는 접두사가 요구하는 '최소 권한'만 본다(과도하게 막아 정상 self-service·조회를 차단하지 않도록).
+
+    // 문의·공지: 조회(GET)는 모든 관리자, 쓰기는 운영자 이상. 세부는 컨트롤러가 재확인.
+    private static final List<String> READ_ANY_WRITE_OPERATOR = List.of("/api/admin/inquiries", "/api/admin/notices");
+
+    // 모든 메서드가 같은 최소 권한인 접두사(가장 구체적인 접두사가 먼저).
     private static final List<Map.Entry<String, AdminRole>> ROLE_RULES = List.of(
             Map.entry("/api/admin/auth", AdminRole.VIEWER),            // 로그인 후 본인 인증·OTP(모든 관리자)
-            Map.entry("/api/admin/trdar", AdminRole.VIEWER),           // 상권 데이터 조회(읽기 전용)
-            Map.entry("/api/admin/inquiries", AdminRole.OPERATOR),     // 1:1 문의 응대(운영자 이상)
-            Map.entry("/api/admin/notices", AdminRole.OPERATOR),       // 공지 관리(운영자 이상)
-            Map.entry("/api/admin/admin-users", AdminRole.SUPER_ADMIN),
+            Map.entry("/api/admin/trdar", AdminRole.VIEWER),          // 상권 데이터 조회(읽기 전용)
+            Map.entry("/api/admin/admin-users", AdminRole.VIEWER),    // 본인 이름·비번은 self, 나머지는 super를 컨트롤러가 강제
             Map.entry("/api/admin/members", AdminRole.SUPER_ADMIN),
             Map.entry("/api/admin/ops", AdminRole.SUPER_ADMIN),
             Map.entry("/api/admin/payments", AdminRole.SUPER_ADMIN),
@@ -42,8 +46,13 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
         this.adminUserRepository = adminUserRepository;
     }
 
-    // 요청 경로에 필요한 최소 권한. 매핑되지 않은 /api/admin/** 는 가장 강한 권한을 요구한다(fail closed).
-    static AdminRole requiredRole(String path) {
+    // 요청 경로+메서드에 필요한 최소 권한. 매핑되지 않은 /api/admin/** 는 가장 강한 권한을 요구한다(fail closed).
+    static AdminRole requiredRole(String path, String method) {
+        for (String p : READ_ANY_WRITE_OPERATOR) {
+            if (path.equals(p) || path.startsWith(p + "/")) {
+                return "GET".equalsIgnoreCase(method) ? AdminRole.VIEWER : AdminRole.OPERATOR;
+            }
+        }
         for (Map.Entry<String, AdminRole> rule : ROLE_RULES) {
             if (path.equals(rule.getKey()) || path.startsWith(rule.getKey() + "/")) {
                 return rule.getValue();
@@ -75,8 +84,8 @@ public class AdminAuthInterceptor implements HandlerInterceptor {
         if (current.getRole() != loginAdmin.role()) {
             session.setAttribute(SessionConst.LOGIN_ADMIN, AdminSession.from(current));
         }
-        // 경로별 최소 권한을 중앙에서 강제한다(현재 DB 권한 기준). 부족하면 403.
-        if (!current.getRole().atLeast(requiredRole(request.getRequestURI()))) {
+        // 경로+메서드별 최소 권한을 중앙에서 강제한다(현재 DB 권한 기준). 부족하면 403.
+        if (!current.getRole().atLeast(requiredRole(request.getRequestURI(), request.getMethod()))) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "이 작업에 필요한 권한이 없습니다.");
         }
         return true;

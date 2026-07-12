@@ -100,6 +100,36 @@ class AdminAuthInterceptorTest {
     }
 
     @Test
+    void VIEWER는_문의_공지_조회는_통과하고_쓰기는_403이다() {
+        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(() -> adminUserRepository);
+        when(adminUserRepository.findById(1L))
+                .thenReturn(Optional.of(admin(1L, AdminRole.VIEWER, AdminStatus.ACTIVE)));
+        // 조회(GET)는 모든 관리자 허용 -> VIEWER 통과
+        MockHttpServletRequest get = requestWith(new AdminSession(1L, "admin", "관리자", AdminRole.VIEWER, 0));
+        get.setRequestURI("/api/admin/inquiries");
+        get.setMethod("GET");
+        assertThat(interceptor.preHandle(get, response, new Object())).isTrue();
+        // 쓰기(POST)는 OPERATOR 이상 -> VIEWER 403
+        MockHttpServletRequest post = requestWith(new AdminSession(1L, "admin", "관리자", AdminRole.VIEWER, 0));
+        post.setRequestURI("/api/admin/inquiries/5/answer");
+        post.setMethod("POST");
+        assertThatThrownBy(() -> interceptor.preHandle(post, response, new Object()))
+                .satisfies(e -> assertThat(status(e)).isEqualTo(403));
+    }
+
+    @Test
+    void 비_SUPER_ADMIN도_본인_계정_경로는_인터셉터를_통과한다() {
+        // admin-users 접두사는 VIEWER 이상이면 인터셉터 통과(본인만/super 세부는 컨트롤러 requireSelf/requireSuperAdmin가 강제)
+        AdminAuthInterceptor interceptor = new AdminAuthInterceptor(() -> adminUserRepository);
+        when(adminUserRepository.findById(1L))
+                .thenReturn(Optional.of(admin(1L, AdminRole.OPERATOR, AdminStatus.ACTIVE)));
+        MockHttpServletRequest req = requestWith(new AdminSession(1L, "admin", "관리자", AdminRole.OPERATOR, 0));
+        req.setRequestURI("/api/admin/admin-users/1/password");
+        req.setMethod("PATCH");
+        assertThat(interceptor.preHandle(req, response, new Object())).isTrue();
+    }
+
+    @Test
     void 운영자는_운영자_경로에_통과한다() {
         AdminAuthInterceptor interceptor = new AdminAuthInterceptor(() -> adminUserRepository);
         when(adminUserRepository.findById(1L))
