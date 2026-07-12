@@ -146,6 +146,50 @@
 .comp-val { width: 52px; text-align: right; font-size: 12.5px; font-weight: 700; color: var(--text); }
 .comp-val span { font-size: 9px; color: #a99c94; font-weight: 600; }
 
+/* 광고·제휴 패널: 브랜드 톤의 옅은 그라데이션. 셀 높이를 그대로 채우고 내용은 세로 중앙 */
+.ad-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(150deg, #fffdfc 0%, #fdf1ea 58%, #fae5d9 100%);
+  border-color: #eeddd2;
+}
+.ad-chip {
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  color: #8a4331;
+  background: #fff;
+  border: 1px solid #ecd8cc;
+  border-radius: 20px;
+  padding: 4px 10px;
+}
+.ad-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -.02em;
+}
+.ad-copy { font-size: 12.5px; line-height: 1.65; color: #6d5f56; }
+.ad-actions { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
+.ad-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 16px;
+  background: var(--brand);
+  color: #fff;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-decoration: none;
+}
+.ad-btn:hover { filter: brightness(1.08); }
+.ad-btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.ad-note { font-size: 11px; color: #6d5f56; }
+
 /* 반응형 · 태블릿: 차트 2열 유지, 지표 2열 */
 @media (max-width: 900px) {
   .detail-kpis { grid-template-columns: repeat(2, 1fr); }

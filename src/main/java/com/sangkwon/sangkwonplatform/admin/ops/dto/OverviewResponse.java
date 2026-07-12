@@ -6,6 +6,9 @@ public record OverviewResponse(
         long reportCount,
         long todayReports,
         long monthRevenue,
-        long activeProCount
+        long activeProCount,
+        long todaySearchCount,
+        long publishedNoticeCount,
+        long supportProgramCount
 ) {
 }

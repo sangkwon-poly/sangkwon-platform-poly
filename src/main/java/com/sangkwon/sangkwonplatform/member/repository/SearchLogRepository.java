@@ -21,6 +21,9 @@ public interface SearchLogRepository extends JpaRepository<SearchLog, Long> {
 
     int deleteBySearchedAtBefore(LocalDateTime cutoff);
 
+    // 관리자 개요: 오늘 검색량(서비스 사용 신호)
+    long countBySearchedAtGreaterThanEqual(LocalDateTime since);
+
     // 관리자 대시보드: 기간 내 인기 검색어 집계(수요 신호). 회원이 만든 데이터를 운영 인사이트로 활성화한다.
     @Query("""
             select s.keyword as keyword, count(s) as cnt
