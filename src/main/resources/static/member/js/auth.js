@@ -343,16 +343,6 @@
         });
     });
 
-    /* ---------------------------------------------------------------
-     * 비밀번호 찾기 (준비 중 안내)
-     * ------------------------------------------------------------- */
-    var findPwLink = document.querySelector('[data-action="find-pw"]');
-    if (findPwLink) {
-      findPwLink.addEventListener('click', function (e) {
-        e.preventDefault();
-        MemberUI.toast('비밀번호 찾기는 준비 중입니다.', 'ok');
-      });
-    }
 
     /* ---------------------------------------------------------------
      * 진입 시 초기 탭 결정 (login?tab=signup 지원)
