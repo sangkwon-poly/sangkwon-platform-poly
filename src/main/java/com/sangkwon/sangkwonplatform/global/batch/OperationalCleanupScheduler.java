@@ -3,6 +3,7 @@ package com.sangkwon.sangkwonplatform.global.batch;
 import com.sangkwon.sangkwonplatform.admin.ops.repository.ApiUsageLogRepository;
 import com.sangkwon.sangkwonplatform.admin.pay.service.AdminPaymentService;
 import com.sangkwon.sangkwonplatform.global.security.DbRateLimiter;
+import com.sangkwon.sangkwonplatform.map.service.AiReportQuota;
 import com.sangkwon.sangkwonplatform.member.entity.PaymentStatus;
 import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class OperationalCleanupScheduler {
     private final AdminPaymentService adminPaymentService;
     private final ApiUsageLogRepository apiUsageLogRepository;
     private final DbRateLimiter dbRateLimiter;
+    private final AiReportQuota aiReportQuota;
 
     // 매시 정각. 방치된(24시간 초과 PENDING) 결제를 토스와 재확인해 정리한다.
     // 예전에는 조회 없이 일괄 FAILED로 내렸는데, 응답이 유실된 '실제로 결제된' 주문까지 조용히 FAILED가 돼
@@ -94,6 +96,15 @@ public class OperationalCleanupScheduler {
             }
         } catch (Exception e) {
             log.warn("사용량 이력 정리 실패(다음 주기에 재시도): {}", e.getMessage());
+        }
+        // AI 리포트 한도 카운터도 같이 정리한다. 이번 달 월 카운터는 남겨야 하므로 넉넉히 40일 지난 행만 지운다.
+        try {
+            int deleted = aiReportQuota.purgeOlderThan(Duration.ofDays(40));
+            if (deleted > 0) {
+                log.info("오래된 AI 리포트 한도 카운터 {}건 정리", deleted);
+            }
+        } catch (Exception e) {
+            log.warn("AI 리포트 한도 카운터 정리 실패(다음 주기에 재시도): {}", e.getMessage());
         }
     }
 

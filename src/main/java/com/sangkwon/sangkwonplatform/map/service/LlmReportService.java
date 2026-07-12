@@ -46,6 +46,7 @@ public class LlmReportService {
     private final LlmReportRepository llmReportRepository;
     private final MemberRepository memberRepository;
     private final ApiUsageService apiUsageService;
+    private final AiReportQuota aiReportQuota;
     private final RestClient restClient;
     private final String apiKey;
     private final String model;
@@ -57,6 +58,7 @@ public class LlmReportService {
                             LlmReportRepository llmReportRepository,
                             MemberRepository memberRepository,
                             ApiUsageService apiUsageService,
+                            AiReportQuota aiReportQuota,
                             RestClient restClient,
                             @Value("${gemini.api-key}") String apiKey,
                             @Value("${gemini.model}") String model) {
@@ -67,6 +69,7 @@ public class LlmReportService {
         this.llmReportRepository = llmReportRepository;
         this.memberRepository = memberRepository;
         this.apiUsageService = apiUsageService;
+        this.aiReportQuota = aiReportQuota;
         this.restClient = restClient;
         this.apiKey = apiKey;
         this.model = model;
@@ -84,10 +87,11 @@ public class LlmReportService {
                 : llmReportRepository.findIndutyName(indutyCd)
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "업종을 찾을 수 없습니다"));
 
-        // 회원별 시간당 상한을 먼저 본다(무료·Pro 공통). 단일 회원이 전역 Gemini 예산을 선점하지 못하게 막는다.
-        enforceRateLimit(memberId);
-        // 무료 플랜 월 한도. 프롬프트 구성이나 유료 호출 전에 막아 헛일과 슬롯 소모를 피한다.
-        enforceMonthlyQuota(memberId);
+        // 회원별 시간당·무료 월 한도를 원자적으로 선점한다: 카운터 행을 잠가 동시 요청도 한도를 넘지 못한다.
+        // 프롬프트 구성·유료 호출·캐시 재사용 전에 슬롯을 잡아, 리포트 행을 세던 방식의 카운트-저장 사이 TOCTOU를 없앤다.
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "회원 정보를 찾을 수 없습니다"));
+        aiReportQuota.reserve(memberId, member.isPro(), HOURLY_LIMIT, FREE_MONTHLY_LIMIT);
 
         // 같은 상권·업종 리포트가 오늘 이미 있으면 재사용한다(분기 지표는 하루 안에 안 바뀐다).
         // Gemini 재호출·전역 일일 예산 소모 없이 동일 분석을 이 회원 이력으로 남긴다.
@@ -134,31 +138,6 @@ public class LlmReportService {
                 .tokenCnt(res.path("usageMetadata").path("totalTokenCount").asLong(0))
                 .build());
         return LlmReportResponse.from(saved);
-    }
-
-    // Pro면 무제한, 무료면 이번 달 3회까지. 초과하면 402로 업그레이드를 유도한다.
-    private void enforceMonthlyQuota(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "회원 정보를 찾을 수 없습니다"));
-        if (member.isPro()) {
-            return;
-        }
-        long used = llmReportRepository.countByMemberIdAndCreatedAtGreaterThanEqual(
-                memberId, LocalDate.now().withDayOfMonth(1).atStartOfDay());
-        if (used >= FREE_MONTHLY_LIMIT) {
-            throw new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED,
-                    "이번 달 무료 AI 리포트 " + FREE_MONTHLY_LIMIT + "회를 모두 사용했어요. Pro로 업그레이드하면 무제한으로 생성할 수 있어요.");
-        }
-    }
-
-    // 회원당 시간당 생성 상한. 초과하면 429로 잠시 후 재시도를 유도한다(무료·Pro 공통 안전장치).
-    private void enforceRateLimit(Long memberId) {
-        long recent = llmReportRepository.countByMemberIdAndCreatedAtGreaterThanEqual(
-                memberId, LocalDateTime.now().minusHours(1));
-        if (recent >= HOURLY_LIMIT) {
-            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
-                    "AI 리포트를 너무 자주 생성했어요. 잠시 후 다시 시도해 주세요.");
-        }
     }
 
     // 같은 상권·업종 리포트가 오늘(자정 이후) 이미 있으면 그 결과를 재사용해 이 회원 이력으로 남긴다.
