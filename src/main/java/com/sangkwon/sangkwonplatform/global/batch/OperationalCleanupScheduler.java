@@ -2,6 +2,7 @@ package com.sangkwon.sangkwonplatform.global.batch;
 
 import com.sangkwon.sangkwonplatform.admin.ops.repository.ApiUsageLogRepository;
 import com.sangkwon.sangkwonplatform.admin.pay.service.AdminPaymentService;
+import com.sangkwon.sangkwonplatform.global.security.DbRateLimiter;
 import com.sangkwon.sangkwonplatform.member.entity.PaymentStatus;
 import com.sangkwon.sangkwonplatform.member.repository.PaymentOrderRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,6 +35,7 @@ public class OperationalCleanupScheduler {
     private final PaymentOrderRepository paymentOrderRepository;
     private final AdminPaymentService adminPaymentService;
     private final ApiUsageLogRepository apiUsageLogRepository;
+    private final DbRateLimiter dbRateLimiter;
 
     // 매시 정각. 방치된(24시간 초과 PENDING) 결제를 토스와 재확인해 정리한다.
     // 예전에는 조회 없이 일괄 FAILED로 내렸는데, 응답이 유실된 '실제로 결제된' 주문까지 조용히 FAILED가 돼
@@ -91,6 +94,20 @@ public class OperationalCleanupScheduler {
             }
         } catch (Exception e) {
             log.warn("사용량 이력 정리 실패(다음 주기에 재시도): {}", e.getMessage());
+        }
+    }
+
+    // 10분마다 오래된 레이트 리밋 히트(LOGIN_RATE_HIT)를 정리한다. 가장 긴 윈도(30분)보다 넉넉히 1시간 지난 행 삭제.
+    @Scheduled(cron = "0 */10 * * * *")
+    @SchedulerLock(name = "purgeOldRateHits", lockAtMostFor = "PT5M", lockAtLeastFor = "PT10S")
+    public void purgeOldRateHits() {
+        try {
+            int deleted = dbRateLimiter.purgeOlderThan(Duration.ofHours(1));
+            if (deleted > 0) {
+                log.debug("레이트 리밋 히트 {}건 정리", deleted);
+            }
+        } catch (Exception e) {
+            log.warn("레이트 리밋 히트 정리 실패(다음 주기에 재시도): {}", e.getMessage());
         }
     }
 }

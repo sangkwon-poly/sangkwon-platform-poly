@@ -1,51 +1,38 @@
 package com.sangkwon.sangkwonplatform.admin.account.service;
 
+import com.sangkwon.sangkwonplatform.global.security.DbRateLimiter;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.time.Duration;
 
-// 관리자 로그인 IP 레이트 리미터: 임계(10) 이상 차단, 성공 시 리셋, IP별 독립, null 안전.
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+// 관리자 로그인 IP 레이트리밋: 스코프 키·임계(10)·윈도(30분)로 공유 DbRateLimiter에 위임하는지 검증.
 class AdminLoginRateLimiterTest {
 
-    @Test
-    void 임계_미만은_통과하고_임계_이상은_차단한다() {
-        AdminLoginRateLimiter limiter = new AdminLoginRateLimiter();
-        for (int i = 0; i < 9; i++) {
-            limiter.recordFailure("1.2.3.4");
-        }
-        assertThat(limiter.isBlocked("1.2.3.4")).isFalse();
+    private final DbRateLimiter db = mock(DbRateLimiter.class);
+    private final AdminLoginRateLimiter limiter = new AdminLoginRateLimiter(db);
 
-        limiter.recordFailure("1.2.3.4"); // 10회
+    @Test
+    void 임계_10회_30분_윈도로_스코프_키에_차단을_위임한다() {
+        when(db.isBlocked("admin-login:1.2.3.4", 10, Duration.ofMinutes(30))).thenReturn(true);
         assertThat(limiter.isBlocked("1.2.3.4")).isTrue();
     }
 
     @Test
-    void 리셋하면_차단이_풀린다() {
-        AdminLoginRateLimiter limiter = new AdminLoginRateLimiter();
-        for (int i = 0; i < 10; i++) {
-            limiter.recordFailure("1.2.3.4");
-        }
-        assertThat(limiter.isBlocked("1.2.3.4")).isTrue();
-
-        limiter.reset("1.2.3.4");
-        assertThat(limiter.isBlocked("1.2.3.4")).isFalse();
+    void 실패는_스코프_키로_기록한다() {
+        limiter.recordFailure("1.2.3.4");
+        verify(db).record("admin-login:1.2.3.4");
     }
 
     @Test
-    void IP별로_독립적으로_집계한다() {
-        AdminLoginRateLimiter limiter = new AdminLoginRateLimiter();
-        for (int i = 0; i < 10; i++) {
-            limiter.recordFailure("1.1.1.1");
-        }
-        assertThat(limiter.isBlocked("1.1.1.1")).isTrue();
-        assertThat(limiter.isBlocked("2.2.2.2")).isFalse();
-    }
-
-    @Test
-    void null_IP는_차단하지_않고_기록도_안전하다() {
-        AdminLoginRateLimiter limiter = new AdminLoginRateLimiter();
+    void null_IP는_기록하지_않는다() {
         limiter.recordFailure(null);
-        limiter.reset(null);
-        assertThat(limiter.isBlocked(null)).isFalse();
+        verify(db, never()).record(any());
     }
 }

@@ -980,3 +980,11 @@ CREATE TABLE SHEDLOCK (
     LOCKED_BY  VARCHAR2(255) NOT NULL,
     CONSTRAINT PK_SHEDLOCK PRIMARY KEY (NAME)
 );
+
+-- 레이트 리밋 히트: 로그인 실패·가용성 조회 빈도를 공유 집계(인프로세스 카운터를 다중 인스턴스에서 대체).
+-- RATE_KEY는 스코프 접두사 포함(admin-login:IP, member-login:IP, member-avail:IP 등). 오래된 행은 배치로 정리.
+CREATE TABLE LOGIN_RATE_HIT (
+    RATE_KEY VARCHAR2(120) NOT NULL,
+    HIT_AT   TIMESTAMP     NOT NULL
+);
+CREATE INDEX IX_LOGIN_RATE_HIT ON LOGIN_RATE_HIT (RATE_KEY, HIT_AT);
