@@ -1,5 +1,8 @@
 // 상권 상세 화면
 
+// innerHTML에 서버 문자열을 넣기 전 이스케이프(관리자 화면과 동일 규율). 방어적 심층 방어.
+function esc(s) { const d = document.createElement("div"); d.textContent = (s == null) ? "" : String(s); return d.innerHTML; }
+
 const MIX_COLORS = ["#8a3120", "#ca7860", "#d58e76", "#dfa48e", "#e7bba9", "#eccaba", "#f0d6c9"];
 
 // rows를 분기 오름차순 합계 [{q, v}]로
@@ -49,7 +52,7 @@ function setKpi(key, num, unit, deltaPct) {
 }
 
 // 최근 12분기 매출 추이
-const EMPTY_NOTE = '<li style="list-style:none;color:#9a8c84;font-size:13px">데이터 없음</li>';
+const EMPTY_NOTE = '<li style="list-style:none;color:var(--faint);font-size:13px">데이터 없음</li>';
 
 function drawTrend(totals) {
     const recent = totals.slice(-12);
@@ -59,7 +62,7 @@ function drawTrend(totals) {
         return;
     }
     if (!recent.length) {
-        axis.innerHTML = '<span style="color:#9a8c84">데이터 없음</span>';
+        axis.innerHTML = '<span style="color:var(--faint)">데이터 없음</span>';
         return;
     }
     const pts = trendPoints(recent.map((t) => t.v));
@@ -123,7 +126,7 @@ function drawHeat(sales) {
     const dayTotal = daySum.reduce((a, v) => a + v, 0);
     const timeTotal = timeSum.reduce((a, v) => a + v, 0);
     if (!dayTotal || !timeTotal) {
-        box.innerHTML = '<p style="color:#9a8c84;font-size:13px">데이터 없음</p>';
+        box.innerHTML = '<p style="color:var(--faint);font-size:13px">데이터 없음</p>';
         return;
     }
     // 셀 추정치 = 전체 x 요일 비중 x 시간대 비중
@@ -132,7 +135,7 @@ function drawHeat(sales) {
 
     let html = '<div style="display:grid;grid-template-columns:34px repeat(6,1fr);gap:4px;align-items:center">';
     html += "<span></span>" + HEAT_TIMES.map(([t]) =>
-        '<span style="font-size:11px;color:#8c7f78;text-align:center">' + t + "</span>").join("");
+        '<span style="font-size:11px;color:var(--faint);text-align:center">' + t + "</span>").join("");
     cells.forEach((row, i) => {
         html += '<span style="font-size:12px;color:#5c5049">' + HEAT_DAYS[i][0] + "</span>";
         row.forEach((v, j) => {
@@ -195,7 +198,7 @@ function drawEnv(att, res, apt, chg, stores) {
     box.innerHTML = '<dl style="display:grid;grid-template-columns:1fr 1fr;gap:9px 18px;margin:0">' +
         items.map(([k, v]) =>
             '<div style="display:flex;justify-content:space-between;border-bottom:1px solid #f4ece6;padding-bottom:7px">' +
-            '<dt style="font-size:13px;color:#8c7f78">' + k + "</dt>" +
+            '<dt style="font-size:13px;color:var(--faint)">' + k + "</dt>" +
             '<dd style="font-size:13px;font-weight:600;color:#3f342e;margin:0">' + v + "</dd></div>").join("") + "</dl>";
 }
 
@@ -218,7 +221,7 @@ function drawCompetitors(d, summaries) {
         const km = (d.centerLat != null && d.centerLot != null && s.centerLat != null && s.centerLot != null)
             ? distanceKm(+d.centerLat, +d.centerLot, +s.centerLat, +s.centerLot).toFixed(1) + "km" : "-";
         const width = maxAmt ? Math.round(((s.salesAmt || 0) / maxAmt) * 100) : 0;
-        return '<li class="comp-row"><div class="comp-main"><span class="comp-name">' + s.trdarNm + "</span>" +
+        return '<li class="comp-row"><div class="comp-main"><span class="comp-name">' + esc(s.trdarNm) + "</span>" +
             '<span class="minibar"><span style="width:' + width + '%;background:#c0664e"></span></span></div>' +
             '<span class="comp-dist">' + km + "</span>" +
             '<span class="comp-val">' + fmtEok(s.salesAmt) + "<span> 억</span></span></li>";
@@ -276,7 +279,7 @@ async function load() {
     document.title = d.trdarNm + " 상권 상세 · 여기콕";
     document.getElementById("detail-crumb").textContent = "지도 › " + (d.signguNm || "") + " › " + d.trdarNm;
     document.getElementById("detail-title").innerHTML =
-        d.trdarNm + ' <span class="detail-title-sub">· ' + (d.signguNm || "") + "</span>";
+        esc(d.trdarNm) + ' <span class="detail-title-sub">· ' + esc(d.signguNm || "") + "</span>";
 
     // 업종 필터. 이 상권에 있는 업종만, 최근 분기 매출 순으로 채운다
     const indutySel = document.getElementById("detail-induty");
