@@ -441,7 +441,10 @@ function drawRanking() {
             '<span class="minibar"><span style="width:' + width + '%;background:#a8412c"></span></span></div>' +
             '<div class="rank-val">' + (g.salesAmt != null
                 ? "<b>" + fmtEok(g.salesAmt) + "</b><span>억/분기</span>" : "<b>-</b>") + "</div>";
-        li.addEventListener("click", () => {
+        // 마우스뿐 아니라 키보드(Tab+Enter/Space)로도 선택할 수 있게 버튼 역할을 준다
+        li.setAttribute("role", "button");
+        li.tabIndex = 0;
+        const activate = () => {
             list.querySelectorAll(".rank-row").forEach((r) => r.classList.remove("is-selected"));
             li.classList.add("is-selected");
             // 다른 구이거나 폴리곤이 없으면(실패·로딩 중) 드릴다운, 같은 구 재클릭은 재요청 없이 복귀만
@@ -459,6 +462,13 @@ function drawRanking() {
                 state.selected = null;
             }
             openDrawerForGu(g);
+        };
+        li.addEventListener("click", activate);
+        li.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                activate();
+            }
         });
         list.appendChild(li);
     });
@@ -469,13 +479,17 @@ function drawRanking() {
 function bindLayers() {
     document.querySelectorAll(".layer-item").forEach((li) => {
         li.style.cursor = "pointer";
-        li.addEventListener("click", () => {
+        const selectLayer = () => {
             const key = li.dataset.layer;
             if (!key || !LAYERS[key]) {
                 return;
             }
             state.layer = key;
-            document.querySelectorAll(".layer-item").forEach((x) => x.classList.toggle("is-active", x === li));
+            document.querySelectorAll(".layer-item").forEach((x) => {
+                const on = x === li;
+                x.classList.toggle("is-active", on);
+                x.setAttribute("aria-pressed", on ? "true" : "false");
+            });
             document.querySelector(".legend-title").textContent = LAYERS[key].name;
             document.querySelector(".legend-unit").textContent = LAYERS[key].unit;
             const scaleBox = document.querySelector(".legend-scale");
@@ -496,6 +510,13 @@ function bindLayers() {
             paintGu();
             if (state.level === "trdar") {
                 paintTrdar();
+            }
+        };
+        li.addEventListener("click", selectLayer);
+        li.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                selectLayer();
             }
         });
     });

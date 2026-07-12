@@ -74,12 +74,24 @@ function buildGuFilter() {
         li.className = "check";
         li.dataset.gu = gu;
         li.style.cursor = "pointer";
+        // 다중 선택 필터라 체크박스 역할을 주고 키보드(Tab+Enter/Space)로도 토글되게 한다
+        li.setAttribute("role", "checkbox");
+        li.setAttribute("aria-checked", "false");
+        li.tabIndex = 0;
         li.innerHTML = '<span class="check-box" aria-hidden="true"></span>' + gu +
-            ' <span style="color:#b0a49e;font-size:12px">' + counts.get(gu) + "</span>";
-        li.addEventListener("click", () => {
-            li.classList.toggle("is-on");
-            li.querySelector(".check-box").textContent = li.classList.contains("is-on") ? "✓" : "";
+            ' <span style="color:var(--faint);font-size:12px">' + counts.get(gu) + "</span>";
+        const toggle = () => {
+            const on = li.classList.toggle("is-on");
+            li.setAttribute("aria-checked", on ? "true" : "false");
+            li.querySelector(".check-box").textContent = on ? "✓" : "";
             render();
+        };
+        li.addEventListener("click", toggle);
+        li.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                toggle();
+            }
         });
         ul.appendChild(li);
     });
