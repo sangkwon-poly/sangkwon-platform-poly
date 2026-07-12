@@ -16,6 +16,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -346,6 +347,40 @@ class AdminPaymentServiceTest {
         assertThat(res.after()).isEqualTo(PaymentStatus.CANCELED);
         assertThat(member.isPro()).isFalse();
         verify(paymentOrderRepository).save(order);
+        tossServer.verify();
+    }
+
+    @Test
+    @DisplayName("대사: 환불 회수 저장 충돌 후 재대사하면 CANCELED로 수렴한다")
+    void reconcile_recoversCancelAfterOptimisticLockFailure() {
+        PaymentOrder failedOrder = paidOrder();
+        PaymentOrder persistedOrder = paidOrder();
+        Member failedMember = proMember();
+        Member persistedMember = proMember();
+        AdminPaymentService svc = serviceWithToss();
+        when(paymentOrderRepository.findById("o1"))
+                .thenReturn(Optional.of(failedOrder), Optional.of(persistedOrder));
+        when(memberRepository.findById(1L))
+                .thenReturn(Optional.of(failedMember), Optional.of(persistedMember));
+        when(memberRepository.save(any(Member.class)))
+                .thenThrow(new OptimisticLockingFailureException("conflict"))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        tossServer.expect(requestTo(CANCEL_URL))
+                .andRespond(withSuccess("{}", MediaType.APPLICATION_JSON));
+        tossServer.expect(requestTo(QUERY_URL))
+                .andRespond(withSuccess("{\"status\":\"CANCELED\"}", MediaType.APPLICATION_JSON));
+
+        assertThatThrownBy(() -> svc.cancel("o1", "중복 결제"))
+                .isInstanceOf(OptimisticLockingFailureException.class);
+        assertThat(persistedOrder.getStatus()).isEqualTo(PaymentStatus.PAID);
+        assertThat(persistedMember.isPro()).isTrue();
+
+        AdminPaymentService.ReconcileResult res = svc.reconcile("o1");
+
+        assertThat(res.before()).isEqualTo(PaymentStatus.PAID);
+        assertThat(res.after()).isEqualTo(PaymentStatus.CANCELED);
+        assertThat(persistedOrder.getStatus()).isEqualTo(PaymentStatus.CANCELED);
+        assertThat(persistedMember.isPro()).isFalse();
         tossServer.verify();
     }
 
