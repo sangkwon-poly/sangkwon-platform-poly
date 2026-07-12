@@ -1,0 +1,20 @@
+# 빌드 컨텍스트에서 제외(이미지 경량화 + 시크릿 유출 방지)
+.git
+.gitignore
+.gradle
+build
+**/build
+.claude
+.idea
+*.iml
+# Oracle 지갑·시크릿은 이미지에 절대 넣지 않는다(런타임에 볼륨 마운트)
+wallet
+**/Wallet_*
+*.zip
+cwallet.sso
+ewallet.p12
+deploy/.env
+.env
+# 기타
+node_modules
+*.log
