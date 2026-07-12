@@ -1,0 +1,27 @@
+# 여기콕 앱을 각 EC2에서 java -jar 로 상시 구동하는 systemd 유닛.
+# ALB 뒤라 nginx/Docker 없이 이 유닛만 있으면 된다. /opt/sangkwon 에 app.jar, wallet/, app.env 를 둔다.
+# 설치: sudo cp sangkwon.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable --now sangkwon
+[Unit]
+Description=Yeogikok (sangkwon-platform) Spring Boot app
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=sangkwon
+WorkingDirectory=/opt/sangkwon
+# 시크릿(환경변수)은 파일로 주입. deploy/.env.example 을 참고해 /opt/sangkwon/app.env 작성.
+EnvironmentFile=/opt/sangkwon/app.env
+Environment=SPRING_PROFILES_ACTIVE=prod
+Environment=DB_WALLET_DIR=/opt/sangkwon/wallet
+Environment=TNS_ADMIN=/opt/sangkwon/wallet
+# 컨테이너가 아니어도 -XX:MaxRAMPercentage 로 박스 메모리에 맞춰 힙 산정. OOM이면 종료 후 자동 재기동.
+ExecStart=/usr/bin/java -XX:MaxRAMPercentage=70 -XX:+ExitOnOutOfMemoryError -jar /opt/sangkwon/app.jar
+# graceful shutdown: SIGTERM 후 진행 중 요청을 마무리할 시간을 준다(app: server.shutdown=graceful 20s)
+SuccessExitStatus=143
+TimeoutStopSec=30
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

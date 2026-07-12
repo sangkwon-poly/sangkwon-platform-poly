@@ -1,0 +1,23 @@
+# ALB 뒤 개별 EC2용: 앱 컨테이너 1개만 띄운다. 로드밸런싱·TLS는 ALB가 담당하므로 nginx가 없다.
+# 이미지는 각 박스에서 빌드하지 않는다(t3.small 2GB에서 gradle 빌드는 OOM 위험).
+# 미리 한 번 빌드한 이미지를 레지스트리에서 받거나(docker pull) load 해서 그 태그를 APP_IMAGE로 지정한다.
+services:
+  app:
+    image: ${APP_IMAGE:-sangkwon-platform:latest}
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      TNS_ADMIN: /app/wallet
+      DB_WALLET_DIR: /app/wallet
+    volumes:
+      - ./wallet:/app/wallet:ro
+    ports:
+      # ALB가 이 포트로 헬스체크·프록시한다. 보안그룹에서 ALB 보안그룹만 8080 인바운드를 허용한다(공개 금지).
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 70s
