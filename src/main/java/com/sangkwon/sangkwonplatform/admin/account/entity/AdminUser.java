@@ -124,7 +124,12 @@ public class AdminUser {
     }
 
     // 로그인 연속 실패에 의한 자동 잠금. 쿨다운 자동 해제 대상이 되도록 잠금 시각을 남긴다.
+    // 이미 잠금 상태면 잠금 시각을 갱신하지 않는다: 잠긴 계정에 실패를 계속 보내 쿨다운을 무한 연장하는
+    // 영구 잠금(DoS)을 막는다. 수동 잠금(lockedAt=null)도 재스탬프하지 않아 자동 해제 대상이 되지 않는다.
     public void lockForFailedLogin() {
+        if (this.status == AdminStatus.LOCKED) {
+            return;
+        }
         this.status = AdminStatus.LOCKED;
         this.lockedAt = LocalDateTime.now();
     }
