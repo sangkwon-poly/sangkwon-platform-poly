@@ -167,7 +167,7 @@ public class AdminPaymentService {
         if (target == null || target == before || !isSafeTransition(before, target)) {
             return new ReconcileResult(before, before, toResponse(order));
         }
-        applyReconciled(order, target, toss);
+        applyReconciled(order, before, target, toss);
         return new ReconcileResult(before, order.getStatus(), toResponse(order));
     }
 
@@ -184,7 +184,7 @@ public class AdminPaymentService {
         return true;
     }
 
-    private void applyReconciled(PaymentOrder order, PaymentStatus target, JsonNode toss) {
+    private void applyReconciled(PaymentOrder order, PaymentStatus before, PaymentStatus target, JsonNode toss) {
         switch (target) {
             case PAID -> {
                 String key = toss == null ? order.getPaymentKey() : toss.path("paymentKey").asText(order.getPaymentKey());
@@ -197,7 +197,11 @@ public class AdminPaymentService {
             case CANCELED -> {
                 order.canceled();
                 paymentOrderRepository.save(order);
-                revokeSubscription(order);
+                // 구독 회수는 이 주문이 활성화된 적 있을 때(PAID였을 때)만 한다. PENDING/FAILED에서 넘어온 취소는
+                // planUntil에 기여한 적이 없어, 회수하면 다른 결제로 산 정상 유료기간을 깎게 된다.
+                if (before == PaymentStatus.PAID) {
+                    revokeSubscription(order);
+                }
             }
             case FAILED -> {
                 order.failed();
@@ -256,8 +260,8 @@ public class AdminPaymentService {
     public record ReconcileResult(PaymentStatus before, PaymentStatus after, AdminPaymentResponse order) {
     }
 
-    // 환불이면 이 주문이 준 구독 기간만큼만 회수한다. 다른 결제·부여로 남은 기간은 유지된다.
-    // (단건 환불이 회원의 전체 Pro를 통째로 지우던 문제를 막는다.) 하드삭제된 회원의 주문은 대상이 없다.
+    // 이 주문이 활성화 때 부여한 기간(한 주기)만큼만 회수한다. 다른 결제로 남은 기간은 유지된다.
+    // 호출부는 이 주문이 PAID였음(=활성화된 적 있음)을 보장해야 한다. 부여한 적 없는 주문을 넘기면 정상 기간을 깎는다.
     private void revokeSubscription(PaymentOrder order) {
         if (order.getMemberId() == null) {
             return;
