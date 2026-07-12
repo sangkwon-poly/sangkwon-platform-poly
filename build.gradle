@@ -45,6 +45,7 @@ dependencies {
     implementation 'org.springframework.security:spring-security-crypto'
     implementation 'com.google.zxing:core:3.5.3'
     implementation 'com.google.zxing:javase:3.5.3'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
     // 스케줄러 클러스터 단일 실행: 다중 인스턴스에서 @Scheduled가 중복 발화하지 않도록 DB 락(SHEDLOCK)으로 1회만 실행.
     implementation 'net.javacrumbs.shedlock:shedlock-spring:6.3.0'
     implementation 'net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.3.0'
