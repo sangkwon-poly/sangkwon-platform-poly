@@ -89,6 +89,15 @@ public class AdminUserService {
             throw invalidCredentials();
         }
 
+        // 자격 증명을 먼저 검증한다. 계정 상태(잠금/비활성)를 비번 확인 전에 노출하면 미인증 계정 열거가
+        // 되므로(회원 로그인과 방침 통일), 비번이 맞은 뒤에만 상태를 확정한다.
+        if (!passwordEncoder.matches(request.password(), adminUser.getPasswordHash())) {
+            // 실패 카운트는 이 트랜잭션에서 올리고 커밋한다(noRollbackFor로 자격 실패에도 유지)
+            loginAttemptService.recordFailure(adminUser.getAdminId());
+            rateLimiter.recordFailure(clientIp);
+            throw invalidCredentials();
+        }
+
         if (adminUser.getStatus() == AdminStatus.LOCKED) {
             // 쿨다운이 지난 자동 잠금은 여기서 자동 해제하고 인증을 계속한다(잠금 DoS 완화). 수동 잠금은 대상 아님.
             if (adminUser.isAutoUnlockable(LOCK_COOLDOWN)) {
@@ -103,13 +112,6 @@ public class AdminUserService {
         }
         if (adminUser.getStatus() != AdminStatus.ACTIVE) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "사용할 수 없는 관리자 계정입니다.");
-        }
-
-        if (!passwordEncoder.matches(request.password(), adminUser.getPasswordHash())) {
-            // 실패 카운트는 이 트랜잭션에서 올리고 커밋한다(noRollbackFor로 자격 실패에도 유지)
-            loginAttemptService.recordFailure(adminUser.getAdminId());
-            rateLimiter.recordFailure(clientIp);
-            throw invalidCredentials();
         }
 
         // 신뢰된 기기(유효한 신뢰 쿠키)면 OTP 단계를 건너뛴다

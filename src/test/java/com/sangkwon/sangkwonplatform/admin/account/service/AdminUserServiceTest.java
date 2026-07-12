@@ -97,14 +97,28 @@ class AdminUserServiceTest {
     }
 
     @Test
-    void 잠긴_계정은_로그인이_차단된다() {
+    void 잠긴_계정은_비밀번호가_맞아도_로그인이_차단된다() {
         AdminUser locked = activeAdmin();
         locked.updateStatus(AdminStatus.LOCKED);
         when(adminUserRepository.findByLoginIdForUpdate("admin")).thenReturn(Optional.of(locked));
+        when(passwordEncoder.matches("pw", "hash")).thenReturn(true); // 비번은 맞고 상태가 잠금
 
         assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), null, "1.1.1.1"))
                 .isInstanceOf(ResponseStatusException.class)
                 .satisfies(e -> assertThat(status(e)).isEqualTo(403));
+    }
+
+    @Test
+    void 잠긴_계정도_비밀번호가_틀리면_상태를_노출하지_않고_401이다() {
+        AdminUser locked = activeAdmin();
+        locked.updateStatus(AdminStatus.LOCKED);
+        when(adminUserRepository.findByLoginIdForUpdate("admin")).thenReturn(Optional.of(locked));
+        when(passwordEncoder.matches("wrong", "hash")).thenReturn(false);
+
+        // 비번을 먼저 검증해 미인증 계정 열거를 막는다: 잠금 상태(403)가 아니라 일반 401
+        assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "wrong", null, false), null, "1.1.1.1"))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(e -> assertThat(status(e)).isEqualTo(401));
     }
 
     @Test
@@ -137,6 +151,7 @@ class AdminUserServiceTest {
         AdminUser locked = activeAdmin();
         locked.lockForFailedLogin(); // 방금 자동 잠금(lockedAt=now)
         when(adminUserRepository.findByLoginIdForUpdate("admin")).thenReturn(Optional.of(locked));
+        when(passwordEncoder.matches("pw", "hash")).thenReturn(true); // 비번은 맞고 잠금 쿨다운 미경과
 
         assertThatThrownBy(() -> adminUserService.login(new AdminLoginRequest("admin", "pw", null, false), null, "1.1.1.1"))
                 .isInstanceOf(ResponseStatusException.class)
