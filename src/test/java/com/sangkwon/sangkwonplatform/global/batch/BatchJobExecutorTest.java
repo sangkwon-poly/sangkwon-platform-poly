@@ -1,20 +1,30 @@
 package com.sangkwon.sangkwonplatform.global.batch;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -26,10 +36,23 @@ class BatchJobExecutorTest {
     @Mock
     BatchFailureNotifier batchFailureNotifier;
 
-    @InjectMocks
+    @Mock
+    ScheduledExecutorService batchHeartbeatScheduler;
+
+    @Mock
+    ScheduledFuture<?> heartbeatFuture;
+
     BatchJobExecutor batchJobExecutor;
 
     private final BatchJobSpec spec = new BatchJobSpec("매출 적재", "SALES", "20241", "MANUAL");
+
+    @BeforeEach
+    void setUp() {
+        lenient().doReturn(heartbeatFuture).when(batchHeartbeatScheduler).scheduleAtFixedRate(
+                any(Runnable.class), anyLong(), anyLong(), eq(TimeUnit.SECONDS));
+        batchJobExecutor = new BatchJobExecutor(
+                batchJobLogRepository, batchFailureNotifier, batchHeartbeatScheduler, 300);
+    }
 
     @Test
     void 성공하면_SUCCESS와_처리건수를_기록한다() {
@@ -65,7 +88,33 @@ class BatchJobExecutorTest {
 
         batchJobExecutor.run(spec, () -> 10L);
 
-        org.mockito.Mockito.verifyNoInteractions(batchFailureNotifier);
+        verifyNoInteractions(batchFailureNotifier);
+    }
+
+    @Test
+    void 실행_중에는_하트비트를_갱신하고_종료하면_중단한다() {
+        AtomicReference<Runnable> heartbeatTask = new AtomicReference<>();
+        when(batchHeartbeatScheduler.scheduleAtFixedRate(
+                any(Runnable.class), eq(300L), eq(300L), eq(TimeUnit.SECONDS)))
+                .thenAnswer(invocation -> {
+                    heartbeatTask.set(invocation.getArgument(0));
+                    return heartbeatFuture;
+                });
+        when(batchJobLogRepository.save(any())).thenAnswer(invocation -> {
+            BatchJobLog log = invocation.getArgument(0);
+            if (log.getId() == null) {
+                ReflectionTestUtils.setField(log, "id", 1L);
+            }
+            return log;
+        });
+
+        batchJobExecutor.run(spec, () -> {
+            heartbeatTask.get().run();
+            return 10L;
+        });
+
+        verify(batchJobLogRepository).touchRunningHeartbeat(1L);
+        verify(heartbeatFuture).cancel(false);
     }
 
     @Test
@@ -82,6 +131,8 @@ class BatchJobExecutorTest {
 
         assertThat(result).isNull();            // 이번 실행은 건너뜀
         assertThat(loaderRan.get()).isFalse();  // 로더(DELETE+INSERT) 미실행 = 중복 적재 방지
-        org.mockito.Mockito.verifyNoInteractions(batchFailureNotifier); // 정상 중복 회피라 실패 알림 아님
+        verifyNoInteractions(batchFailureNotifier); // 정상 중복 회피라 실패 알림 아님
+        verify(batchHeartbeatScheduler, never()).scheduleAtFixedRate(
+                any(Runnable.class), anyLong(), anyLong(), any());
     }
 }

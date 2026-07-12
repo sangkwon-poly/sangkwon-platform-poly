@@ -1,19 +1,34 @@
 package com.sangkwon.sangkwonplatform.global.batch;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class BatchJobExecutor {
 
     private final BatchJobLogRepository batchJobLogRepository;
     private final BatchFailureNotifier batchFailureNotifier;
+    private final ScheduledExecutorService batchHeartbeatScheduler;
+    private final long heartbeatIntervalSeconds;
+
+    public BatchJobExecutor(BatchJobLogRepository batchJobLogRepository,
+                            BatchFailureNotifier batchFailureNotifier,
+                            @Qualifier("batchHeartbeatScheduler") ScheduledExecutorService batchHeartbeatScheduler,
+                            @Value("${batch.running-heartbeat.interval-seconds:300}") long heartbeatIntervalSeconds) {
+        this.batchJobLogRepository = batchJobLogRepository;
+        this.batchFailureNotifier = batchFailureNotifier;
+        this.batchHeartbeatScheduler = batchHeartbeatScheduler;
+        this.heartbeatIntervalSeconds = heartbeatIntervalSeconds;
+    }
 
     // task가 실패해도 실패 이력이 남도록 트랜잭션으로 묶지 않는다.
     // null 반환: 같은 데이터셋이 이미 다른 인스턴스/트리거에서 RUNNING이라 이번 실행을 건너뛴 경우.
@@ -27,6 +42,7 @@ public class BatchJobExecutor {
             log.warn("적재 건너뜀: {}는 이미 다른 실행이 진행 중입니다(RUNNING 유니크 충돌)", spec.datasetCd());
             return null;
         }
+        ScheduledFuture<?> heartbeat = startHeartbeat(jobLog);
         try {
             long processed = task.getAsLong();
             jobLog.succeed(processed);
@@ -43,6 +59,32 @@ public class BatchJobExecutor {
             // 실패를 외부 채널로 알린다(웹훅 미설정이면 no-op, 전송 실패는 내부에서 삼킴)
             batchFailureNotifier.notifyFailure(spec.jobName(), spec.datasetCd(), e.getMessage());
             throw e;
+        } finally {
+            if (heartbeat != null) {
+                heartbeat.cancel(false);
+            }
+        }
+    }
+
+    private ScheduledFuture<?> startHeartbeat(BatchJobLog jobLog) {
+        try {
+            return batchHeartbeatScheduler.scheduleAtFixedRate(
+                    () -> touchHeartbeat(jobLog),
+                    heartbeatIntervalSeconds,
+                    heartbeatIntervalSeconds,
+                    TimeUnit.SECONDS);
+        } catch (RuntimeException e) {
+            log.warn("배치 하트비트 시작 실패: jobLogId={}, 원인={}", jobLog.getId(), e.getMessage());
+            return null;
+        }
+    }
+
+    private void touchHeartbeat(BatchJobLog jobLog) {
+        try {
+            batchJobLogRepository.touchRunningHeartbeat(jobLog.getId());
+        } catch (RuntimeException e) {
+            // 일시적인 하트비트 실패 때문에 실제 적재까지 중단하지 않는다.
+            log.warn("배치 하트비트 갱신 실패: jobLogId={}, 원인={}", jobLog.getId(), e.getMessage());
         }
     }
 }
