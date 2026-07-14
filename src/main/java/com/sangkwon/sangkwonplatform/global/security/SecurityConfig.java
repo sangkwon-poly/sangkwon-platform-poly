@@ -1,11 +1,22 @@
 package com.sangkwon.sangkwonplatform.global.security;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
 
 // 인증은 대상별로 나뉜다.
 // - 관리자(/api/admin/**): Spring Security가 아니라 MVC 인터셉터(AdminIpInterceptor,
@@ -20,7 +31,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                // 세션 쿠키 인증이라 CSRF 보호가 필요하다. SPA(정적 JS)가 읽을 수 있게 XSRF-TOKEN 쿠키로 토큰을
+                // 내리고, 프런트(common/js/csrf.js)가 상태변경 요청에 X-XSRF-TOKEN 헤더로 되돌려준다.
+                // 기본 XOR 핸들러는 매 요청 토큰을 마스킹해 쿠키값과 헤더값이 어긋나므로, 쿠키를 그대로 돌려주는
+                // 이 방식에는 평문 핸들러를 쓴다.
+                // 관리자 API(/api/admin/**)는 Spring Security가 아니라 IP 허용목록 + 세션 인터셉터로 보호하므로 예외로 둔다.
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+                        .ignoringRequestMatchers("/api/admin/**"))
+                // 지연 로딩된 토큰을 실제로 한 번 읽어, 첫 GET 응답부터 XSRF-TOKEN 쿠키가 내려가게 한다.
+                .addFilterAfter(new CsrfCookieFilter(), CsrfFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         // 유료 Gemini 호출을 트리거하는 리포트 생성은 로그인 회원만(비용 남용·예산 소진 방지)
                         .requestMatchers(HttpMethod.POST, "/api/llm-reports/**").authenticated()
@@ -31,5 +52,19 @@ public class SecurityConfig {
                         .anyRequest().permitAll()
                 );
         return http.build();
+    }
+
+    // CookieCsrfTokenRepository는 토큰이 실제로 사용될 때만 쿠키를 쓴다. 프런트가 첫 화면 로드부터
+    // 토큰을 읽을 수 있어야 하므로, 여기서 토큰을 한 번 읽어 응답에 XSRF-TOKEN 쿠키가 실리게 한다.
+    static final class CsrfCookieFilter extends OncePerRequestFilter {
+        @Override
+        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                        FilterChain filterChain) throws ServletException, IOException {
+            CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+            if (csrfToken != null) {
+                csrfToken.getToken();
+            }
+            filterChain.doFilter(request, response);
+        }
     }
 }
