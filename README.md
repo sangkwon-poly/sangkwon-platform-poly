@@ -11,7 +11,7 @@
   <img src="https://img.shields.io/badge/Gemini-8E75B2?logo=googlegemini&logoColor=white" alt="Gemini">
 </p>
 
-> 4인 팀 · 2026-07-03 ~ 2026-07-14 · [www.sang.it.kr](https://www.sang.it.kr)
+> 4인 팀 · 2026-07-03 ~ 2026-07-14 · 운영 배포 `www.sang.it.kr` (수업 기간 종료로 현재 내려간 상태)
 
 서울시 상권분석서비스, 서울 열린데이터광장 등 공공데이터를 지도 위에 올려 상권 1,650곳의 매출·유동인구·점포수·성장쇠퇴를 비교하고, Gemini가 그 데이터를 근거로 상권 리포트를 써준다. 기업마당·K-Startup 지원사업, 프랜차이즈·상표 동향까지 한 화면에서 확인할 수 있고, EC2 2대 + ALB로 실제 운영 배포까지 마쳤다.
 
