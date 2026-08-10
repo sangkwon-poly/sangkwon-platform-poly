@@ -46,6 +46,26 @@
 
 도메인 패키지(`map` / `member` / `admin` / `support`)를 나눠 각자 백엔드부터 화면까지 책임지고, `global`(공통 응답·예외·외부 API)만 조장이 관리하며 병렬로 개발했다.
 
+### 내 기여
+
+담당은 상권분석·지도 도메인(`src/main/java/com/sangkwon/sangkwonplatform/map`), 공통 기반(`global`: 응답·예외·배치·레이트리밋·보안), 관리자 백오피스 일부, 그리고 배포 구성(`deploy`)이다.
+
+| 항목 | 값 | 확인 방법 |
+| :--- | :--- | :--- |
+| 커밋 | 206 / 230 (90%) | `git shortlog -sne origin/develop` |
+| PR | 154건 작성, 153건 병합 | 저장소 Pull requests 탭 |
+| 이슈 | 84 / 109 작성 | 저장소 Issues 탭 |
+| 코드 소유 지분 | `src/main/java` 13,094 / 15,351줄 (85%), 312파일 | `git blame` 라인 집계 |
+
+대표 작업 세 건이다.
+
+- [#281](https://github.com/sangkwon-poly/sangkwon-platform-poly/pull/281) EC2 2대와 ALB로 실제 HA 구성. systemd jar 배포와 ALB 런북을 함께 넣어 인스턴스 한 대가 빠져도 서비스가 이어지게 했다.
+- [#280](https://github.com/sangkwon-poly/sangkwon-platform-poly/pull/280) 컨테이너 배포 스택(2인스턴스 + nginx)과 배포·형상 전략 문서. 무상태화 다섯 가지를 어디에 뺐는지 이 문서에 정리했다.
+- [#276](https://github.com/sangkwon-poly/sangkwon-platform-poly/pull/276) 관리자 개요 대시보드와 상권 리포트 광고 지면. 적재 현황 집계를 데이터셋별 최신 1건으로 좁혀 중복을 없앴다.
+
+<p align="center"><img src="screenshots/관리자_대시보드.png" width="720" alt="관리자 대시보드"></p>
+
+
 ## 2. 왜 만들었나
 
 소상공인이 창업 입지를 정할 때 참고할 데이터는 여러 기관에 흩어져 있고, 기존 상권분석 서비스는 유료 리포트 중심이라 가볍게 지역 몇 개를 비교해보고 싶은 사람에겐 진입장벽이 있다. 지원사업 정보도 기업마당·K-Startup에 따로 흩어져 있어 일일이 찾아봐야 한다.
