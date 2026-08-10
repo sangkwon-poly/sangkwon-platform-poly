@@ -119,13 +119,13 @@ Oracle Autonomous DB 19c, 33개 테이블·375개 컬럼. 상권 마스터·차�
 
 ## 7. 신뢰성 · 품질
 
-| 항목 | 결과 |
-| :--- | :--- |
-| 단위 테스트 | 309건 전체 통과 |
-| 통합 테스트 | 33건 중 30건 통과, 3건은 외부 배치 호출이라 테스트 환경상 제외 |
-| 정적분석 | SpotBugs + Find Security Bugs 218건 탐지 (High 2 · Medium 54 · Low 162) |
+| 항목 | 결과 | 재현 |
+| :--- | :--- | :--- |
+| 테스트 | 75개 파일 335건 | `./gradlew test` |
+| CI 게이트 | 지갑 없는 환경에서 통합 태그만 제외하고 전부 실행 | `./gradlew test -PexcludeIntegration` |
+| 정적분석 | SpotBugs + Find Security Bugs. 실제 조치 1건(CSRF) | 아래 참고 |
 
-정적분석 결과 대부분은 정보성(SPRING_ENDPOINT 99건)이거나 오탐(SQL 인젝션 3건은 하드코딩된 식별자만 이어붙이고 값은 바인딩해서 비취약)이었다. 실제 조치가 필요했던 건 CSRF 비활성화 1건으로, `CookieCsrfTokenRepository` + `CsrfTokenRequestAttributeHandler`로 토큰 검증을 붙이고 프런트 공통 스크립트(`csrf.js`)로 상태변경 요청에 토큰을 자동 첨부하도록 고쳤다. 관리자 API(`/api/admin/**`)는 IP 허용목록과 세션 인터셉터로 이미 보호돼 있어 CSRF 예외로 뺐다.
+정적분석은 개발 중 로컬에서 돌린 것이고 플러그인 설정과 리포트를 저장소에 넣지 않았다. 탐지 건수는 이 저장소만으로 재현되지 않으므로 수치는 적지 않는다. 남길 수 있는 것은 결과의 성격이다. 대부분은 정보성이거나 오탐(SQL 인젝션 지적 3건은 하드코딩된 식별자만 이어붙이고 값은 바인딩해서 비취약)이었다. 실제 조치가 필요했던 건 CSRF 비활성화 1건으로, `CookieCsrfTokenRepository` + `CsrfTokenRequestAttributeHandler`로 토큰 검증을 붙이고 프런트 공통 스크립트(`csrf.js`)로 상태변경 요청에 토큰을 자동 첨부하도록 고쳤다. 관리자 API(`/api/admin/**`)는 IP 허용목록과 세션 인터셉터로 이미 보호돼 있어 CSRF 예외로 뺐다.
 
 ## 8. 한계와 개선점
 
