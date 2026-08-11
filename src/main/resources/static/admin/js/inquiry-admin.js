@@ -27,15 +27,15 @@
     function msgOf(r, fallback) { return (r.body && r.body.message) ? r.body.message : fallback; }
     function two(n) { return n < 10 ? "0" + n : "" + n; }
     function fmtDate(iso) {
-        if (!iso) { return "—"; }
+        if (!iso) { return "-"; }
         var d = new Date(iso);
-        if (isNaN(d.getTime())) { return "—"; }
+        if (isNaN(d.getTime())) { return "-"; }
         return d.getFullYear() + "-" + two(d.getMonth() + 1) + "-" + two(d.getDate());
     }
     function fmtDateTime(iso) {
-        if (!iso) { return "—"; }
+        if (!iso) { return "-"; }
         var d = new Date(iso);
-        if (isNaN(d.getTime())) { return "—"; }
+        if (isNaN(d.getTime())) { return "-"; }
         return d.getFullYear() + "-" + two(d.getMonth() + 1) + "-" + two(d.getDate())
             + " " + two(d.getHours()) + ":" + two(d.getMinutes());
     }
@@ -109,7 +109,7 @@
                 : "";
             actions = '<div class="iq-actions">' + answer + close + "</div>";
         } else {
-            actions = '<span class="iq-muted">—</span>';
+            actions = '<span class="iq-muted">-</span>';
         }
         return "<tr>"
             + '<td><span class="iq-title-text">' + esc(i.title) + "</span></td>"

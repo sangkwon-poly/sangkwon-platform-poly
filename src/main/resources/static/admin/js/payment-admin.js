@@ -26,9 +26,9 @@
     function won(n) { return "₩" + num(n); }
     function two(n) { return n < 10 ? "0" + n : "" + n; }
     function fmtDateTime(iso) {
-        if (!iso) { return "—"; }
+        if (!iso) { return "-"; }
         var d = new Date(iso);
-        if (isNaN(d.getTime())) { return "—"; }
+        if (isNaN(d.getTime())) { return "-"; }
         return d.getFullYear() + "-" + two(d.getMonth() + 1) + "-" + two(d.getDate())
             + " " + two(d.getHours()) + ":" + two(d.getMinutes());
     }
@@ -147,8 +147,8 @@
     function memberHtml(o) {
         // 회원이 하드삭제된 주문은 표시명이 없다. 결제 기록 자체는 남겨 보여준다.
         if (o.memberId == null) { return '<span class="pa-orphan">탈퇴 회원</span>'; }
-        return '<div class="pa-member"><span class="pa-name">' + esc(o.nickname || "—") + "</span>"
-            + '<span class="pa-login">' + esc(o.loginId || "—") + "</span></div>";
+        return '<div class="pa-member"><span class="pa-name">' + esc(o.nickname || "-") + "</span>"
+            + '<span class="pa-login">' + esc(o.loginId || "-") + "</span></div>";
     }
 
     // 완료(PAID)는 환불, 대기·실패는 토스 실제 상태로 대사(재확인). 환불 완료 건은 조작할 것이 없다.
@@ -159,7 +159,7 @@
         if (o.status === "PENDING" || o.status === "FAILED") {
             return '<button type="button" class="pa-act" data-reconcile="' + esc(o.orderId) + '">재확인</button>';
         }
-        return '<span class="pa-muted">—</span>';
+        return '<span class="pa-muted">-</span>';
     }
 
     function rowHtml(o) {

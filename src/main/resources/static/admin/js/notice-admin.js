@@ -25,9 +25,9 @@
     function msgOf(r, fallback) { return (r.body && r.body.message) ? r.body.message : fallback; }
     function two(n) { return n < 10 ? "0" + n : "" + n; }
     function fmtDate(iso) {
-        if (!iso) { return "—"; }
+        if (!iso) { return "-"; }
         var d = new Date(iso);
-        if (isNaN(d.getTime())) { return "—"; }
+        if (isNaN(d.getTime())) { return "-"; }
         return d.getFullYear() + "-" + two(d.getMonth() + 1) + "-" + two(d.getDate());
     }
 
@@ -86,7 +86,7 @@
                 + '<button type="button" class="nt-act nt-act-del" data-act="del" data-id="' + n.noticeId + '">삭제</button>'
                 + "</div>";
         } else {
-            actions = '<span class="nt-muted">—</span>';
+            actions = '<span class="nt-muted">-</span>';
         }
         return "<tr>"
             + '<td><div class="nt-title">' + pin + '<span class="nt-title-text">' + esc(n.title) + "</span>" + open + "</div></td>"

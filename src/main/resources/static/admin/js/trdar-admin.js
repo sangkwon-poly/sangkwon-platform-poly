@@ -11,17 +11,17 @@
         });
     }
     function esc(s) { var d = document.createElement("div"); d.textContent = (s == null) ? "" : String(s); return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
-    function num(n) { return (n == null) ? "—" : Number(n).toLocaleString(); }
-    function qLabel(q) { if (!q || q.length < 5) { return q || "—"; } return q.slice(0, 4) + "년 " + q.slice(4) + "분기"; }
+    function num(n) { return (n == null) ? "-": Number(n).toLocaleString(); }
+    function qLabel(q) { if (!q || q.length < 5) { return q || "-"; } return q.slice(0, 4) + "년 " + q.slice(4) + "분기"; }
     function qShort(q) { if (!q || q.length < 5) { return q || ""; } return q.slice(2, 4) + "." + q.slice(4) + "Q"; }
     function salesRow(won) {
-        if (won == null) { return "—"; }
+        if (won == null) { return "-"; }
         var eok = won / 1e8;
         if (eok >= 1) { return Math.round(eok).toLocaleString() + "억"; }
         return Math.round(won / 1e4).toLocaleString() + "만";
     }
     function salesBig(won) {
-        if (won == null) { return "—"; }
+        if (won == null) { return "-"; }
         if (won >= 1e12) { return (won / 1e12).toFixed(1) + "조원"; }
         return Math.round(won / 1e8).toLocaleString() + "억원";
     }
@@ -79,7 +79,7 @@
         return '<tr class="trd-row" data-cd="' + esc(r.trdarCd) + '">'
             + '<td><div class="trd-name">' + esc(r.trdarNm) + "</div><div class=\"trd-code\">" + esc(r.trdarCd) + "</div></td>"
             + '<td class="trd-gu">' + esc(r.signguNm) + "</td>"
-            + '<td class="col-center"><span class="trd-chg ' + chgClass(r.changeIxNm) + '">' + esc(r.changeIxNm || "—") + "</span></td>"
+            + '<td class="col-center"><span class="trd-chg ' + chgClass(r.changeIxNm) + '">' + esc(r.changeIxNm || "-") + "</span></td>"
             + '<td class="col-num trd-num">' + salesRow(r.salesAmt) + "</td>"
             + '<td class="col-num trd-num">' + num(r.flpop) + '<span class="trd-num-sub"> 명</span></td>'
             + '<td class="col-num trd-num">' + num(r.storeCnt) + '<span class="trd-num-sub"> 개</span></td>'
@@ -189,7 +189,7 @@
     // ── 상권 상세 모달 ────────────────────────────────────
     function metricTile(label, val, unit) {
         return '<div class="trd-metric"><div class="trd-metric-label">' + esc(label) + "</div>"
-            + '<div class="trd-metric-val">' + (val == null ? "—" : val)
+            + '<div class="trd-metric-val">' + (val == null ? "-": val)
             + (unit ? '<span class="trd-metric-unit"> ' + esc(unit) + "</span>" : "") + "</div></div>";
     }
     function renderMetrics(m) {
@@ -201,7 +201,7 @@
             + metricTile("프랜차이즈", num(m.frcCnt), "개")
             + metricTile("유동인구", num(m.flpop), "명")
             + metricTile("상주인구", num(m.residentPop), "명")
-            + metricTile("상권 변화", esc(m.changeIxNm || "—"), "");
+            + metricTile("상권 변화", esc(m.changeIxNm || "-"), "");
     }
     function renderInduty(list) {
         if (!list || !list.length) { indutyEl.innerHTML = '<span class="trd-muted">업종 매출 데이터가 없습니다.</span>'; return; }

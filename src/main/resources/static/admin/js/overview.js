@@ -95,7 +95,7 @@
     // 2) 분석 상권 수 (공개 API)
     api("/api/districts/summary").then(function (r) {
         var rows = data(r) || [];
-        set("ov-stat-trdar", rows.length ? rows.length.toLocaleString() : "—");
+        set("ov-stat-trdar", rows.length ? rows.length.toLocaleString(): "-");
     });
 
     // 2-1) 대기중 1:1 문의: 목록 API의 totalElements만 사용 (로그인 관리자 전원 조회 가능)
@@ -109,7 +109,7 @@
 
     // 3) 관리자 수 (SUPER_ADMIN 전용)
     api("/api/admin/admin-users").then(function (r) {
-        if (r.status === 403) { set("ov-stat-admin", "—"); setSub("ov-sub-admin", "권한 필요"); return; }
+        if (r.status === 403) { set("ov-stat-admin", "-"); setSub("ov-sub-admin", "권한 필요"); return; }
         var rows = data(r) || [];
         var active = rows.filter(function (a) { return a.status === "ACTIVE"; }).length;
         set("ov-stat-admin", rows.length.toLocaleString());
@@ -120,7 +120,7 @@
     api("/api/admin/ops/api-usage").then(function (r) {
         var bars = document.getElementById("ov-api-bars");
         if (r.status === 403) {
-            set("ov-stat-api", "—"); setSub("ov-sub-api", "권한 필요");
+            set("ov-stat-api", "-"); setSub("ov-sub-api", "권한 필요");
             bars.innerHTML = '<li class="ov-note">SUPER_ADMIN만 볼 수 있습니다.</li>';
             return;
         }
@@ -150,7 +150,7 @@
     api("/api/admin/ops/batch").then(function (r) {
         var load = document.getElementById("ov-load");
         if (r.status === 403) {
-            set("ov-stat-batch", "—"); setSub("ov-sub-batch", "권한 필요");
+            set("ov-stat-batch", "-"); setSub("ov-sub-batch", "권한 필요");
             load.innerHTML = '<li class="ov-note">SUPER_ADMIN만 볼 수 있습니다.</li>';
             return;
         }
