@@ -39,10 +39,10 @@
 
 | 프로필 | 이름 | 역할 | 담당 |
 | :---: | :--- | :--- | :--- |
-| <a href="https://github.com/SanghyeokLee-KR"><img src="https://github.com/SanghyeokLee-KR.png" width="60" style="border-radius:50%"></a> | **[이상혁](https://github.com/SanghyeokLee-KR)**<br>*팀장* | 백엔드(상권분석·지도) · 인프라 | DB 설계, 상권분석 조회 API, 지도 화면, EC2/ALB 배포, 무중단 롤링 배포 |
-| <a href="https://github.com/loniskr"><img src="https://github.com/loniskr.png" width="60" style="border-radius:50%"></a> | **[김민혁](https://github.com/loniskr)** | 백엔드(회원·인증·결제) | 로그인·세션, 찜, 토스페이먼츠 결제·구독 |
-| <a href="https://github.com/mukae1956"><img src="https://github.com/mukae1956.png" width="60" style="border-radius:50%"></a> | **[곽소정](https://github.com/mukae1956)** | 백엔드(백오피스·운영) · 프론트 일부 | 관리자 인증(OTP), 공지·1:1문의, 운영 대시보드, 랜딩/백오피스 화면 |
-| <a href="https://github.com/yangtori0407"><img src="https://github.com/yangtori0407.png" width="60" style="border-radius:50%"></a> | **[양은영](https://github.com/yangtori0407)** | 백엔드(창업지원·콘텐츠) · 프론트 일부 | 지원사업, 업계동향, AI 상권 리포트(Gemini) |
+| <a href="https://github.com/SanghyeokLee-KR"><img src="https://github.com/SanghyeokLee-KR.png" width="60"></a> | **[이&#8288;상&#8288;혁](https://github.com/SanghyeokLee-KR)**<br>*팀장* | 백엔드(상권분석·지도) · 인프라 | DB 설계, 상권분석 조회 API, 지도 화면, EC2/ALB 배포, 무중단 롤링 배포 |
+| <a href="https://github.com/loniskr"><img src="https://github.com/loniskr.png" width="60"></a> | **[김&#8288;민&#8288;혁](https://github.com/loniskr)** | 백엔드(회원·인증·결제) | 로그인·세션, 찜, 토스페이먼츠 결제·구독 |
+| <a href="https://github.com/mukae1956"><img src="https://github.com/mukae1956.png" width="60"></a> | **[곽&#8288;소&#8288;정](https://github.com/mukae1956)** | 백엔드(백오피스·운영) · 프론트 일부 | 관리자 인증(OTP), 공지·1:1문의, 운영 대시보드, 랜딩/백오피스 화면 |
+| <a href="https://github.com/yangtori0407"><img src="https://github.com/yangtori0407.png" width="60"></a> | **[양&#8288;은&#8288;영](https://github.com/yangtori0407)** | 백엔드(창업지원·콘텐츠) · 프론트 일부 | 지원사업, 업계동향, AI 상권 리포트(Gemini) |
 
 도메인 패키지(`map` / `member` / `admin` / `support`)를 나눠 각자 백엔드부터 화면까지 책임지고, `global`(공통 응답·예외·외부 API)만 조장이 관리하며 병렬로 개발했습니다.
 
